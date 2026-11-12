@@ -1,0 +1,55 @@
+<resources>
+    <string name="app_name">KRONO</string>
+    <string name="krono_subtitle">• Terminal Operativa v4.2</string>
+    <string name="title_acceso">Acceso al Sistema</string>
+    <string name="subtitle_acceso">Gestión Integral de Suministros y Pedidos Mensuales</string>
+
+    <!-- Ciclo Card -->
+    <string name="ciclo_titulo">CICLO ACTIVO • OCTUBRE 2024</string>
+    <string name="ciclo_tag">Zona Norte y Valle</string>
+    <string name="ciclo_desc">Ventana de pedidos abierta para insumos y químicos regulados.</string>
+    <string name="cierre_label">Cierre de solicitudes: </string>
+    <string name="cierre_tiempo">03d : 14h : 42m</string>
+
+    <!-- Role Selection -->
+    <string name="label_roles">Seleccionar Rol de Trabajo</string>
+    <string name="role_operario_title">Operario de Granja</string>
+    <string name="role_operario_tag">Campo</string>
+    <string name="role_operario_desc">Levantamiento de pedido mensual en&#8230;</string>
+
+    <string name="role_supervisor_title">Supervisor / Revisor</string>
+    <string name="role_supervisor_tag">Control</string>
+    <string name="role_supervisor_desc">Aprobación y comparativa histórica de&#8230;</string>
+
+    <string name="role_admin_title">Administrador General</string>
+    <string name="role_admin_tag">Global</string>
+    <string name="role_admin_desc">Gestión de stock, granjas y apertura de&#8230;</string>
+
+    <!-- Login Form -->
+    <string name="label_correo_id">Correo o ID Corporativo AgroStock</string>
+    <string name="hint_id">E100</string>
+    <string name="label_contrasena">Contraseña</string>
+    <string name="olvidaste_clave">¿Olvidaste clave?</string>
+    <string name="pin_rapido">PIN Rápido en Campo</string>
+    <string name="modo_offline">Modo offline</string>
+    <string name="huella">Huella</string>
+    <string name="btn_iniciar_sesion">Iniciar Sesión en KRONO</string>
+    <string name="default_user_id">E100</string>
+    <string name="default_password">12345678</string>
+
+    <!-- Status & Footer -->
+    <string name="catalogo_sync">Catálogo local sincronizado hoy 06:30 AM</string>
+    <string name="sync_action">Sync</string>
+    <string name="soporte_agronomico">Soporte Agronómico</string>
+    <string name="trabajar_desconectado">Trabajar Desconectado</string>
+    <string name="dot_divider">•</string>
+
+    <!-- Accessibility descriptions -->
+    <string name="cd_logo">KRONO Logo</string>
+    <string name="cd_timer">Timer</string>
+    <string name="cd_icon">Icon</string>
+    <string name="cd_fingerprint">Fingerprint</string>
+    <string name="cd_sync">Sync icon</string>
+    <string name="cd_support">Support</string>
+    <string name="cd_offline">Offline Mode</string>
+</resources>

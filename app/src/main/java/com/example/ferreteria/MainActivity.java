@@ -1,0 +1,323 @@
+package com.example.ferreteria;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ScrollView;
+import android.widget.Toast;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import com.google.android.material.card.MaterialCardView;
+
+public class MainActivity extends AppCompatActivity {
+
+    public enum UserRole {
+        OPERARIO("Operario de Granja (Campo)"),
+        SUPERVISOR("Supervisor / Revisor (Control)"),
+        ADMINISTRADOR("Administrador General (Global)");
+
+        private final String displayName;
+
+        UserRole(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    private UserRole selectedRole = UserRole.SUPERVISOR;
+
+    private ScrollView scrollViewMain;
+    private int lastImeHeight = 0;
+
+    private MaterialCardView cardRoleOperario;
+    private MaterialCardView cardRoleSupervisor;
+    private MaterialCardView cardRoleAdmin;
+
+    private ImageView imgRadioOperario;
+    private ImageView imgRadioSupervisor;
+    private ImageView imgRadioAdmin;
+
+    private EditText etUserId;
+    private EditText etPassword;
+
+    private EditText pin1;
+    private EditText pin2;
+    private EditText pin3;
+    private EditText pin4;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+
+        initViews();
+        setupWindowInsets();
+        setupRoleSelection();
+        setupPinAutoAdvance();
+        setupFocusAutoScroll();
+        setupClickListeners();
+    }
+
+    private void initViews() {
+        scrollViewMain = findViewById(R.id.scrollViewMain);
+
+        cardRoleOperario = findViewById(R.id.cardRoleOperario);
+        cardRoleSupervisor = findViewById(R.id.cardRoleSupervisor);
+        cardRoleAdmin = findViewById(R.id.cardRoleAdmin);
+
+        imgRadioOperario = findViewById(R.id.imgRadioOperario);
+        imgRadioSupervisor = findViewById(R.id.imgRadioSupervisor);
+        imgRadioAdmin = findViewById(R.id.imgRadioAdmin);
+
+        etUserId = findViewById(R.id.etUserId);
+        etPassword = findViewById(R.id.etPassword);
+
+        pin1 = findViewById(R.id.pin1);
+        pin2 = findViewById(R.id.pin2);
+        pin3 = findViewById(R.id.pin3);
+        pin4 = findViewById(R.id.pin4);
+    }
+
+    private void setupWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(scrollViewMain, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+
+            lastImeHeight = ime.bottom;
+
+            int bottomInset = Math.max(systemBars.bottom, ime.bottom);
+
+            v.setPadding(
+                    systemBars.left,
+                    systemBars.top,
+                    systemBars.right,
+                    bottomInset
+            );
+
+            // If soft keyboard is visible, position the focused view right above it
+            if (ime.bottom > 0) {
+                scrollViewMain.postDelayed(() -> {
+                    View currentFocused = getCurrentFocus();
+                    if (currentFocused != null) {
+                        scrollToFocusedView(currentFocused);
+                    }
+                }, 100);
+            }
+
+            return WindowInsetsCompat.CONSUMED;
+        });
+    }
+
+    private void setupFocusAutoScroll() {
+        View.OnFocusChangeListener focusChangeListener = (v, hasFocus) -> {
+            if (hasFocus) {
+                scrollViewMain.postDelayed(() -> scrollToFocusedView(v), 100);
+            }
+        };
+
+        View.OnClickListener clickListener = v ->
+                scrollViewMain.postDelayed(() -> scrollToFocusedView(v), 100);
+
+        View[] inputs = new View[]{etUserId, etPassword, pin1, pin2, pin3, pin4};
+        for (View input : inputs) {
+            input.setOnFocusChangeListener(focusChangeListener);
+            input.setOnClickListener(clickListener);
+        }
+    }
+
+    private View resolveTargetContainer(View view) {
+        if (view == null) return null;
+        int viewId = view.getId();
+        if (viewId == R.id.pin1 || viewId == R.id.pin2 || viewId == R.id.pin3 || viewId == R.id.pin4) {
+            View pinGrid = findViewById(R.id.layoutPinGrid);
+            return pinGrid != null ? pinGrid : view;
+        } else if (viewId == R.id.etUserId) {
+            View layoutUserId = findViewById(R.id.layoutUserId);
+            return layoutUserId != null ? layoutUserId : view;
+        } else if (viewId == R.id.etPassword) {
+            View layoutPassword = findViewById(R.id.layoutPassword);
+            return layoutPassword != null ? layoutPassword : view;
+        }
+        return view;
+    }
+
+    private void scrollToFocusedView(View view) {
+        if (scrollViewMain == null || view == null) return;
+
+        final View finalTarget = resolveTargetContainer(view);
+
+        scrollViewMain.post(() -> {
+            int[] targetLocation = new int[2];
+            finalTarget.getLocationOnScreen(targetLocation);
+
+            int targetTopOnScreen = targetLocation[1];
+            int targetBottomOnScreen = targetTopOnScreen + finalTarget.getHeight();
+
+            int[] scrollLocation = new int[2];
+            scrollViewMain.getLocationOnScreen(scrollLocation);
+
+            int screenHeight = getResources().getDisplayMetrics().heightPixels;
+
+            // Keyboard top line on screen
+            int visibleBottomOnScreen;
+            if (lastImeHeight > 0) {
+                visibleBottomOnScreen = screenHeight - lastImeHeight;
+            } else {
+                visibleBottomOnScreen = scrollLocation[1] + scrollViewMain.getHeight();
+            }
+
+            // 2 cm gap is approx 36dp
+            int marginPx = (int) (36 * getResources().getDisplayMetrics().density);
+
+            if (targetBottomOnScreen + marginPx > visibleBottomOnScreen) {
+                int scrollDelta = (targetBottomOnScreen + marginPx) - visibleBottomOnScreen;
+                scrollViewMain.smoothScrollBy(0, scrollDelta);
+            } else if (targetTopOnScreen - marginPx < scrollLocation[1]) {
+                int scrollDelta = targetTopOnScreen - marginPx - scrollLocation[1];
+                scrollViewMain.smoothScrollBy(0, scrollDelta);
+            }
+        });
+    }
+
+    private void setupRoleSelection() {
+        // Set initial selected state (Supervisor selected by default as in reference image)
+        updateRoleUI(UserRole.SUPERVISOR);
+
+        cardRoleOperario.setOnClickListener(v -> updateRoleUI(UserRole.OPERARIO));
+        cardRoleSupervisor.setOnClickListener(v -> updateRoleUI(UserRole.SUPERVISOR));
+        cardRoleAdmin.setOnClickListener(v -> updateRoleUI(UserRole.ADMINISTRADOR));
+    }
+
+    private void updateRoleUI(UserRole role) {
+        selectedRole = role;
+
+        int selectedStrokeColor = ContextCompat.getColor(this, R.color.krono_card_stroke_selected);
+        int unselectedStrokeColor = ContextCompat.getColor(this, R.color.krono_card_stroke);
+
+        int selectedStrokeWidth = (int) (2 * getResources().getDisplayMetrics().density);
+        int unselectedStrokeWidth = (int) (1 * getResources().getDisplayMetrics().density);
+
+        // Operario Card
+        boolean isOperario = (role == UserRole.OPERARIO);
+        cardRoleOperario.setStrokeColor(isOperario ? selectedStrokeColor : unselectedStrokeColor);
+        cardRoleOperario.setStrokeWidth(isOperario ? selectedStrokeWidth : unselectedStrokeWidth);
+        imgRadioOperario.setImageResource(isOperario ? R.drawable.ic_radio_checked : R.drawable.ic_radio_unchecked);
+
+        // Supervisor Card
+        boolean isSupervisor = (role == UserRole.SUPERVISOR);
+        cardRoleSupervisor.setStrokeColor(isSupervisor ? selectedStrokeColor : unselectedStrokeColor);
+        cardRoleSupervisor.setStrokeWidth(isSupervisor ? selectedStrokeWidth : unselectedStrokeWidth);
+        imgRadioSupervisor.setImageResource(isSupervisor ? R.drawable.ic_radio_checked : R.drawable.ic_radio_unchecked);
+
+        // Admin Card
+        boolean isAdmin = (role == UserRole.ADMINISTRADOR);
+        cardRoleAdmin.setStrokeColor(isAdmin ? selectedStrokeColor : unselectedStrokeColor);
+        cardRoleAdmin.setStrokeWidth(isAdmin ? selectedStrokeWidth : unselectedStrokeWidth);
+        imgRadioAdmin.setImageResource(isAdmin ? R.drawable.ic_radio_checked : R.drawable.ic_radio_unchecked);
+    }
+
+    private void setupPinAutoAdvance() {
+        setupPinField(pin1, null, pin2);
+        setupPinField(pin2, pin1, pin3);
+        setupPinField(pin3, pin2, pin4);
+        setupPinField(pin4, pin3, null);
+    }
+
+    private void setupPinField(EditText current, EditText previous, EditText next) {
+        current.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() == 1 && next != null) {
+                    next.requestFocus();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        current.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_DEL && event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (current.getText().length() == 0 && previous != null) {
+                    previous.requestFocus();
+                    previous.setText("");
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
+    private void setupClickListeners() {
+        findViewById(R.id.btnLogin).setOnClickListener(v -> {
+            String userId = etUserId.getText() != null ? etUserId.getText().toString().trim() : "";
+            String pinEntered = getPinText();
+
+            if (selectedRole == UserRole.OPERARIO) {
+                Intent intent = new Intent(MainActivity.this, OperarioActivity.class);
+                startActivity(intent);
+            } else if (selectedRole == UserRole.SUPERVISOR) {
+                Intent intent = new Intent(MainActivity.this, SupervisorActivity.class);
+                startActivity(intent);
+            } else if (selectedRole == UserRole.ADMINISTRADOR) {
+                Intent intent = new Intent(MainActivity.this, AdminActivity.class);
+                startActivity(intent);
+            } else {
+                String message;
+                if (!pinEntered.isEmpty()) {
+                    message = "Acceso PIN (" + pinEntered + ") como: " + selectedRole.getDisplayName();
+                } else if (!userId.isEmpty()) {
+                    message = "Iniciando sesión como: " + selectedRole.getDisplayName() + " (" + userId + ")";
+                } else {
+                    message = "Por favor ingrese su ID o PIN de acceso.";
+                }
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        findViewById(R.id.btnFingerprint).setOnClickListener(v ->
+                Toast.makeText(MainActivity.this, "Autenticación Biométrica (Huella) en proceso...", Toast.LENGTH_SHORT).show()
+        );
+
+        findViewById(R.id.btnSync).setOnClickListener(v ->
+                Toast.makeText(MainActivity.this, "Sincronizando catálogo local con el servidor...", Toast.LENGTH_SHORT).show()
+        );
+
+        findViewById(R.id.txtForgotKey).setOnClickListener(v ->
+                Toast.makeText(MainActivity.this, "Solicitando recuperación de clave corporativa...", Toast.LENGTH_SHORT).show()
+        );
+
+        findViewById(R.id.btnSoporte).setOnClickListener(v ->
+                Toast.makeText(MainActivity.this, "Conectando con Soporte Agronómico...", Toast.LENGTH_SHORT).show()
+        );
+
+        findViewById(R.id.btnDesconectado).setOnClickListener(v ->
+                Toast.makeText(MainActivity.this, "Modo fuera de línea activado", Toast.LENGTH_SHORT).show()
+        );
+    }
+
+    private String getPinText() {
+        return pin1.getText().toString().trim() +
+                pin2.getText().toString().trim() +
+                pin3.getText().toString().trim() +
+                pin4.getText().toString().trim();
+    }
+}
