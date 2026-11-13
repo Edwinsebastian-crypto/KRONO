@@ -44,6 +44,11 @@
     <string name="trabajar_desconectado">Trabajar Desconectado</string>
     <string name="dot_divider">•</string>
 
+    <!-- Supervisor formatting -->
+    <string name="granjas_registradas_fmt">Granjas Registradas en %1$s</string>
+    <string name="visibles_fmt">%1$d visibles</string>
+    <string name="resumen_operativo_fmt">Resumen Operativo: %1$s</string>
+
     <!-- Accessibility descriptions -->
     <string name="cd_logo">KRONO Logo</string>
     <string name="cd_timer">Timer</string>

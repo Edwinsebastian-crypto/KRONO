@@ -11,7 +11,7 @@
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="64dp"
         android:layout_alignParentTop="true"
         android:background="@color/white"
         android:elevation="2dp"
@@ -19,11 +19,19 @@
         android:orientation="horizontal"
         android:paddingHorizontal="16dp">
 
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:contentDescription="@string/cd_logo"
-            android:src="@drawable/logo" />
+        <FrameLayout
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_icon_container">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:contentDescription="Krono Rev"
+                android:src="@drawable/ic_inventory"
+                app:tint="@color/krono_navy" />
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -32,34 +40,49 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textColor="@color/krono_navy"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textColor="@color/krono_navy"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="REV."
+                    android:textColor="@color/krono_text_secondary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Revisiones"
+                android:text="Supervisor Operativo"
                 android:textColor="@color/krono_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Logout / Back button -->
-        <ImageButton
+        <!-- User Avatar Logo -->
+        <ImageView
             android:id="@+id/btnBackLogin"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Back to Login"
-            android:src="@drawable/ic_close"
-            app:tint="@color/krono_text_secondary" />
+            android:clickable="true"
+            android:contentDescription="Avatar"
+            android:focusable="true"
+            android:src="@drawable/logo" />
     </LinearLayout>
 
-    <!-- Bottom Navigation Bar -->
+    <!-- Bottom Navigation Bar (4 Tabs) -->
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
@@ -69,8 +92,9 @@
         android:elevation="8dp"
         android:orientation="horizontal">
 
+        <!-- Tab 1: Zonas y Granjas (Active) -->
         <LinearLayout
-            android:id="@+id/tabPedido"
+            android:id="@+id/tabZonas"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -80,54 +104,22 @@
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:contentDescription="Pedido"
-                android:src="@drawable/ic_tractor"
-                app:tint="@color/krono_text_secondary" />
+                android:contentDescription="Zonas y Granjas"
+                android:src="@drawable/ic_target"
+                app:tint="@color/krono_navy" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pedido"
-                android:textColor="@color/krono_text_secondary"
-                android:textSize="11sp" />
+                android:text="Zonas y Granjas"
+                android:textColor="@color/krono_navy"
+                android:textSize="10sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
+        <!-- Tab 2: Hoja Pedido -->
         <LinearLayout
-            android:id="@+id/tabRevisiones"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_chip"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="4dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="Revisiones"
-                    android:src="@drawable/ic_checklist"
-                    app:tint="@color/krono_navy" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Revisiones"
-                    android:textColor="@color/krono_navy"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/tabVentanas"
+            android:id="@+id/tabHojaPedido"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -137,16 +129,64 @@
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:contentDescription="Ventanas"
-                android:src="@drawable/ic_timer"
+                android:contentDescription="Hoja Pedido"
+                android:src="@drawable/ic_description"
                 app:tint="@color/krono_text_secondary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ventanas"
+                android:text="Hoja Pedido"
                 android:textColor="@color/krono_text_secondary"
-                android:textSize="11sp" />
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- Tab 3: Pedidos -->
+        <LinearLayout
+            android:id="@+id/tabPedidos"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Pedidos"
+                android:src="@drawable/ic_truck"
+                app:tint="@color/krono_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pedidos"
+                android:textColor="@color/krono_text_secondary"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- Tab 4: Historial -->
+        <LinearLayout
+            android:id="@+id/tabHistorial"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Historial"
+                android:src="@drawable/ic_trending_up"
+                app:tint="@color/krono_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Historial"
+                android:textColor="@color/krono_text_secondary"
+                android:textSize="10sp" />
         </LinearLayout>
     </LinearLayout>
 
@@ -167,96 +207,10 @@
             android:paddingTop="14dp"
             android:paddingBottom="24dp">
 
-            <!-- Horizontal Filter Zones -->
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <!-- Zone 1 (Active) -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="38dp"
-                        android:layout_marginEnd="8dp"
-                        android:background="@drawable/bg_button_primary"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="14dp">
-
-                        <View
-                            android:layout_width="6dp"
-                            android:layout_height="6dp"
-                            android:background="@drawable/bg_chip"
-                            android:backgroundTint="@color/white" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="Zona Norte (3 pendientes)"
-                            android:textColor="@color/white"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Zone 2 -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="38dp"
-                        android:layout_marginEnd="8dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="14dp">
-
-                        <View
-                            android:layout_width="6dp"
-                            android:layout_height="6dp"
-                            android:background="@drawable/bg_chip"
-                            android:backgroundTint="@color/krono_text_secondary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="Zona Sur (1)"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-
-                    <!-- Zone 3 -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="38dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="14dp">
-
-                        <View
-                            android:layout_width="6dp"
-                            android:layout_height="6dp"
-                            android:background="@drawable/bg_chip"
-                            android:backgroundTint="@color/krono_text_secondary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="Zona Centro / Valle"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <!-- Card 1: Farm Request Header ("Granja Los Laureles") -->
+            <!-- Card 1: Cycle Period Summary Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
@@ -277,1084 +231,151 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
-                            android:gravity="center_vertical">
+                            android:background="@drawable/bg_chip"
+                            android:gravity="center_vertical"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp">
+
+                            <View
+                                android:layout_width="6dp"
+                                android:layout_height="6dp"
+                                android:background="@drawable/bg_chip"
+                                android:backgroundTint="@color/krono_navy" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:background="@drawable/bg_chip"
-                                android:paddingHorizontal="8dp"
-                                android:paddingVertical="3dp"
-                                android:text="Zona Norte"
-                                android:textColor="@color/krono_chip_text"
+                                android:layout_marginStart="6dp"
+                                android:text="Periodo Activo"
+                                android:textColor="@color/krono_navy_dark"
                                 android:textSize="11sp"
                                 android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="6dp"
-                                android:background="@drawable/bg_chip"
-                                android:paddingHorizontal="8dp"
-                                android:paddingVertical="3dp"
-                                android:text="Ciclo Octubre 2024"
-                                android:textColor="@color/krono_chip_text"
-                                android:textSize="11sp" />
                         </LinearLayout>
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:layout_alignParentEnd="true"
-                            android:contentDescription="Verified"
-                            android:src="@drawable/ic_check_circle"
-                            app:tint="@color/krono_navy" />
-                    </RelativeLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Granja Los Laureles"
-                        android:textColor="@color/krono_navy_dark"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginVertical="10dp"
-                        android:background="@color/krono_card_stroke" />
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:gravity="center_vertical">
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:contentDescription="Solicitado"
-                                android:src="@drawable/ic_person_operario"
-                                app:tint="@color/krono_text_secondary" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="6dp"
-                                android:text="Solicitado por: "
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Carlos Méndez"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:gravity="center_vertical">
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:contentDescription="REQ ID"
-                                android:src="@drawable/ic_history"
-                                app:tint="@color/krono_navy" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:text="Id: #REQ-8829"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </RelativeLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card 2: Detección Inteligente de Consumo (AI Box) -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/krono_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <FrameLayout
-                            android:id="@+id/frameAiIcon"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_alignParentStart="true"
-                            android:background="@drawable/bg_icon_container">
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="IA Icon"
-                                android:src="@drawable/ic_sparkles"
-                                app:tint="@color/krono_navy" />
-                        </FrameLayout>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_toEndOf="@id/frameAiIcon"
-                            android:layout_toStartOf="@id/chipIaActiva"
-                            android:text="Detección Inteligente de Consumo"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/chipIaActiva"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:background="@drawable/bg_chip"
-                            android:paddingHorizontal="10dp"
-                            android:paddingVertical="4dp"
-                            android:text="IA Activa"
-                            android:textColor="@color/krono_chip_text"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-                    </RelativeLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="2 productos coinciden con el pedido del mes anterior (Septiembre 2024). Verifica posibles excedentes de inventario antes de despachar."
-                        android:textColor="@color/krono_text_secondary"
-                        android:textSize="13sp" />
-
-                    <!-- Chart Stats Box -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:padding="12dp">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Tasa de Reorden vs Mes Ant."
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:gravity="center_vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="+66%"
-                                    android:textColor="@color/krono_red_text"
-                                    android:textSize="18sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="6dp"
-                                    android:text="duplicados"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <!-- Visual Sparkline curve mockup -->
-                        <View
-                            android:layout_width="100dp"
-                            android:layout_height="24dp"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
-                            android:background="@drawable/bg_chip"
-                            android:backgroundTint="#202B3047" />
+                            android:text="Corte: 31 Oct - 18:00"
+                            android:textColor="@color/krono_text_secondary"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
                     </RelativeLayout>
 
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Revisión y Aprobación de Ciclo Mensual"
+                        android:textColor="@color/krono_navy_dark"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
 
-            <!-- ITEM 1: Fungicida Mancozeb (Posible Sobrestock) -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/krono_card_stroke"
-                app:strokeWidth="1dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Supervisión de pedidos consolidados para insumos y fertilizantes • Octubre 2024"
+                        android:textColor="@color/krono_text_secondary"
+                        android:textSize="12sp" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <View
-                            android:id="@+id/imgItem1"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_alignParentStart="true"
-                            android:background="@drawable/bg_chip" />
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:layout_toEndOf="@id/imgItem1"
-                            android:layout_toStartOf="@id/chipSobrestock"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Fungicida Mancozeb"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="CAS: 8018-01-7 • Agroquímico"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/chipSobrestock"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:background="@drawable/bg_chip"
-                            android:backgroundTint="@color/krono_red_bg"
-                            android:gravity="center_vertical"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp">
-
-                            <ImageView
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:contentDescription="Warning"
-                                android:src="@drawable/ic_warning" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:text="Posible Sobrestock"
-                                android:textColor="@color/krono_red_text"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </RelativeLayout>
-
-                    <!-- Comparison Box -->
+                    <!-- 3 Metric Tiles -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:orientation="horizontal"
-                        android:padding="12dp">
-
-                        <!-- Column 1: Pedido Anterior -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical">
-
-                                <ImageView
-                                    android:layout_width="14dp"
-                                    android:layout_height="14dp"
-                                    android:contentDescription="Prev"
-                                    android:src="@drawable/ic_timer"
-                                    app:tint="@color/krono_navy" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="4dp"
-                                    android:text="Pedido Anterior"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="10 kg"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Hace 22 días (Sep 2024)"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="1dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginHorizontal="8dp"
-                            android:background="@color/krono_card_stroke" />
-
-                        <!-- Column 2: Pedido Actual -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical">
-
-                                <ImageView
-                                    android:layout_width="14dp"
-                                    android:layout_height="14dp"
-                                    android:contentDescription="Cart"
-                                    android:src="@drawable/ic_shopping_cart"
-                                    app:tint="@color/krono_navy" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="4dp"
-                                    android:text="Pedido Actual"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="11sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="10 kg"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="100% Reposición Idéntica"
-                                android:textColor="@color/krono_red_text"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Control Actions -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:gravity="center_vertical"
                         android:orientation="horizontal">
 
+                        <!-- Tile 1 -->
                         <LinearLayout
                             android:layout_width="0dp"
-                            android:layout_height="40dp"
+                            android:layout_height="60dp"
+                            android:layout_marginEnd="6dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:paddingHorizontal="6dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Cant. Aprob:"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:layout_marginStart="4dp"
-                                android:contentDescription="Minus"
-                                android:src="@drawable/ic_remove"
-                                app:tint="@color/krono_navy" />
-
-                            <EditText
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:layout_marginHorizontal="2dp"
-                                android:background="@drawable/bg_qty_box"
-                                android:gravity="center"
-                                android:inputType="number"
-                                android:text="10"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:contentDescription="Plus"
-                                android:src="@drawable/ic_add"
-                                app:tint="@color/krono_navy" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:text="kg"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-
-                        <!-- Reject Button -->
-                        <ImageButton
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginStart="8dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:contentDescription="Reject"
-                            android:src="@drawable/ic_close"
-                            app:tint="@color/krono_red_text" />
-
-                        <!-- Validate Button -->
-                        <com.google.android.material.button.MaterialButton
-                            android:layout_width="wrap_content"
-                            android:layout_height="40dp"
-                            android:layout_marginStart="8dp"
-                            android:backgroundTint="@color/krono_navy"
-                            android:text="Validar"
-                            android:textAllCaps="false"
-                            android:textColor="@color/white"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            app:cornerRadius="8dp"
-                            app:icon="@drawable/ic_check"
-                            app:iconTint="@color/white" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- ITEM 2: Válvula de bola (Requerimiento Nuevo) -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/krono_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <View
-                            android:id="@+id/imgItem2"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_alignParentStart="true"
-                            android:background="@drawable/bg_chip" />
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:layout_toEndOf="@id/imgItem2"
-                            android:layout_toStartOf="@id/chipNuevo"
+                            android:gravity="center"
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/txtCountEnZona"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Válvula de bola 2 pulg"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="SKU: HYD-VAL-02 • Riego"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/chipNuevo"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:background="@drawable/bg_chip"
-                            android:gravity="center_vertical"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp">
-
-                            <ImageView
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:contentDescription="New"
-                                android:src="@drawable/ic_new_releases"
-                                app:tint="@color/krono_navy" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:text="Requerimiento Nuevo"
-                                android:textColor="@color/krono_chip_text"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </RelativeLayout>
-
-                    <!-- Comparison Box -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:orientation="horizontal"
-                        android:padding="12dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical">
-
-                                <ImageView
-                                    android:layout_width="14dp"
-                                    android:layout_height="14dp"
-                                    android:contentDescription="History"
-                                    android:src="@drawable/ic_history"
-                                    app:tint="@color/krono_navy" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="4dp"
-                                    android:text="Mes Anterior"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="0 uds"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Sin consumo previo"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="1dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginHorizontal="8dp"
-                            android:background="@color/krono_card_stroke" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical">
-
-                                <ImageView
-                                    android:layout_width="14dp"
-                                    android:layout_height="14dp"
-                                    android:contentDescription="Cart"
-                                    android:src="@drawable/ic_shopping_cart"
-                                    app:tint="@color/krono_navy" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="4dp"
-                                    android:text="Pedido Actual"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="11sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="6 uds"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Ampliación sector 3"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Control Actions -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="40dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:paddingHorizontal="6dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Cant. Aprob:"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:layout_marginStart="4dp"
-                                android:contentDescription="Minus"
-                                android:src="@drawable/ic_remove"
-                                app:tint="@color/krono_navy" />
-
-                            <EditText
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:layout_marginHorizontal="2dp"
-                                android:background="@drawable/bg_qty_box"
-                                android:gravity="center"
-                                android:inputType="number"
                                 android:text="6"
                                 android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
+                                android:textSize="18sp"
                                 android:textStyle="bold" />
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:contentDescription="Plus"
-                                android:src="@drawable/ic_add"
-                                app:tint="@color/krono_navy" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:text="uds"
+                                android:text="En Zona"
                                 android:textColor="@color/krono_text_secondary"
                                 android:textSize="11sp" />
                         </LinearLayout>
 
-                        <ImageButton
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginStart="8dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:contentDescription="Reject"
-                            android:src="@drawable/ic_close"
-                            app:tint="@color/krono_red_text" />
+                        <!-- Tile 2 (Active/Highlighted) -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_pin_box"
+                            android:gravity="center"
+                            android:orientation="vertical">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:layout_width="wrap_content"
-                            android:layout_height="40dp"
-                            android:layout_marginStart="8dp"
-                            android:backgroundTint="@color/krono_navy"
-                            android:text="Validar"
-                            android:textAllCaps="false"
-                            android:textColor="@color/white"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            app:cornerRadius="8dp"
-                            app:icon="@drawable/ic_check"
-                            app:iconTint="@color/white" />
+                            <TextView
+                                android:id="@+id/txtCountListas"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="3"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Listas ✓"
+                                android:textColor="@color/krono_navy"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Tile 3 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_cierre_box"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/txtCountPendiente"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="1"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Pendiente"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="11sp" />
+                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ITEM 3: Cable tensor galv. 4mm (Ítem No Catalogado con Justificación) -->
+            <!-- Card 2: Select Zone Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/krono_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <View
-                            android:id="@+id/imgItem3"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_alignParentStart="true"
-                            android:background="@drawable/bg_chip" />
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:layout_toEndOf="@id/imgItem3"
-                            android:layout_toStartOf="@id/chipNoCat"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Cable tensor galv. 4mm"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Requerimiento Especial Operativo"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/chipNoCat"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:background="@drawable/bg_chip"
-                            android:gravity="center_vertical"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp">
-
-                            <ImageView
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:contentDescription="No catalogado"
-                                android:src="@drawable/ic_description"
-                                app:tint="@color/krono_navy" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:text="Ítem No Catalogado"
-                                android:textColor="@color/krono_chip_text"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </RelativeLayout>
-
-                    <!-- Operario Justification Box -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:orientation="vertical"
-                        android:padding="10dp">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical">
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:contentDescription="Operario"
-                                android:src="@drawable/ic_person_operario"
-                                app:tint="@color/krono_navy" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="6dp"
-                                android:text="Justificación de Carlos Méndez (Operario):"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="&quot;Sujeción de urgencia para espalderas del invernadero 4 tras fuertes ráfagas. No se encuentra en el catálogo estándar de ferretería.&quot;"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="12sp"
-                            android:textStyle="italic" />
-                    </LinearLayout>
-
-                    <!-- Comparison Box -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:orientation="horizontal"
-                        android:padding="12dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Historial Catálogo"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Inexistente"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Compra spot / externa"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="1dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginHorizontal="8dp"
-                            android:background="@color/krono_card_stroke" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Solicitud Actual"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="2 rollos"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="500m c/u aprox."
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Control Actions -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="40dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:paddingHorizontal="6dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Cant. Aprob:"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:layout_marginStart="4dp"
-                                android:contentDescription="Minus"
-                                android:src="@drawable/ic_remove"
-                                app:tint="@color/krono_navy" />
-
-                            <EditText
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:layout_marginHorizontal="2dp"
-                                android:background="@drawable/bg_qty_box"
-                                android:gravity="center"
-                                android:inputType="number"
-                                android:text="2"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:contentDescription="Plus"
-                                android:src="@drawable/ic_add"
-                                app:tint="@color/krono_navy" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:text="rollos"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-
-                        <ImageButton
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginStart="8dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:contentDescription="Reject"
-                            android:src="@drawable/ic_close"
-                            app:tint="@color/krono_red_text" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:layout_width="wrap_content"
-                            android:layout_height="40dp"
-                            android:layout_marginStart="8dp"
-                            android:backgroundTint="@color/krono_navy"
-                            android:text="Validar"
-                            android:textAllCaps="false"
-                            android:textColor="@color/white"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            app:cornerRadius="8dp"
-                            app:icon="@drawable/ic_check"
-                            app:iconTint="@color/white" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card 4: Final Review Status & Despacho Action ("Estado de la Revisión") -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
@@ -1380,15 +401,15 @@
                             <ImageView
                                 android:layout_width="18dp"
                                 android:layout_height="18dp"
-                                android:contentDescription="Status"
-                                android:src="@drawable/ic_tune"
+                                android:contentDescription="Loc"
+                                android:src="@drawable/ic_location"
                                 app:tint="@color/krono_navy" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="Estado de la Revisión"
+                                android:text="Seleccionar Zona Operativa"
                                 android:textColor="@color/krono_navy_dark"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
@@ -1398,85 +419,891 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
-                            android:text="2/3 ítems verificados"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
+                            android:text="4 Regiones"
+                            android:textColor="@color/krono_text_secondary"
+                            android:textSize="12sp" />
                     </RelativeLayout>
 
-                    <!-- Progress bar -->
-                    <ProgressBar
-                        style="?android:attr/progressBarStyleHorizontal"
+                    <!-- Main Selected Zone Dropdown Box -->
+                    <RelativeLayout
+                        android:id="@+id/btnZoneDropdown"
                         android:layout_width="match_parent"
-                        android:layout_height="8dp"
-                        android:layout_marginTop="10dp"
-                        android:max="100"
-                        android:progress="66"
-                        android:progressDrawable="@drawable/bg_chip"
-                        android:progressTint="@color/krono_navy" />
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_cierre_box"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="12dp">
+
+                        <FrameLayout
+                            android:id="@+id/frameZoneCircle"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:layout_alignParentStart="true"
+                            android:background="@drawable/bg_button_primary">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="Pin"
+                                android:src="@drawable/ic_location"
+                                app:tint="@color/white" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="10dp"
+                            android:layout_toEndOf="@id/frameZoneCircle"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/txtSelectedZoneTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Zona Norte (Valle Agrícola)"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/txtSelectedZoneSub"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="8 Granjas asignadas • 3 listas"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:contentDescription="Dropdown"
+                            android:src="@drawable/ic_arrow_drop_down"
+                            app:tint="@color/krono_navy" />
+                    </RelativeLayout>
+
+                    <!-- Zone Filter Chips (Scrollable horizontal row) -->
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/chipZoneNorte"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="6dp"
+                                android:background="@drawable/bg_button_primary"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="6dp"
+                                android:text="• Zona Norte (Activo)"
+                                android:textColor="@color/white"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/chipZoneValle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="6dp"
+                                android:background="@drawable/bg_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="6dp"
+                                android:text="Zona Valle Central"
+                                android:textColor="@color/krono_chip_text"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/chipZoneSur"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="6dp"
+                                android:background="@drawable/bg_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="6dp"
+                                android:text="Zona Sur"
+                                android:textColor="@color/krono_chip_text"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/chipZoneOccidente"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="6dp"
+                                android:text="Zona Occidente"
+                                android:textColor="@color/krono_chip_text"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </HorizontalScrollView>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Section Header: Granjas Registradas -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="Farm"
+                        android:src="@drawable/ic_farm"
+                        app:tint="@color/krono_navy" />
+
+                    <TextView
+                        android:id="@+id/txtHeaderGranjas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Granjas Registradas en Zona Norte"
+                        android:textColor="@color/krono_navy_dark"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txtCountVisibles"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:background="@drawable/bg_chip"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="6 visibles"
+                    android:textColor="@color/krono_chip_text"
+                    android:textSize="11sp" />
+            </RelativeLayout>
+
+            <!-- Dynamic Farm List Container -->
+            <LinearLayout
+                android:id="@+id/layoutFarmList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical">
+
+                <!-- Farm 1: Granja Los Laureles -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/krono_card_stroke"
+                    app:strokeWidth="1dp">
 
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp">
+                        android:padding="12dp">
 
-                        <TextView
+                        <FrameLayout
+                            android:id="@+id/frameFarm1"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_alignParentStart="true"
+                            android:background="@drawable/bg_icon_container">
+
+                            <ImageView
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="Farm"
+                                android:src="@drawable/ic_farm"
+                                app:tint="@color/krono_navy" />
+                        </FrameLayout>
+
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:text="1 ítem con ajuste sugerido"
-                            android:textColor="@color/krono_text_secondary"
-                            android:textSize="12sp" />
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="10dp"
+                            android:layout_toEndOf="@id/frameFarm1"
+                            android:layout_toStartOf="@id/chipFarm1"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Granja Los Laureles"
+                                    android:textColor="@color/krono_navy_dark"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <ImageView
+                                    android:layout_width="14dp"
+                                    android:layout_height="14dp"
+                                    android:layout_marginStart="4dp"
+                                    android:contentDescription="Checked"
+                                    android:src="@drawable/ic_check_circle"
+                                    app:tint="@color/krono_navy" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Sector El Trébol • Parcela 4"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
 
                         <TextView
+                            android:id="@+id/chipFarm1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
-                            android:text="Despacho estim: 24h"
-                            android:textColor="@color/krono_text_secondary"
-                            android:textSize="12sp" />
+                            android:layout_centerVertical="true"
+                            android:background="@drawable/bg_blue_chip"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:text="✓ Hoja Lista (3)"
+                            android:textColor="@color/krono_navy_dark"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
                     </RelativeLayout>
+                </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Buttons Row -->
+                <!-- Farm 2: Finca San Isidro -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/krono_card_stroke"
+                    app:strokeWidth="1dp">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <FrameLayout
+                                android:id="@+id/frameFarm2"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_alignParentStart="true"
+                                android:background="@drawable/bg_icon_container">
+
+                                <ImageView
+                                    android:layout_width="22dp"
+                                    android:layout_height="22dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="Farm"
+                                    android:src="@drawable/ic_farm"
+                                    app:tint="@color/krono_navy" />
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
+                                android:layout_marginStart="10dp"
+                                android:layout_toEndOf="@id/frameFarm2"
+                                android:layout_toStartOf="@id/chipFarm2"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Finca San Isidro"
+                                    android:textColor="@color/krono_navy_dark"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Por Mateo Rosales • 10:15 AM"
+                                    android:textColor="@color/krono_text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/chipFarm2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:background="@drawable/bg_blue_chip"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="4dp"
+                                android:text="✓ Hoja Lista (5)"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:text="Total: $2,890 USD • 32 sacos"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/btnVerPedido2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:text="Ver Pedido >"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Farm 3: Granja Santa Elena -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/krono_card_stroke"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <FrameLayout
+                                android:id="@+id/frameFarm3"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_alignParentStart="true"
+                                android:background="@drawable/bg_icon_container">
+
+                                <ImageView
+                                    android:layout_width="22dp"
+                                    android:layout_height="22dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="Farm"
+                                    android:src="@drawable/ic_farm"
+                                    app:tint="@color/krono_navy" />
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
+                                android:layout_marginStart="10dp"
+                                android:layout_toEndOf="@id/frameFarm3"
+                                android:layout_toStartOf="@id/chipFarm3"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Granja Santa Elena"
+                                    android:textColor="@color/krono_navy_dark"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Agrónomo Laura Peña"
+                                    android:textColor="@color/krono_text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/chipFarm3"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:background="@drawable/bg_yellow_chip"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="4dp"
+                                android:text="⏳ En Edición (Borrador)"
+                                android:textColor="#B88600"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:text="Pendiente de envío de campo"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:text="Auto-guardado 09:12 AM"
+                                android:textColor="@color/krono_text_muted"
+                                android:textSize="11sp" />
+                        </RelativeLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Farm 4: Granja El Porvenir (Sin Actividad) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/krono_card_stroke"
+                    app:strokeWidth="1dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="12dp">
+
+                        <FrameLayout
+                            android:id="@+id/frameFarm4"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_alignParentStart="true"
+                            android:background="@drawable/bg_cierre_box">
+
+                            <ImageView
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="Block"
+                                android:src="@drawable/ic_block"
+                                app:tint="@color/krono_text_muted" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="10dp"
+                            android:layout_toEndOf="@id/frameFarm4"
+                            android:layout_toStartOf="@id/chipFarm4"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Granja El Porvenir"
+                                android:textColor="@color/krono_text_muted"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Sin actividad registrada"
+                                android:textColor="@color/krono_text_muted"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/chipFarm4"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:background="@drawable/bg_red_chip"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:text="✕ Sin Hoja"
+                            android:textColor="@color/krono_red_text"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Farm 5: Agropecuaria Don Pedro -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/krono_card_stroke"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <FrameLayout
+                                android:id="@+id/frameFarm5"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_alignParentStart="true"
+                                android:background="@drawable/bg_icon_container">
+
+                                <ImageView
+                                    android:layout_width="22dp"
+                                    android:layout_height="22dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="Farm"
+                                    android:src="@drawable/ic_farm"
+                                    app:tint="@color/krono_navy" />
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
+                                android:layout_marginStart="10dp"
+                                android:layout_toEndOf="@id/frameFarm5"
+                                android:layout_toStartOf="@id/chipFarm5"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Agropecuaria Don Pedro"
+                                    android:textColor="@color/krono_navy_dark"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Por Javier Silva • Ayer 17:40"
+                                    android:textColor="@color/krono_text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/chipFarm5"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:background="@drawable/bg_blue_chip"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="4dp"
+                                android:text="✓ Hoja Lista (4)"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:text="Total: $1,975 USD • 22 sacos"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/btnVerPedido5"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:text="Ver Pedido >"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Farm 6: Hacienda La Colina (En Pausa) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/krono_card_stroke"
+                    app:strokeWidth="1dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="12dp">
+
+                        <FrameLayout
+                            android:id="@+id/frameFarm6"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_alignParentStart="true"
+                            android:background="@drawable/bg_cierre_box">
+
+                            <ImageView
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="Pause"
+                                android:src="@drawable/ic_inventory"
+                                app:tint="@color/krono_text_muted" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="10dp"
+                            android:layout_toEndOf="@id/frameFarm6"
+                            android:layout_toStartOf="@id/chipFarm6"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Hacienda La Colina"
+                                android:textColor="@color/krono_text_muted"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Ciclo en pausa de mantenimiento"
+                                android:textColor="@color/krono_text_muted"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/chipFarm6"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:background="@drawable/bg_chip"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:text="✕ Sin Hoja"
+                            android:textColor="@color/krono_text_secondary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+            <!-- Card 3: Dark Resumen Operativo Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@color/krono_navy"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:gravity="center_vertical">
+
+                            <FrameLayout
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:background="@drawable/bg_chip"
+                                android:backgroundTint="#20FFFFFF">
+
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="Chart"
+                                    android:src="@drawable/ic_trending_up"
+                                    app:tint="@color/white" />
+                            </FrameLayout>
+
+                            <TextView
+                                android:id="@+id/txtResumenTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="Resumen Operativo: Zona Norte"
+                                android:textColor="@color/white"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/txtCoberturaPct"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:background="@drawable/bg_chip"
+                            android:backgroundTint="#30FFFFFF"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="3dp"
+                            android:text="83% Cobertura"
+                            android:textColor="@color/white"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/txtResumenSub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="3 Hojas listas para revisión, 1 en borrador y 2 sin pedido reportado este mes."
+                        android:textColor="#D0D4E0"
+                        android:textSize="12sp" />
+
+                    <!-- Segmented Progress Bar -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:layout_marginTop="12dp"
                         android:orientation="horizontal">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnPedirAclaracion"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
+                        <View
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            android:text="Pedir Aclaración"
-                            android:textAllCaps="false"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
-                            app:cornerRadius="10dp"
-                            app:icon="@drawable/ic_comment"
-                            app:iconTint="@color/krono_navy"
-                            app:strokeColor="@color/krono_card_stroke"
-                            app:strokeWidth="1dp" />
+                            android:layout_height="match_parent"
+                            android:layout_marginEnd="3dp"
+                            android:layout_weight="3"
+                            android:background="@drawable/bg_chip"
+                            android:backgroundTint="@color/white" />
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnAprobarDespachar"
+                        <View
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1.2"
-                            android:backgroundTint="@color/krono_navy"
-                            android:text="Aprobar y Despachar"
-                            android:textAllCaps="false"
+                            android:layout_height="match_parent"
+                            android:layout_marginEnd="3dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_chip"
+                            android:backgroundTint="#80FFFFFF" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="2"
+                            android:background="@drawable/bg_chip"
+                            android:backgroundTint="#30FFFFFF" />
+                    </LinearLayout>
+
+                    <!-- Legend row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/txtLegend1"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="• 3 Listas"
                             android:textColor="@color/white"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
-                            app:cornerRadius="10dp"
-                            app:icon="@drawable/ic_truck"
-                            app:iconTint="@color/white" />
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txtLegend2"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="• 1 Borrador"
+                            android:textColor="#C0C4D0"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/txtLegend3"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="• 2 Sin Pedido"
+                            android:textColor="#A0A4B0"
+                            android:textSize="11sp" />
                     </LinearLayout>
 
                 </LinearLayout>
