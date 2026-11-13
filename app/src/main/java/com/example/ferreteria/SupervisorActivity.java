@@ -1,10 +1,14 @@
 package com.example.ferreteria;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.SystemBarStyle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -59,18 +63,29 @@ public class SupervisorActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         loadZonasView();
+    }
+
+    private void applyStatusBarAndTopBarInsets() {
+        EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
+
+        View statusBarBg = findViewById(R.id.statusBarBg);
+        if (statusBarBg != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(statusBarBg, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                ViewGroup.LayoutParams lp = v.getLayoutParams();
+                if (lp != null && lp.height != systemBars.top) {
+                    lp.height = systemBars.top;
+                    v.setLayoutParams(lp);
+                }
+                return insets;
+            });
+        }
     }
 
     public void loadZonasView() {
         setContentView(R.layout.activity_supervisor);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.topBar), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, v.getPaddingBottom());
-            return insets;
-        });
+        applyStatusBarAndTopBarInsets();
 
         initZonasViews();
         setupZoneSelection();
@@ -79,36 +94,21 @@ public class SupervisorActivity extends AppCompatActivity {
 
     public void loadHojaPedidoView() {
         setContentView(R.layout.activity_sup_hojapedido);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.topBar), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, v.getPaddingBottom());
-            return insets;
-        });
+        applyStatusBarAndTopBarInsets();
 
         setupHojaPedidoClickListeners();
     }
 
     public void loadPedidosView() {
         setContentView(R.layout.activity_sup_pedidos);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.topBar), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, v.getPaddingBottom());
-            return insets;
-        });
+        applyStatusBarAndTopBarInsets();
 
         setupPedidosClickListeners();
     }
 
     public void loadHistorialView() {
         setContentView(R.layout.activity_sup_historial);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.topBar), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, v.getPaddingBottom());
-            return insets;
-        });
+        applyStatusBarAndTopBarInsets();
 
         setupHistorialClickListeners();
     }
@@ -191,11 +191,6 @@ public class SupervisorActivity extends AppCompatActivity {
         TextView btnVerPedido2 = findViewById(R.id.btnVerPedido2);
         if (btnVerPedido2 != null) {
             btnVerPedido2.setOnClickListener(v -> loadHojaPedidoView());
-        }
-
-        TextView btnVerPedido5 = findViewById(R.id.btnVerPedido5);
-        if (btnVerPedido5 != null) {
-            btnVerPedido5.setOnClickListener(v -> loadHojaPedidoView());
         }
 
         findViewById(R.id.tabZonas).setOnClickListener(v ->

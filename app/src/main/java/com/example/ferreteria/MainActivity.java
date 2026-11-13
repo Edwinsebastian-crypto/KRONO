@@ -1,17 +1,20 @@
 package com.example.ferreteria;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.SystemBarStyle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -62,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+        EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         setContentView(R.layout.activity_main);
 
         initViews();
@@ -94,9 +97,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupWindowInsets() {
+        View statusBarBg = findViewById(R.id.statusBarBg);
+
         ViewCompat.setOnApplyWindowInsetsListener(scrollViewMain, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+
+            if (statusBarBg != null) {
+                ViewGroup.LayoutParams lp = statusBarBg.getLayoutParams();
+                if (lp != null && lp.height != systemBars.top) {
+                    lp.height = systemBars.top;
+                    statusBarBg.setLayoutParams(lp);
+                }
+            }
 
             lastImeHeight = ime.bottom;
 
@@ -104,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
             v.setPadding(
                     systemBars.left,
-                    systemBars.top,
+                    0,
                     systemBars.right,
                     bottomInset
             );

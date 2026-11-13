@@ -7,12 +7,20 @@
     android:background="@color/krono_bg"
     tools:context=".SupervisorActivity">
 
+    <!-- Status Bar Navy Background Header -->
+    <View
+        android:id="@+id/statusBarBg"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_alignParentTop="true"
+        android:background="@color/krono_navy" />
+
     <!-- Top App Bar -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="64dp"
-        android:layout_alignParentTop="true"
+        android:layout_below="@id/statusBarBg"
         android:background="@color/white"
         android:elevation="2dp"
         android:gravity="center_vertical"
