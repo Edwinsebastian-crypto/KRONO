@@ -66,6 +66,13 @@ public class PedidoRepository {
         });
     }
 
+    public void obtenerPedidosPorOperario(String operarioId, PedidosCallback callback) {
+        IO_EXECUTOR.execute(() -> {
+            try { List<PedidoEntity> pedidos = pedidoDao.obtenerPorOperario(operarioId); MAIN_HANDLER.post(() -> callback.onSuccess(pedidos)); }
+            catch (Exception error) { MAIN_HANDLER.post(() -> callback.onError(error)); }
+        });
+    }
+
     public void obtenerPedidos(PedidosCallback callback) {
         IO_EXECUTOR.execute(() -> {
             try {
