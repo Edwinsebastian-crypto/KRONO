@@ -19,7 +19,7 @@
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="64dp"
         android:layout_below="@id/statusBarBg"
         android:background="@color/white"
         android:elevation="2dp"
@@ -28,30 +28,46 @@
         android:paddingHorizontal="16dp">
 
         <ImageView
-            android:layout_width="34dp"
-            android:layout_height="34dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:contentDescription="@string/cd_logo"
             android:src="@drawable/logo" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textColor="@color/krono_navy"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textColor="@color/krono_navy"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="REV."
+                    android:textColor="@color/krono_text_secondary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <TextView
+                android:id="@+id/txtOperarioSubTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Operario de Granja"
+                android:text="Operario de Granja • Revisiones"
                 android:textColor="@color/krono_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -80,7 +96,7 @@
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="64dp"
         android:layout_alignParentBottom="true"
         android:background="@color/white"
         android:elevation="8dp"
@@ -96,8 +112,8 @@
             android:orientation="vertical">
 
             <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:contentDescription="Hoja Pedido"
                 android:src="@drawable/ic_description"
                 app:tint="@color/krono_text_secondary" />
@@ -105,9 +121,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:text="Hoja Pedido"
                 android:textColor="@color/krono_text_secondary"
-                android:textSize="11sp" />
+                android:textSize="10sp" />
         </LinearLayout>
 
         <!-- Tab 2: Revisiones (Activo) -->
@@ -120,8 +137,8 @@
             android:orientation="vertical">
 
             <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:contentDescription="Revisiones"
                 android:src="@drawable/ic_fact_check"
                 app:tint="@color/krono_navy" />
@@ -129,15 +146,17 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:text="Revisiones"
                 android:textColor="@color/krono_navy"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Contenido Scrollable de Revisiones por Fecha -->
+    <!-- Contenido Scrollable de Revisiones -->
     <ScrollView
+        android:id="@+id/scrollViewRevisiones"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottomNav"
@@ -145,11 +164,12 @@
         android:fillViewport="true">
 
         <LinearLayout
+            android:id="@+id/contentRevisiones"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="16dp"
-            android:paddingTop="16dp"
+            android:paddingTop="14dp"
             android:paddingBottom="24dp">
 
             <!-- Título de Sección -->
@@ -158,559 +178,24 @@
                 android:layout_height="wrap_content"
                 android:text="Hojas de Pedidos Enviadas"
                 android:textColor="@color/krono_navy_dark"
-                android:textSize="22sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Toque un pedido para desplegar sus productos e insumos"
+                android:text="Toque un pedido para abrir su detalle completo y dictamen del supervisor"
                 android:textColor="@color/krono_text_secondary"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
-            <!-- Contenedor dinámico de revisiones empaquetadas -->
+            <!-- Contenedor dinámico de revisiones con estilo de Imagen 2 -->
             <LinearLayout
                 android:id="@+id/containerRevisiones"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <!-- 1. Pedido 1: 13 Noviembre 2026 -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardRevision1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="14dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/krono_card_stroke"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <!-- Cabecera del Empaque: Solo Pedido # y Fecha (con Badge y Flecha Desplegable) -->
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentStart="true"
-                                android:background="@drawable/bg_blue_chip"
-                                android:paddingHorizontal="10dp"
-                                android:paddingVertical="4dp"
-                                android:text="⌛ En Revisión Técnica"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:text="13 Nov 2026"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </RelativeLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Pedido #PED-2026-11-ZN04"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <ImageView
-                                android:id="@+id/arrowRevision1"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:contentDescription="Desplegar pedido"
-                                android:src="@drawable/ic_arrow_drop_down"
-                                app:tint="@color/krono_navy" />
-                        </LinearLayout>
-
-                        <!-- Contenedor Desplegable: Productos e Insumos (Oculto inicialmente) -->
-                        <LinearLayout
-                            android:id="@+id/detailsRevision1"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:orientation="vertical"
-                            android:visibility="gone">
-
-                            <View
-                                android:layout_width="match_parent"
-                                android:layout_height="1dp"
-                                android:background="@color/krono_card_stroke" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
-                                android:text="Productos Solicitados:"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <!-- Lista de productos -->
-                            <LinearLayout
-                                android:id="@+id/listRevision1Products"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:orientation="vertical">
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:background="@drawable/bg_cierre_box"
-                                    android:gravity="center_vertical"
-                                    android:padding="10dp">
-
-                                    <TextView
-                                        android:layout_width="0dp"
-                                        android:layout_height="wrap_content"
-                                        android:layout_weight="1"
-                                        android:text="Fertilizante NPK 15-15-15 (Sacos 50kg)"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="13sp"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:background="@drawable/bg_qty_box"
-                                        android:paddingHorizontal="10dp"
-                                        android:paddingVertical="4dp"
-                                        android:text="20 sacos"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="12sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="6dp"
-                                    android:background="@drawable/bg_cierre_box"
-                                    android:gravity="center_vertical"
-                                    android:padding="10dp">
-
-                                    <TextView
-                                        android:layout_width="0dp"
-                                        android:layout_height="wrap_content"
-                                        android:layout_weight="1"
-                                        android:text="Insecticida Concentrado 1L"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="13sp"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:background="@drawable/bg_qty_box"
-                                        android:paddingHorizontal="10dp"
-                                        android:paddingVertical="4dp"
-                                        android:text="12 frascos"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="12sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="10dp"
-                                android:background="@drawable/bg_chip"
-                                android:padding="10dp">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Supervisor asignado: Mateo Rosales • En proceso de aprobación técnica"
-                                    android:textColor="@color/krono_chip_text"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- 2. Pedido 2: 28 Octubre 2026 -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardRevision2"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="14dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/krono_card_stroke"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentStart="true"
-                                android:background="@drawable/bg_green_chip"
-                                android:paddingHorizontal="10dp"
-                                android:paddingVertical="4dp"
-                                android:text="✓ Aprobado por Supervisor"
-                                android:textColor="@color/krono_green_text"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:text="28 Oct 2026"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </RelativeLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Pedido #PED-2026-10-ZN02"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <ImageView
-                                android:id="@+id/arrowRevision2"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:contentDescription="Desplegar pedido"
-                                android:src="@drawable/ic_arrow_drop_down"
-                                app:tint="@color/krono_navy" />
-                        </LinearLayout>
-
-                        <!-- Contenedor Desplegable: Productos e Insumos (Oculto inicialmente) -->
-                        <LinearLayout
-                            android:id="@+id/detailsRevision2"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:orientation="vertical"
-                            android:visibility="gone">
-
-                            <View
-                                android:layout_width="match_parent"
-                                android:layout_height="1dp"
-                                android:background="@color/krono_card_stroke" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
-                                android:text="Productos Solicitados:"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:orientation="vertical">
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:background="@drawable/bg_cierre_box"
-                                    android:gravity="center_vertical"
-                                    android:padding="10dp">
-
-                                    <TextView
-                                        android:layout_width="0dp"
-                                        android:layout_height="wrap_content"
-                                        android:layout_weight="1"
-                                        android:text="Urea Granulada 46% (Sacos 50kg)"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="13sp"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:background="@drawable/bg_qty_box"
-                                        android:paddingHorizontal="10dp"
-                                        android:paddingVertical="4dp"
-                                        android:text="25 sacos"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="12sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="6dp"
-                                    android:background="@drawable/bg_cierre_box"
-                                    android:gravity="center_vertical"
-                                    android:padding="10dp">
-
-                                    <TextView
-                                        android:layout_width="0dp"
-                                        android:layout_height="wrap_content"
-                                        android:layout_weight="1"
-                                        android:text="Kits de Boquillas de Aspersión"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="13sp"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:background="@drawable/bg_qty_box"
-                                        android:paddingHorizontal="10dp"
-                                        android:paddingVertical="4dp"
-                                        android:text="10 kits"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="12sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="10dp"
-                                android:background="@drawable/bg_green_chip"
-                                android:padding="10dp">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Dictamen: Cantidades aprobadas en su totalidad para despacho en Rampa 3."
-                                    android:textColor="@color/krono_green_text"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- 3. Pedido 3: 15 Septiembre 2026 -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardRevision3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="14dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/krono_card_stroke"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentStart="true"
-                                android:background="@drawable/bg_green_chip"
-                                android:paddingHorizontal="10dp"
-                                android:paddingVertical="4dp"
-                                android:text="✓ Despachado y Entregado"
-                                android:textColor="@color/krono_green_text"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:text="15 Sep 2026"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </RelativeLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Pedido #PED-2026-09-ZN01"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <ImageView
-                                android:id="@+id/arrowRevision3"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:contentDescription="Desplegar pedido"
-                                android:src="@drawable/ic_arrow_drop_down"
-                                app:tint="@color/krono_navy" />
-                        </LinearLayout>
-
-                        <!-- Contenedor Desplegable: Productos e Insumos (Oculto inicialmente) -->
-                        <LinearLayout
-                            android:id="@+id/detailsRevision3"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:orientation="vertical"
-                            android:visibility="gone">
-
-                            <View
-                                android:layout_width="match_parent"
-                                android:layout_height="1dp"
-                                android:background="@color/krono_card_stroke" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
-                                android:text="Productos Solicitados:"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:orientation="vertical">
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:background="@drawable/bg_cierre_box"
-                                    android:gravity="center_vertical"
-                                    android:padding="10dp">
-
-                                    <TextView
-                                        android:layout_width="0dp"
-                                        android:layout_height="wrap_content"
-                                        android:layout_weight="1"
-                                        android:text="Fertilizante NPK Complejo (Sacos 50kg)"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="13sp"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:background="@drawable/bg_qty_box"
-                                        android:paddingHorizontal="10dp"
-                                        android:paddingVertical="4dp"
-                                        android:text="40 sacos"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="12sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="6dp"
-                                    android:background="@drawable/bg_cierre_box"
-                                    android:gravity="center_vertical"
-                                    android:padding="10dp">
-
-                                    <TextView
-                                        android:layout_width="0dp"
-                                        android:layout_height="wrap_content"
-                                        android:layout_weight="1"
-                                        android:text="Repuestos de Bomba de Fumigación"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="13sp"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:background="@drawable/bg_qty_box"
-                                        android:paddingHorizontal="10dp"
-                                        android:paddingVertical="4dp"
-                                        android:text="5 kits"
-                                        android:textColor="@color/krono_navy_dark"
-                                        android:textSize="12sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="10dp"
-                                android:background="@drawable/bg_chip"
-                                android:padding="10dp">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Remisión: #REM-2026-09-082 • Entregado por Cond. Roberto Díaz"
-                                    android:textColor="@color/krono_chip_text"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-            </LinearLayout>
+                android:layout_marginTop="14dp"
+                android:orientation="vertical" />
 
         </LinearLayout>
     </ScrollView>

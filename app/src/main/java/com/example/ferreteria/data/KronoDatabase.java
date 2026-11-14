@@ -21,7 +21,7 @@ import com.example.ferreteria.data.entity.RevisionPedidoEntity;
 
 @Database(
         entities = {PedidoEntity.class, InsumoPedidoEntity.class, UserEntity.class, FarmEntity.class, ZoneEntity.class, InventoryEntity.class, AuditEntity.class, RevisionPedidoEntity.class},
-        version = 3,
+        version = 4,
         exportSchema = false
 )
 public abstract class KronoDatabase extends RoomDatabase {
@@ -43,6 +43,20 @@ public abstract class KronoDatabase extends RoomDatabase {
         }
     };
 
+    private static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override public void migrate(SupportSQLiteDatabase db) {
+            try {
+                db.execSQL("ALTER TABLE granjas ADD COLUMN codigoAcceso TEXT DEFAULT ''");
+            } catch (Exception ignored) {}
+            try {
+                db.execSQL("ALTER TABLE granjas ADD COLUMN password TEXT DEFAULT ''");
+            } catch (Exception ignored) {}
+            try {
+                db.execSQL("ALTER TABLE pedidos ADD COLUMN granja TEXT DEFAULT ''");
+            } catch (Exception ignored) {}
+        }
+    };
+
     public abstract PedidoDao pedidoDao();
     public abstract AdminDao adminDao();
 
@@ -54,7 +68,7 @@ public abstract class KronoDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             KronoDatabase.class,
                             "krono_local.db"
-                    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                      .fallbackToDestructiveMigration()
                      .build();
                 }

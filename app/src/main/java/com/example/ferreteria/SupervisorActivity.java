@@ -1129,32 +1129,47 @@ public class SupervisorActivity extends AppCompatActivity {
         LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(-1, -2);
         cardLp.setMargins(0, dp(8), 0, dp(8));
         card.setLayoutParams(cardLp);
+        card.setOnClickListener(v -> loadHojaPedidoView(pedido.granja != null ? pedido.granja : "Granja Los Laureles"));
         return card;
     }
 
     // ==========================================
-    // 5. HISTORIAL CONSOLIDADO Y JERÁRQUICO
+    // 5. HISTORIAL: RÉPLICA DE ZONAS Y GRANJAS CON EXPORTACIÓN POR ZONA Y GRANJA
     // ==========================================
+    private Zone currentHistorialZone = Zone.NORTE;
+
     public void loadHistorialView() {
         setContentView(R.layout.activity_sup_historial);
         StatusBarUtils.applyStatusBarNavyHeader(this);
 
         setupHistorialClickListeners();
-        cargarHistorialJerarquico();
+        actualizarVistaHistorialZona(currentHistorialZone);
     }
 
     private void setupHistorialClickListeners() {
         View btnLogout = findViewById(R.id.btnBackLogin);
         if (btnLogout != null) btnLogout.setOnClickListener(v -> finish());
 
-        View btnPdf = findViewById(R.id.btnExportPdf);
-        if (btnPdf != null) {
-            btnPdf.setOnClickListener(v -> exportarHistorialPDF());
+        // Chips de zonas en Historial
+        TextView chipNorte = findViewById(R.id.chipHistorialNorte);
+        TextView chipValle = findViewById(R.id.chipHistorialValle);
+        TextView chipSur = findViewById(R.id.chipHistorialSur);
+        TextView chipOccidente = findViewById(R.id.chipHistorialOccidente);
+
+        if (chipNorte != null) chipNorte.setOnClickListener(v -> actualizarVistaHistorialZona(Zone.NORTE));
+        if (chipValle != null) chipValle.setOnClickListener(v -> actualizarVistaHistorialZona(Zone.VALLE));
+        if (chipSur != null) chipSur.setOnClickListener(v -> actualizarVistaHistorialZona(Zone.SUR));
+        if (chipOccidente != null) chipOccidente.setOnClickListener(v -> actualizarVistaHistorialZona(Zone.OCCIDENTE));
+
+        // Exportación de la zona seleccionada
+        View btnCsv = findViewById(R.id.btnExportZonaCsv);
+        if (btnCsv != null) {
+            btnCsv.setOnClickListener(v -> exportarPedidosFiltrados(currentHistorialZone.shortName, null, false));
         }
 
-        View btnCsv = findViewById(R.id.btnExportCsv);
-        if (btnCsv != null) {
-            btnCsv.setOnClickListener(v -> exportarHistorialCSV());
+        View btnPdf = findViewById(R.id.btnExportZonaPdf);
+        if (btnPdf != null) {
+            btnPdf.setOnClickListener(v -> exportarPedidosFiltrados(currentHistorialZone.shortName, null, true));
         }
 
         View tabZonas = findViewById(R.id.tabZonas);
@@ -1168,26 +1183,218 @@ public class SupervisorActivity extends AppCompatActivity {
         }
     }
 
-    private void cargarHistorialJerarquico() {
-        LinearLayout container = findViewById(R.id.containerHistorialJerarquia);
+    private void actualizarVistaHistorialZona(Zone zone) {
+        currentHistorialZone = zone;
+
+        // Actualizar chips de zona activa
+        actualizarChipHistorialStyle(R.id.chipHistorialNorte, zone == Zone.NORTE, "• Zona Norte (Activo)", "Zona Norte");
+        actualizarChipHistorialStyle(R.id.chipHistorialValle, zone == Zone.VALLE, "• Zona Valle Central (Activo)", "Zona Valle Central");
+        actualizarChipHistorialStyle(R.id.chipHistorialSur, zone == Zone.SUR, "• Zona Sur (Activo)", "Zona Sur");
+        actualizarChipHistorialStyle(R.id.chipHistorialOccidente, zone == Zone.OCCIDENTE, "• Zona Occidente (Activo)", "Zona Occidente");
+
+        // Actualizar textos de cabecera de la zona
+        TextView txtTitulo = findViewById(R.id.txtSelectedZoneTitleHistorial);
+        if (txtTitulo != null) txtTitulo.setText(zone.title);
+
+        TextView txtSub = findViewById(R.id.txtSelectedZoneSubHistorial);
+        if (txtSub != null) txtSub.setText(zone.subtitle);
+
+        TextView txtTituloExport = findViewById(R.id.txtTituloExportZona);
+        if (txtTituloExport != null) txtTituloExport.setText("Exportar Pedidos de " + zone.shortName);
+
+        TextView txtHeaderGranjas = findViewById(R.id.txtHeaderGranjasHistorial);
+        if (txtHeaderGranjas != null) txtHeaderGranjas.setText("Granjas Registradas en " + zone.shortName);
+
+        TextView txtVisibles = findViewById(R.id.txtCountVisiblesHistorial);
+        if (txtVisibles != null) txtVisibles.setText(zone.enZona + " granjas");
+
+        // Resumen operativo
+        TextView txtResumenZ = findViewById(R.id.txtResumenZonaHistorial);
+        if (txtResumenZ != null) txtResumenZ.setText("Resumen Operativo " + zone.shortName);
+
+        TextView txtCob = findViewById(R.id.txtCoberturaHistorial);
+        if (txtCob != null) txtCob.setText(zone.cobertura);
+
+        TextView txtInsumos = findViewById(R.id.txtInsumosCountHistorial);
+        if (txtInsumos != null) txtInsumos.setText((zone.listas * 48) + " Unidades");
+
+        TextView txtMonto = findViewById(R.id.txtTotalMontoHistorial);
+        if (txtMonto != null) txtMonto.setText("$" + String.format("%,d", zone.listas * 4150) + " USD");
+
+        // Renderizar granjas de la zona en containerGranjasHistorial
+        cargarGranjasHistorialDeZona(zone);
+    }
+
+    private void actualizarChipHistorialStyle(int chipId, boolean active, String activeText, String inactiveText) {
+        TextView chip = findViewById(chipId);
+        if (chip == null) return;
+        chip.setText(active ? activeText : inactiveText);
+        chip.setBackgroundResource(active ? R.drawable.bg_button_primary : R.drawable.bg_chip);
+        chip.setTextColor(ContextCompat.getColor(this, active ? R.color.white : R.color.krono_chip_text));
+        chip.setTypeface(Typeface.DEFAULT, active ? Typeface.BOLD : Typeface.NORMAL);
+    }
+
+    private void cargarGranjasHistorialDeZona(Zone zone) {
+        LinearLayout container = findViewById(R.id.containerGranjasHistorial);
         if (container == null) return;
         container.removeAllViews();
 
+        // Lista de granjas según la zona
+        List<String> granjas = new ArrayList<>();
+        if (zone == Zone.NORTE) {
+            granjas.add("Granja Los Laureles");
+            granjas.add("Finca San Isidro");
+            granjas.add("Granja Santa Elena");
+        } else if (zone == Zone.VALLE) {
+            granjas.add("Finca San Isidro");
+            granjas.add("Agropecuaria El Sol");
+            granjas.add("Finca La Esperanza");
+        } else if (zone == Zone.SUR) {
+            granjas.add("Granja Santa Elena");
+            granjas.add("Hacienda Real");
+        } else {
+            granjas.add("Finca Occidente");
+            granjas.add("Granja Los Pinos");
+        }
+
+        for (String granjaNombre : granjas) {
+            container.addView(crearCardGranjaHistorialConExport(granjaNombre, zone.shortName));
+        }
+    }
+
+    private View crearCardGranjaHistorialConExport(String granjaNombre, String zonaNombre) {
+        MaterialCardView card = new MaterialCardView(this);
+        card.setCardBackgroundColor(Color.WHITE);
+        card.setRadius(dp(16));
+        card.setCardElevation(0);
+        card.setStrokeColor(ContextCompat.getColor(this, R.color.krono_card_stroke));
+        card.setStrokeWidth(dp(1));
+        card.setClickable(true);
+        card.setFocusable(true);
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(dp(14), dp(12), dp(14), dp(12));
+
+        // Fila 1: Icono Tractor, Nombre, Checkmark y Badge de Estado
+        RelativeLayout topRow = new RelativeLayout(this);
+
+        FrameLayout iconFrame = new FrameLayout(this);
+        iconFrame.setId(View.generateViewId());
+        iconFrame.setBackgroundResource(R.drawable.bg_icon_container);
+        ImageView iconTractor = new ImageView(this);
+        iconTractor.setImageResource(R.drawable.ic_tractor);
+        iconTractor.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.krono_navy)));
+        FrameLayout.LayoutParams tLp = new FrameLayout.LayoutParams(dp(22), dp(22));
+        tLp.gravity = Gravity.CENTER;
+        iconFrame.addView(iconTractor, tLp);
+
+        RelativeLayout.LayoutParams fLp = new RelativeLayout.LayoutParams(dp(40), dp(40));
+        fLp.addRule(RelativeLayout.ALIGN_PARENT_START);
+        fLp.addRule(RelativeLayout.CENTER_VERTICAL);
+        topRow.addView(iconFrame, fLp);
+
+        LinearLayout titleCol = new LinearLayout(this);
+        titleCol.setOrientation(LinearLayout.VERTICAL);
+
+        LinearLayout nameRow = new LinearLayout(this);
+        nameRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView txtName = new TextView(this);
+        txtName.setText(granjaNombre);
+        txtName.setTextSize(15);
+        txtName.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        txtName.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        nameRow.addView(txtName);
+
+        ImageView check = new ImageView(this);
+        check.setImageResource(R.drawable.ic_check_circle);
+        check.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.krono_navy)));
+        LinearLayout.LayoutParams cLp = new LinearLayout.LayoutParams(dp(16), dp(16));
+        cLp.setMargins(dp(4), 0, 0, 0);
+        nameRow.addView(check, cLp);
+        titleCol.addView(nameRow);
+
+        TextView txtFecha = new TextView(this);
+        txtFecha.setText("Enviado: 13 Nov 2026 • 11:20 AM");
+        txtFecha.setTextSize(11);
+        txtFecha.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        txtFecha.setPadding(0, dp(2), 0, 0);
+        titleCol.addView(txtFecha);
+
+        RelativeLayout.LayoutParams tColLp = new RelativeLayout.LayoutParams(-1, -2);
+        tColLp.addRule(RelativeLayout.END_OF, iconFrame.getId());
+        tColLp.addRule(RelativeLayout.CENTER_VERTICAL);
+        tColLp.setMargins(dp(10), 0, dp(10), 0);
+        topRow.addView(titleCol, tColLp);
+
+        layout.addView(topRow);
+
+        // Fila 2: Botones de Acción para la Granja (Ver Pedidos y Exportar Granja)
+        LinearLayout actionsRow = new LinearLayout(this);
+        actionsRow.setOrientation(LinearLayout.HORIZONTAL);
+        actionsRow.setGravity(Gravity.CENTER_VERTICAL);
+        actionsRow.setPadding(0, dp(10), 0, 0);
+
+        MaterialButton btnVer = new MaterialButton(this);
+        btnVer.setText("Ver Hojas de Pedido");
+        btnVer.setAllCaps(false);
+        btnVer.setTextSize(12);
+        btnVer.setTextColor(ContextCompat.getColor(this, R.color.krono_navy));
+        btnVer.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.krono_card_stroke)));
+        btnVer.setStrokeWidth(dp(1));
+        btnVer.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        btnVer.setCornerRadius(dp(8));
+        btnVer.setOnClickListener(v -> loadHojaPedidoView(granjaNombre));
+        actionsRow.addView(btnVer, new LinearLayout.LayoutParams(0, dp(38), 1));
+
+        View space = new View(this);
+        actionsRow.addView(space, new LinearLayout.LayoutParams(dp(8), 0));
+
+        MaterialButton btnExpGranja = new MaterialButton(this);
+        btnExpGranja.setText("📥 Exportar Granja");
+        btnExpGranja.setAllCaps(false);
+        btnExpGranja.setTextSize(12);
+        btnExpGranja.setTextColor(Color.WHITE);
+        btnExpGranja.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.krono_navy)));
+        btnExpGranja.setCornerRadius(dp(8));
+        btnExpGranja.setOnClickListener(v -> mostrarDialogoExportarGranja(granjaNombre, zonaNombre));
+        actionsRow.addView(btnExpGranja, new LinearLayout.LayoutParams(0, dp(38), 1));
+
+        layout.addView(actionsRow);
+
+        card.addView(layout);
+        LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(-1, -2);
+        cardLp.setMargins(0, dp(4), 0, dp(8));
+        card.setLayoutParams(cardLp);
+        card.setOnClickListener(v -> loadHojaPedidoView(granjaNombre));
+        return card;
+    }
+
+    private void mostrarDialogoExportarGranja(String granjaNombre, String zonaNombre) {
+        String[] opciones = {"Exportar a CSV (Excel)", "Exportar a PDF Oficial"};
+        new AlertDialog.Builder(this)
+                .setTitle("Exportar Pedidos de " + granjaNombre)
+                .setItems(opciones, (dialog, which) -> {
+                    if (which == 0) {
+                        exportarPedidosFiltrados(zonaNombre, granjaNombre, false);
+                    } else {
+                        exportarPedidosFiltrados(zonaNombre, granjaNombre, true);
+                    }
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    // ==========================================
+    // EXPORTACIÓN FUNCIONAL POR ZONA O POR GRANJA
+    // ==========================================
+    private void exportarPedidosFiltrados(String filtroZona, String filtroGranja, boolean esPdf) {
         pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
             @Override
             public void onSuccess(List<PedidoEntity> pedidos) {
-                // Jerarquía: Map<Zona, Map<Granja, List<Pedido>>>
-                Map<String, Map<String, List<PedidoEntity>>> jerarquia = new LinkedHashMap<>();
-
-                // Zonas predeterminadas para orden visual
-                jerarquia.put("Zona Norte", new LinkedHashMap<>());
-                jerarquia.put("Zona Valle Central", new LinkedHashMap<>());
-                jerarquia.put("Zona Sur", new LinkedHashMap<>());
-                jerarquia.put("Zona Occidente", new LinkedHashMap<>());
-
                 List<PedidoEntity> list = (pedidos != null && !pedidos.isEmpty()) ? pedidos : new ArrayList<>();
 
-                // Si no hay pedidos en la base de datos aún, agregar registros de muestra representativos
+                // Datos base de respaldo si está recién instalada la BD
                 if (list.isEmpty()) {
                     long now = System.currentTimeMillis();
                     list.add(new PedidoEntity("PED-1794671240166", "E100", "Zona Norte", "APROBADO", "Granja Los Laureles", now - 3600000, now));
@@ -1196,442 +1403,196 @@ public class SupervisorActivity extends AppCompatActivity {
                     list.add(new PedidoEntity("#PED-2026-10-ZS09", "E102", "Zona Sur", "REVISION", "Granja Santa Elena", now - 172800000, now));
                 }
 
+                // Filtrar según zona y granja
+                List<PedidoEntity> filtrados = new ArrayList<>();
                 for (PedidoEntity p : list) {
-                    String zonaNombre = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "Zona Norte";
-                    if (!jerarquia.containsKey(zonaNombre)) {
-                        jerarquia.put(zonaNombre, new LinkedHashMap<>());
-                    }
-
-                    String granjaNombre = (p.granja != null && !p.granja.isEmpty()) ? p.granja :
+                    String z = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "Zona Norte";
+                    String g = (p.granja != null && !p.granja.isEmpty()) ? p.granja :
                             (p.operarioId != null && p.operarioId.contains("E100") ? "Granja Los Laureles" :
-                            (p.operarioId != null && p.operarioId.contains("E101") ? "Finca San Isidro" :
-                            (p.operarioId != null && p.operarioId.contains("E102") ? "Granja Santa Elena" : "Granja " + p.operarioId)));
+                            (p.operarioId != null && p.operarioId.contains("E101") ? "Finca San Isidro" : "Granja Santa Elena"));
 
-                    Map<String, List<PedidoEntity>> granjasDeZona = jerarquia.get(zonaNombre);
-                    if (!granjasDeZona.containsKey(granjaNombre)) {
-                        granjasDeZona.put(granjaNombre, new ArrayList<>());
-                    }
-                    granjasDeZona.get(granjaNombre).add(p);
-                }
+                    boolean matchZona = (filtroZona == null || z.toLowerCase().contains(filtroZona.toLowerCase()));
+                    boolean matchGranja = (filtroGranja == null || g.toLowerCase().contains(filtroGranja.toLowerCase()));
 
-                // Renderizar jerarquía en pantalla
-                for (Map.Entry<String, Map<String, List<PedidoEntity>>> zonaEntry : jerarquia.entrySet()) {
-                    String zona = zonaEntry.getKey();
-                    Map<String, List<PedidoEntity>> granjas = zonaEntry.getValue();
-
-                    int totalPedidosZona = 0;
-                    for (List<PedidoEntity> lp : granjas.values()) totalPedidosZona += lp.size();
-
-                    // Encabezado de Zona
-                    container.addView(crearHeaderZonaHistorial(zona, granjas.size(), totalPedidosZona));
-
-                    if (granjas.isEmpty()) {
-                        TextView txtVacio = new TextView(SupervisorActivity.this);
-                        txtVacio.setText("Sin pedidos liquidados en esta zona.");
-                        txtVacio.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
-                        txtVacio.setTextSize(12);
-                        txtVacio.setPadding(dp(16), dp(6), dp(16), dp(16));
-                        container.addView(txtVacio);
-                    } else {
-                        for (Map.Entry<String, List<PedidoEntity>> granjaEntry : granjas.entrySet()) {
-                            String granja = granjaEntry.getKey();
-                            List<PedidoEntity> listaPedidos = granjaEntry.getValue();
-
-                            // Encabezado de Granja
-                            container.addView(crearHeaderGranjaHistorial(granja, listaPedidos.size()));
-
-                            // Lista de Pedidos de esa Granja
-                            for (PedidoEntity p : listaPedidos) {
-                                container.addView(crearCardPedidoHistorial(p, granja));
-                            }
-                        }
+                    if (matchZona && matchGranja) {
+                        filtrados.add(p);
                     }
                 }
-            }
 
-            @Override
-            public void onError(Exception error) {
-                Toast.makeText(SupervisorActivity.this, "Error al cargar historial: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
+                if (filtrados.isEmpty()) {
+                    filtrados.addAll(list);
+                }
 
-    private View crearHeaderZonaHistorial(String zona, int totalGranjas, int totalPedidos) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(4), dp(14), dp(4), dp(6));
+                String labelEntidad = filtroGranja != null ? filtroGranja : (filtroZona != null ? filtroZona : "General");
 
-        ImageView icon = new ImageView(this);
-        icon.setImageResource(R.drawable.ic_target);
-        icon.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.krono_navy)));
-        row.addView(icon, new LinearLayout.LayoutParams(dp(20), dp(20)));
-
-        TextView title = new TextView(this);
-        title.setText(zona);
-        title.setTextSize(16);
-        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        title.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
-        title.setPadding(dp(8), 0, 0, 0);
-        row.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-
-        TextView badge = new TextView(this);
-        badge.setText(totalPedidos + (totalPedidos == 1 ? " Pedido" : " Pedidos"));
-        badge.setTextSize(11);
-        badge.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        badge.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
-        badge.setBackgroundResource(R.drawable.bg_chip);
-        badge.setPadding(dp(8), dp(3), dp(8), dp(3));
-        row.addView(badge);
-
-        return row;
-    }
-
-    private View crearHeaderGranjaHistorial(String granja, int totalPedidos) {
-        MaterialCardView card = new MaterialCardView(this);
-        card.setCardBackgroundColor(Color.WHITE);
-        card.setRadius(dp(12));
-        card.setCardElevation(0);
-        card.setStrokeColor(ContextCompat.getColor(this, R.color.krono_card_stroke));
-        card.setStrokeWidth(dp(1));
-
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(12), dp(10), dp(12), dp(10));
-
-        ImageView icon = new ImageView(this);
-        icon.setImageResource(R.drawable.ic_truck);
-        icon.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.krono_navy)));
-        row.addView(icon, new LinearLayout.LayoutParams(dp(18), dp(18)));
-
-        TextView title = new TextView(this);
-        title.setText(granja);
-        title.setTextSize(14);
-        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        title.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
-        title.setPadding(dp(8), 0, 0, 0);
-        row.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-
-        TextView badge = new TextView(this);
-        badge.setText(totalPedidos + " reg.");
-        badge.setTextSize(11);
-        badge.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
-        row.addView(badge);
-
-        card.addView(row);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
-        lp.setMargins(0, dp(6), 0, dp(4));
-        card.setLayoutParams(lp);
-        return card;
-    }
-
-    private View crearCardPedidoHistorial(PedidoEntity pedido, String granja) {
-        MaterialCardView card = new MaterialCardView(this);
-        card.setCardBackgroundColor(Color.WHITE);
-        card.setRadius(dp(14));
-        card.setCardElevation(dp(1));
-        card.setStrokeColor(ContextCompat.getColor(this, R.color.krono_card_stroke));
-        card.setStrokeWidth(dp(1));
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(dp(14), dp(12), dp(14), dp(12));
-
-        // Cabecera: Folio y Estado
-        RelativeLayout top = new RelativeLayout(this);
-
-        TextView folio = new TextView(this);
-        folio.setText(pedido.codigo != null ? pedido.codigo : ("PED-" + pedido.id));
-        folio.setTextSize(14);
-        folio.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        folio.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
-        RelativeLayout.LayoutParams fLp = new RelativeLayout.LayoutParams(-2, -2);
-        fLp.addRule(RelativeLayout.ALIGN_PARENT_START);
-        top.addView(folio, fLp);
-
-        TextView badge = new TextView(this);
-        String estado = (pedido.estado != null && !pedido.estado.isEmpty()) ? pedido.estado : "APROBADO";
-        badge.setText(estado);
-        badge.setTextSize(10);
-        badge.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        badge.setPadding(dp(8), dp(2), dp(8), dp(2));
-
-        GradientDrawable bg = new GradientDrawable();
-        if ("APROBADO".equalsIgnoreCase(estado)) {
-            badge.setTextColor(Color.rgb(0, 135, 90));
-            bg.setColor(Color.parseColor("#E6F4EA"));
-        } else if ("RECHAZADO".equalsIgnoreCase(estado)) {
-            badge.setTextColor(Color.rgb(186, 26, 26));
-            bg.setColor(Color.parseColor("#FCE8E6"));
-        } else {
-            badge.setTextColor(Color.rgb(180, 100, 0));
-            bg.setColor(Color.parseColor("#FEF7E0"));
-        }
-        bg.setCornerRadius(dp(6));
-        badge.setBackground(bg);
-
-        RelativeLayout.LayoutParams bLp = new RelativeLayout.LayoutParams(-2, -2);
-        bLp.addRule(RelativeLayout.ALIGN_PARENT_END);
-        bLp.addRule(RelativeLayout.CENTER_VERTICAL);
-        top.addView(badge, bLp);
-
-        layout.addView(top);
-
-        String fecha = android.text.format.DateFormat.format("dd MMM yyyy • HH:mm",
-                pedido.creadoEn > 0 ? pedido.creadoEn : System.currentTimeMillis()).toString();
-        TextView txtFecha = new TextView(this);
-        txtFecha.setText(fecha + " • " + (pedido.operarioId != null ? pedido.operarioId : "E100"));
-        txtFecha.setTextSize(11);
-        txtFecha.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
-        txtFecha.setPadding(0, dp(3), 0, dp(4));
-        layout.addView(txtFecha);
-
-        // Contenedor de insumos del pedido
-        LinearLayout itemsBox = new LinearLayout(this);
-        itemsBox.setOrientation(LinearLayout.VERTICAL);
-        itemsBox.setPadding(dp(10), dp(6), dp(10), dp(6));
-        GradientDrawable iBg = new GradientDrawable();
-        iBg.setColor(Color.parseColor("#FAF4ED"));
-        iBg.setCornerRadius(dp(8));
-        itemsBox.setBackground(iBg);
-
-        pedidoRepository.obtenerInsumos(pedido.id, new PedidoRepository.InsumosCallback() {
-            @Override
-            public void onSuccess(List<InsumoPedidoEntity> insumos) {
-                if (insumos.isEmpty()) {
-                    TextView t = new TextView(SupervisorActivity.this);
-                    t.setText("• Fertilizante NPK 15-15-15 (20 sacos)\n• Insecticida Concentrado 1L (12 frascos)");
-                    t.setTextSize(11);
-                    t.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_navy_dark));
-                    itemsBox.addView(t);
+                if (esPdf) {
+                    generarYCompartirPDF(filtrados, labelEntidad);
                 } else {
-                    for (InsumoPedidoEntity item : insumos) {
-                        TextView t = new TextView(SupervisorActivity.this);
-                        t.setText("• " + item.nombre + " — " + item.cantidad);
-                        t.setTextSize(11);
-                        t.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_navy_dark));
-                        itemsBox.addView(t);
-                    }
-                }
-            }
-
-            @Override
-            public void onError(Exception error) {}
-        });
-
-        layout.addView(itemsBox);
-
-        card.addView(layout);
-        LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(-1, -2);
-        cardLp.setMargins(0, dp(4), 0, dp(8));
-        card.setLayoutParams(cardLp);
-        return card;
-    }
-
-    // ==========================================
-    // EXPORTACIÓN FUNCIONAL: CSV Y PDF
-    // ==========================================
-    private void exportarHistorialCSV() {
-        pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
-            @Override
-            public void onSuccess(List<PedidoEntity> pedidos) {
-                try {
-                    File dir = new File(getExternalFilesDir(null), "reports");
-                    if (!dir.exists()) dir.mkdirs();
-                    File csvFile = new File(dir, "KRONO_Reporte_Pedidos.csv");
-
-                    FileOutputStream fos = new FileOutputStream(csvFile);
-                    OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
-                    // BOM para caracteres especiales en Excel
-                    writer.write("\uFEFF");
-                    writer.write("Zona,Granja,Folio,Fecha,Estado,Solicitante,Dictamen\n");
-
-                    List<PedidoEntity> list = (pedidos != null && !pedidos.isEmpty()) ? pedidos : new ArrayList<>();
-                    if (list.isEmpty()) {
-                        writer.write("\"Zona Norte\",\"Granja Los Laureles\",\"PED-1794671240166\",\"14/11/2026 10:47\",\"APROBADO\",\"E100\",\"Aprobado para despacho\"\n");
-                        writer.write("\"Zona Norte\",\"Granja Los Laureles\",\"#PED-2026-11-ZN04\",\"14/11/2026 09:46\",\"APROBADO\",\"Carlos Méndez\",\"Aprobado para despacho\"\n");
-                        writer.write("\"Zona Valle Central\",\"Finca San Isidro\",\"#PED-2026-11-VC01\",\"13/11/2026 15:30\",\"APROBADO\",\"Operario Campo\",\"Aprobado para despacho\"\n");
-                        writer.write("\"Zona Sur\",\"Granja Santa Elena\",\"#PED-2026-10-ZS09\",\"12/11/2026 11:20\",\"REVISIÓN\",\"E102\",\"En revisión técnica\"\n");
-                    } else {
-                        for (PedidoEntity p : list) {
-                            String zona = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "Zona Norte";
-                            String granja = (p.granja != null && !p.granja.isEmpty()) ? p.granja :
-                                    (p.operarioId != null && p.operarioId.contains("E100") ? "Granja Los Laureles" :
-                                    (p.operarioId != null && p.operarioId.contains("E101") ? "Finca San Isidro" :
-                                    (p.operarioId != null && p.operarioId.contains("E102") ? "Granja Santa Elena" : "Granja " + p.operarioId)));
-                            String folio = p.codigo != null ? p.codigo : ("PED-" + p.id);
-                            String fecha = android.text.format.DateFormat.format("dd/MM/yyyy HH:mm",
-                                    p.creadoEn > 0 ? p.creadoEn : System.currentTimeMillis()).toString();
-                            String estado = p.estado != null ? p.estado : "APROBADO";
-                            String solicitante = p.operarioId != null ? p.operarioId : "Operario";
-                            String dictamen = "APROBADO".equalsIgnoreCase(estado) ? "Aprobado para despacho" :
-                                    ("RECHAZADO".equalsIgnoreCase(estado) ? "Rechazado" : "En revisión");
-
-                            writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
-                                    zona, granja, folio, fecha, estado, solicitante, dictamen));
-                        }
-                    }
-
-                    writer.flush();
-                    writer.close();
-                    fos.close();
-
-                    Uri fileUri = FileProvider.getUriForFile(SupervisorActivity.this, getPackageName() + ".fileprovider", csvFile);
-                    Intent sendIntent = new Intent(Intent.ACTION_SEND);
-                    sendIntent.setType("text/csv");
-                    sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-                    sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Reporte de Pedidos KRONO");
-                    sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                    startActivity(Intent.createChooser(sendIntent, "Abrir o compartir Reporte CSV"));
-                    Toast.makeText(SupervisorActivity.this, "✓ Reporte CSV generado exitosamente.", Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    Toast.makeText(SupervisorActivity.this, "Error al generar CSV: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    generarYCompartirCSV(filtrados, labelEntidad);
                 }
             }
 
             @Override
             public void onError(Exception error) {
-                Toast.makeText(SupervisorActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SupervisorActivity.this, "Error al filtrar pedidos: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void exportarHistorialPDF() {
-        pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
-            @Override
-            public void onSuccess(List<PedidoEntity> pedidos) {
-                try {
-                    PdfDocument pdfDocument = new PdfDocument();
-                    PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create();
-                    PdfDocument.Page page = pdfDocument.startPage(pageInfo);
-                    Canvas canvas = page.getCanvas();
-                    Paint paint = new Paint();
+    private void generarYCompartirCSV(List<PedidoEntity> pedidos, String etiqueta) {
+        try {
+            File dir = new File(getExternalFilesDir(null), "reports");
+            if (!dir.exists()) dir.mkdirs();
+            File csvFile = new File(dir, "KRONO_Pedidos_" + etiqueta.replace(" ", "_") + ".csv");
 
-                    // Encabezado Navy KRONO
-                    paint.setColor(Color.rgb(43, 48, 71));
-                    canvas.drawRect(0, 0, 595, 80, paint);
+            FileOutputStream fos = new FileOutputStream(csvFile);
+            OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+            writer.write("\uFEFF"); // BOM Excel
+            writer.write("Zona,Granja,Folio,Fecha,Estado,Solicitante,Dictamen\n");
 
-                    paint.setColor(Color.WHITE);
-                    paint.setTextSize(22);
-                    paint.setFakeBoldText(true);
-                    canvas.drawText("KRONO", 30, 42, paint);
+            for (PedidoEntity p : pedidos) {
+                String zona = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "Zona Norte";
+                String granja = (p.granja != null && !p.granja.isEmpty()) ? p.granja : "Granja Los Laureles";
+                String folio = p.codigo != null ? p.codigo : ("PED-" + p.id);
+                String fecha = android.text.format.DateFormat.format("dd/MM/yyyy HH:mm",
+                        p.creadoEn > 0 ? p.creadoEn : System.currentTimeMillis()).toString();
+                String estado = p.estado != null ? p.estado : "APROBADO";
+                String solicitante = p.operarioId != null ? p.operarioId : "E100";
+                String dictamen = "APROBADO".equalsIgnoreCase(estado) ? "Aprobado para despacho" : "En revisión";
 
-                    paint.setTextSize(12);
-                    paint.setFakeBoldText(false);
-                    canvas.drawText("Reporte Consolidado de Pedidos y Suministros por Zona", 30, 62, paint);
+                writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                        zona, granja, folio, fecha, estado, solicitante, dictamen));
+            }
 
-                    // Información de auditoría
-                    paint.setColor(Color.rgb(30, 34, 53));
-                    paint.setTextSize(11);
-                    paint.setFakeBoldText(true);
-                    String now = android.text.format.DateFormat.format("dd/MM/yyyy HH:mm", System.currentTimeMillis()).toString();
-                    canvas.drawText("Fecha de emisión: " + now + "  |  Terminal Operativa KRONO", 30, 105, paint);
+            writer.flush();
+            writer.close();
+            fos.close();
 
-                    paint.setColor(Color.rgb(226, 221, 213));
-                    paint.setStrokeWidth(1);
-                    canvas.drawLine(30, 115, 565, 115, paint);
+            Uri fileUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", csvFile);
+            Intent sendIntent = new Intent(Intent.ACTION_SEND);
+            sendIntent.setType("text/csv");
+            sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+            sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Reporte Pedidos - " + etiqueta);
+            sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                    // Fila de encabezados de la tabla
-                    int y = 140;
-                    paint.setColor(Color.rgb(250, 244, 237));
-                    canvas.drawRect(30, y - 18, 565, y + 8, paint);
+            startActivity(Intent.createChooser(sendIntent, "Abrir o compartir CSV (" + etiqueta + ")"));
+            Toast.makeText(this, "✓ Reporte CSV de " + etiqueta + " generado.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error al generar CSV: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
 
-                    paint.setColor(Color.rgb(43, 48, 71));
-                    paint.setTextSize(11);
-                    paint.setFakeBoldText(true);
-                    canvas.drawText("FOLIO", 35, y, paint);
-                    canvas.drawText("ZONA", 155, y, paint);
-                    canvas.drawText("GRANJA", 265, y, paint);
-                    canvas.drawText("ESTADO", 415, y, paint);
-                    canvas.drawText("FECHA", 495, y, paint);
+    private void generarYCompartirPDF(List<PedidoEntity> pedidos, String etiqueta) {
+        try {
+            PdfDocument pdfDocument = new PdfDocument();
+            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create();
+            PdfDocument.Page page = pdfDocument.startPage(pageInfo);
+            Canvas canvas = page.getCanvas();
+            Paint paint = new Paint();
 
-                    y += 24;
-                    paint.setFakeBoldText(false);
-                    paint.setTextSize(10);
+            // Encabezado Navy KRONO
+            paint.setColor(Color.rgb(43, 48, 71));
+            canvas.drawRect(0, 0, 595, 80, paint);
 
-                    List<PedidoEntity> list = (pedidos != null && !pedidos.isEmpty()) ? pedidos : new ArrayList<>();
-                    if (list.isEmpty()) {
-                        long t = System.currentTimeMillis();
-                        list.add(new PedidoEntity("PED-1794671240166", "E100", "Zona Norte", "APROBADO", "Granja Los Laureles", t - 3600000, t));
-                        list.add(new PedidoEntity("#PED-2026-11-ZN04", "Carlos Méndez", "Zona Norte", "APROBADO", "Granja Los Laureles", t - 7200000, t));
-                        list.add(new PedidoEntity("#PED-2026-11-VC01", "E101", "Zona Valle Central", "APROBADO", "Finca San Isidro", t - 86400000, t));
-                        list.add(new PedidoEntity("#PED-2026-10-ZS09", "E102", "Zona Sur", "REVISION", "Granja Santa Elena", t - 172800000, t));
-                    }
+            paint.setColor(Color.WHITE);
+            paint.setTextSize(22);
+            paint.setFakeBoldText(true);
+            canvas.drawText("KRONO", 30, 42, paint);
 
-                    for (PedidoEntity p : list) {
-                        if (y > 780) break;
+            paint.setTextSize(12);
+            paint.setFakeBoldText(false);
+            canvas.drawText("Reporte Consolidado de Pedidos - " + etiqueta, 30, 62, paint);
 
-                        String folio = p.codigo != null ? p.codigo : ("PED-" + p.id);
-                        String zona = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "Zona Norte";
-                        String granja = (p.granja != null && !p.granja.isEmpty()) ? p.granja :
-                                (p.operarioId != null && p.operarioId.contains("E100") ? "Granja Los Laureles" :
-                                (p.operarioId != null && p.operarioId.contains("E101") ? "Finca San Isidro" :
-                                (p.operarioId != null && p.operarioId.contains("E102") ? "Granja Santa Elena" : "Granja " + p.operarioId)));
-                        String estado = p.estado != null ? p.estado : "APROBADO";
-                        String fecha = android.text.format.DateFormat.format("dd/MM/yy",
-                                p.creadoEn > 0 ? p.creadoEn : System.currentTimeMillis()).toString();
+            // Subcabecera
+            paint.setColor(Color.rgb(30, 34, 53));
+            paint.setTextSize(11);
+            paint.setFakeBoldText(true);
+            String now = android.text.format.DateFormat.format("dd/MM/yyyy HH:mm", System.currentTimeMillis()).toString();
+            canvas.drawText("Fecha de emisión: " + now + "  |  Terminal Operativa KRONO", 30, 105, paint);
 
-                        paint.setColor(Color.rgb(30, 34, 53));
-                        canvas.drawText(folio.length() > 18 ? folio.substring(0, 18) : folio, 35, y, paint);
-                        canvas.drawText(zona.length() > 16 ? zona.substring(0, 16) : zona, 155, y, paint);
-                        canvas.drawText(granja.length() > 20 ? granja.substring(0, 20) : granja, 265, y, paint);
+            paint.setColor(Color.rgb(226, 221, 213));
+            paint.setStrokeWidth(1);
+            canvas.drawLine(30, 115, 565, 115, paint);
 
-                        if ("APROBADO".equalsIgnoreCase(estado)) {
-                            paint.setColor(Color.rgb(0, 135, 90));
-                        } else if ("RECHAZADO".equalsIgnoreCase(estado)) {
-                            paint.setColor(Color.rgb(186, 26, 26));
-                        } else {
-                            paint.setColor(Color.rgb(180, 100, 0));
-                        }
-                        paint.setFakeBoldText(true);
-                        canvas.drawText(estado, 415, y, paint);
+            // Encabezados tabla
+            int y = 140;
+            paint.setColor(Color.rgb(250, 244, 237));
+            canvas.drawRect(30, y - 18, 565, y + 8, paint);
 
-                        paint.setColor(Color.rgb(104, 110, 130));
-                        paint.setFakeBoldText(false);
-                        canvas.drawText(fecha, 495, y, paint);
+            paint.setColor(Color.rgb(43, 48, 71));
+            paint.setTextSize(11);
+            paint.setFakeBoldText(true);
+            canvas.drawText("FOLIO", 35, y, paint);
+            canvas.drawText("ZONA", 155, y, paint);
+            canvas.drawText("GRANJA", 265, y, paint);
+            canvas.drawText("ESTADO", 415, y, paint);
+            canvas.drawText("FECHA", 495, y, paint);
 
-                        paint.setColor(Color.rgb(240, 235, 227));
-                        canvas.drawLine(30, y + 6, 565, y + 6, paint);
+            y += 24;
+            paint.setFakeBoldText(false);
+            paint.setTextSize(10);
 
-                        y += 24;
-                    }
+            for (PedidoEntity p : pedidos) {
+                if (y > 780) break;
 
-                    // Pie de página
-                    paint.setColor(Color.rgb(104, 110, 130));
-                    paint.setTextSize(9);
-                    canvas.drawText("Reporte oficial generado por KRONO. Documento respaldado para auditoría agropecuaria.", 30, 815, paint);
+                String folio = p.codigo != null ? p.codigo : ("PED-" + p.id);
+                String zona = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "Zona Norte";
+                String granja = (p.granja != null && !p.granja.isEmpty()) ? p.granja : "Granja Los Laureles";
+                String estado = p.estado != null ? p.estado : "APROBADO";
+                String fecha = android.text.format.DateFormat.format("dd/MM/yy",
+                        p.creadoEn > 0 ? p.creadoEn : System.currentTimeMillis()).toString();
 
-                    pdfDocument.finishPage(page);
+                paint.setColor(Color.rgb(30, 34, 53));
+                canvas.drawText(folio.length() > 18 ? folio.substring(0, 18) : folio, 35, y, paint);
+                canvas.drawText(zona.length() > 16 ? zona.substring(0, 16) : zona, 155, y, paint);
+                canvas.drawText(granja.length() > 20 ? granja.substring(0, 20) : granja, 265, y, paint);
 
-                    File dir = new File(getExternalFilesDir(null), "reports");
-                    if (!dir.exists()) dir.mkdirs();
-                    File pdfFile = new File(dir, "KRONO_Reporte_Pedidos.pdf");
-                    FileOutputStream fos = new FileOutputStream(pdfFile);
-                    pdfDocument.writeTo(fos);
-                    pdfDocument.close();
-                    fos.close();
-
-                    Uri fileUri = FileProvider.getUriForFile(SupervisorActivity.this, getPackageName() + ".fileprovider", pdfFile);
-                    Intent sendIntent = new Intent(Intent.ACTION_SEND);
-                    sendIntent.setType("application/pdf");
-                    sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-                    sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Reporte de Pedidos KRONO (PDF)");
-                    sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                    startActivity(Intent.createChooser(sendIntent, "Abrir o compartir Reporte PDF"));
-                    Toast.makeText(SupervisorActivity.this, "✓ Reporte PDF generado exitosamente.", Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    Toast.makeText(SupervisorActivity.this, "Error al generar PDF: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                if ("APROBADO".equalsIgnoreCase(estado)) {
+                    paint.setColor(Color.rgb(0, 135, 90));
+                } else if ("RECHAZADO".equalsIgnoreCase(estado)) {
+                    paint.setColor(Color.rgb(186, 26, 26));
+                } else {
+                    paint.setColor(Color.rgb(180, 100, 0));
                 }
+                paint.setFakeBoldText(true);
+                canvas.drawText(estado, 415, y, paint);
+
+                paint.setColor(Color.rgb(104, 110, 130));
+                paint.setFakeBoldText(false);
+                canvas.drawText(fecha, 495, y, paint);
+
+                paint.setColor(Color.rgb(240, 235, 227));
+                canvas.drawLine(30, y + 6, 565, y + 6, paint);
+
+                y += 24;
             }
 
-            @Override
-            public void onError(Exception error) {
-                Toast.makeText(SupervisorActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+            paint.setColor(Color.rgb(104, 110, 130));
+            paint.setTextSize(9);
+            canvas.drawText("Reporte oficial generado por KRONO. Certificación agropecuaria.", 30, 815, paint);
+
+            pdfDocument.finishPage(page);
+
+            File dir = new File(getExternalFilesDir(null), "reports");
+            if (!dir.exists()) dir.mkdirs();
+            File pdfFile = new File(dir, "KRONO_Reporte_" + etiqueta.replace(" ", "_") + ".pdf");
+            FileOutputStream fos = new FileOutputStream(pdfFile);
+            pdfDocument.writeTo(fos);
+            pdfDocument.close();
+            fos.close();
+
+            Uri fileUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", pdfFile);
+            Intent sendIntent = new Intent(Intent.ACTION_SEND);
+            sendIntent.setType("application/pdf");
+            sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+            sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Reporte Pedidos (PDF) - " + etiqueta);
+            sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            startActivity(Intent.createChooser(sendIntent, "Abrir o compartir PDF (" + etiqueta + ")"));
+            Toast.makeText(this, "✓ Reporte PDF de " + etiqueta + " generado.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error al generar PDF: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private LinearLayout.LayoutParams params(int width, int height, int left, int top, int right, int bottom) {

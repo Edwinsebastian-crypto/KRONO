@@ -19,7 +19,7 @@
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="64dp"
         android:layout_below="@id/statusBarBg"
         android:background="@color/white"
         android:elevation="2dp"
@@ -28,25 +28,40 @@
         android:paddingHorizontal="16dp">
 
         <ImageView
-            android:layout_width="34dp"
-            android:layout_height="34dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:contentDescription="@string/cd_logo"
             android:src="@drawable/logo" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textColor="@color/krono_navy"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textColor="@color/krono_navy"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="REV."
+                    android:textColor="@color/krono_text_secondary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -76,18 +91,19 @@
         </FrameLayout>
     </LinearLayout>
 
-    <!-- Bottom Navigation Bar -->
+    <!-- Bottom Navigation Bar (3 Tabs: Zonas, Granjas, Auditoría) -->
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="64dp"
         android:layout_alignParentBottom="true"
         android:background="@color/white"
         android:elevation="8dp"
         android:orientation="horizontal">
 
+        <!-- Tab 1: Zonas -->
         <LinearLayout
-            android:id="@+id/tabPedido"
+            android:id="@+id/tabZonas"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -95,70 +111,82 @@
             android:orientation="vertical">
 
             <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:contentDescription="Operario"
-                android:src="@drawable/ic_inventory"
-                app:tint="@color/krono_text_secondary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Operario"
-                android:textColor="@color/krono_text_secondary"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/tabRevisiones"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:contentDescription="Supervisor"
-                android:src="@drawable/ic_fact_check"
-                app:tint="@color/krono_text_secondary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Supervisor"
-                android:textColor="@color/krono_text_secondary"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/tabVentanas"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:contentDescription="Admin"
-                android:src="@drawable/ic_admin"
+                android:id="@+id/iconTabZonas"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Zonas"
+                android:src="@drawable/ic_target"
                 app:tint="@color/krono_navy" />
 
             <TextView
+                android:id="@+id/txtTabZonas"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Control Ventanas"
+                android:layout_marginTop="2dp"
+                android:text="Zonas"
                 android:textColor="@color/krono_navy"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Tab 2: Granjas -->
+        <LinearLayout
+            android:id="@+id/tabGranjas"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/iconTabGranjas"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Granjas"
+                android:src="@drawable/ic_truck"
+                app:tint="@color/krono_text_secondary" />
+
+            <TextView
+                android:id="@+id/txtTabGranjas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Granjas"
+                android:textColor="@color/krono_text_secondary"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- Tab 3: Auditoría -->
+        <LinearLayout
+            android:id="@+id/tabAuditoria"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/iconTabAuditoria"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Auditoría"
+                android:src="@drawable/ic_trending_up"
+                app:tint="@color/krono_text_secondary" />
+
+            <TextView
+                android:id="@+id/txtTabAuditoria"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Auditoría"
+                android:textColor="@color/krono_text_secondary"
+                android:textSize="10sp" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Main Scrollable Dashboard -->
+    <!-- Main Scrollable Content -->
     <ScrollView
+        android:id="@+id/scrollViewAdmin"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottomNav"
@@ -166,291 +194,13 @@
         android:fillViewport="true">
 
         <LinearLayout
+            android:id="@+id/pageContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="16dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="24dp">
-
-            <!-- Title & Global Status -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Panel de Control General"
-                android:textColor="@color/krono_navy_dark"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Apertura y Cierre de Ventanas Operativas • Global"
-                android:textColor="@color/krono_text_secondary"
-                android:textSize="13sp" />
-
-            <!-- Card: Estado Global Ventana Mensual -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/krono_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:background="@drawable/bg_chip"
-                            android:paddingHorizontal="10dp"
-                            android:paddingVertical="4dp"
-                            android:text="• Ventana Octubre 2024 (Abierta)"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:text="20 Granjas Habilitadas"
-                            android:textColor="@color/krono_text_secondary"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </RelativeLayout>
-
-                    <!-- Stat counters -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:paddingVertical="12dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="14"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="20sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Enviados"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="6dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:paddingVertical="12dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="4"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="20sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Aprobados"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:paddingVertical="12dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="2"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="20sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Pendientes"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Control Button: Push notification -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnPushNotif"
-                        android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:layout_marginTop="14dp"
-                        android:backgroundTint="@color/krono_navy"
-                        android:text="Administrar Usuarios del Sistema"
-                        android:textAllCaps="false"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:cornerRadius="10dp" />
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card: Auditoria de Insumos & Cierre -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/krono_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Acciones de Administración Fitosanitaria"
-                        android:textColor="@color/krono_navy_dark"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <!-- Action 1 -->
-                    <LinearLayout
-                        android:id="@+id/cardAuditoria"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:padding="14dp">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:contentDescription="Fact Check"
-                            android:src="@drawable/ic_fact_check"
-                            app:tint="@color/krono_navy" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Auditar Productos Fuera de Catálogo"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="5 solicitudes especiales requieren homologación de SKU"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Action 2 -->
-                    <LinearLayout
-                        android:id="@+id/cardExportar"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:padding="14dp">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:contentDescription="Export"
-                            android:src="@drawable/ic_description"
-                            app:tint="@color/krono_navy" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Administrar Inventario, Granjas y Zonas"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Generar archivo Excel/PDF para compras y distribución"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-        </LinearLayout>
+            android:paddingTop="14dp"
+            android:paddingBottom="24dp" />
     </ScrollView>
 
 </RelativeLayout>

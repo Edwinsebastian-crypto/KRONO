@@ -66,7 +66,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Supervisor Operativo"
+                android:text="Supervisor Operativo • Historial"
                 android:textColor="@color/krono_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -91,7 +91,7 @@
         </FrameLayout>
     </LinearLayout>
 
-    <!-- Bottom Navigation Bar (3 Tabs) -->
+    <!-- Bottom Navigation Bar (2 Tabs: Zonas y Granjas / Historial) -->
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
@@ -120,6 +120,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:text="Zonas y Granjas"
                 android:textColor="@color/krono_text_secondary"
                 android:textSize="10sp" />
@@ -144,6 +145,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:text="Historial"
                 android:textColor="@color/krono_navy"
                 android:textSize="10sp"
@@ -168,444 +170,11 @@
             android:paddingTop="14dp"
             android:paddingBottom="24dp">
 
-            <!-- Title & Status -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:text="Ventas e Historial"
-                    android:textColor="@color/krono_navy_dark"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:background="@drawable/bg_chip"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="3dp">
-
-                    <View
-                        android:layout_width="6dp"
-                        android:layout_height="6dp"
-                        android:layout_gravity="center_vertical"
-                        android:background="@drawable/bg_chip"
-                        android:backgroundTint="@color/krono_navy" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="EN VIVO"
-                        android:textColor="@color/krono_navy_dark"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </RelativeLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Registro cronológico consolidado de suministros entregados y liquidados por sector agropecuario."
-                android:textColor="@color/krono_text_secondary"
-                android:textSize="12sp" />
-
-            <!-- Card 1: Total Liquidado Card -->
+            <!-- Card 1: Seleccionar Zona Operativa (Copia fiel de Zonas y Granjas) -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSelectZoneHistorial"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/krono_card_stroke"
-                app:strokeWidth="1dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="TOTAL LIQUIDADO"
-                            android:textColor="@color/krono_text_secondary"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:gravity="bottom">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="$48,250"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="26sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="6dp"
-                                android:layout_marginBottom="3dp"
-                                android:text="USD"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:gravity="center_vertical">
-
-                            <ImageView
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:contentDescription="Trend"
-                                android:src="@drawable/ic_trending_up"
-                                app:tint="@color/krono_green_text" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:text="+14.2% vs ciclo anterior"
-                                android:textColor="@color/krono_green_text"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <FrameLayout
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:background="@drawable/bg_icon_container">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="Money"
-                            android:src="@drawable/ic_money"
-                            app:tint="@color/krono_navy" />
-                    </FrameLayout>
-                </RelativeLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Side by Side Metrics (Despachos & Puntualidad) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
-
-                <!-- Metric 1: Despachos -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/krono_card_stroke"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="14dp">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Despachos"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:layout_alignParentEnd="true"
-                                android:contentDescription="Shield"
-                                android:src="@drawable/ic_check_circle"
-                                app:tint="@color/krono_navy" />
-                        </RelativeLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:text="34"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="22sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="100% liquidados"
-                            android:textColor="@color/krono_text_secondary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Metric 2: Puntualidad -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/krono_card_stroke"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="14dp">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Puntualidad"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:layout_alignParentEnd="true"
-                                android:contentDescription="Timer"
-                                android:src="@drawable/ic_timer"
-                                app:tint="@color/krono_navy" />
-                        </RelativeLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:text="98.4%"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="22sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Meta: &gt;95.0%"
-                            android:textColor="@color/krono_text_secondary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-            </LinearLayout>
-
-            <!-- Filter Bar: Ciclo Dropdown & Zone Chips -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:contentDescription="Calendar"
-                        android:src="@drawable/ic_timer"
-                        app:tint="@color/krono_navy" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="Ciclo Operativo:"
-                        android:textColor="@color/krono_navy_dark"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:background="@drawable/bg_cierre_box"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Septiembre 2024"
-                        android:textColor="@color/krono_navy_dark"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginStart="4dp"
-                        android:contentDescription="Down"
-                        android:src="@drawable/ic_arrow_drop_down"
-                        app:tint="@color/krono_navy" />
-                </LinearLayout>
-            </RelativeLayout>
-
-            <!-- Horizontal Zone Chips -->
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <!-- Chip 1: Todas (Active) -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_marginEnd="6dp"
-                        android:background="@drawable/bg_button_primary"
-                        android:gravity="center"
-                        android:paddingHorizontal="12dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="• Todas"
-                            android:textColor="@color/white"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:background="@drawable/bg_chip"
-                            android:paddingHorizontal="6dp"
-                            android:paddingVertical="1dp"
-                            android:text="4"
-                            android:textColor="@color/krono_chip_text"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Chip 2: Zona Norte -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_marginEnd="6dp"
-                        android:background="@drawable/bg_chip"
-                        android:gravity="center"
-                        android:paddingHorizontal="12dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="• Zona Norte"
-                            android:textColor="@color/krono_chip_text"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:paddingHorizontal="6dp"
-                            android:paddingVertical="1dp"
-                            android:text="3"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <!-- Chip 3: Zona Valle Central -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_chip"
-                        android:gravity="center"
-                        android:paddingHorizontal="12dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="• Zona Valle Central"
-                            android:textColor="@color/krono_chip_text"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:paddingHorizontal="6dp"
-                            android:paddingVertical="1dp"
-                            android:text="1"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <!-- Dynamic Hierarchy: Zonas -> Granjas -> Pedidos -->
-            <LinearLayout
-                android:id="@+id/containerHistorialJerarquia"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="vertical" />
-
-            <!-- Card 2: Exportaciones y Liquidación -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
@@ -618,73 +187,432 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <LinearLayout
-                        android:layout_width="wrap_content"
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:contentDescription="Location"
+                                android:src="@drawable/ic_location"
+                                app:tint="@color/krono_navy" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:text="Seleccionar Zona Operativa"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/txtCountRegionesHistorial"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:text="4 Regiones"
+                            android:textColor="@color/krono_text_secondary"
+                            android:textSize="12sp" />
+                    </RelativeLayout>
+
+                    <!-- Dropdown Select Box -->
+                    <RelativeLayout
+                        android:id="@+id/btnZoneDropdownHistorial"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical">
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_cierre_box"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="12dp">
+
+                        <FrameLayout
+                            android:id="@+id/frameLocIconHistorial"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:background="@drawable/bg_button_primary">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="Location"
+                                android:src="@drawable/ic_location"
+                                app:tint="@color/white" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="12dp"
+                            android:layout_toEndOf="@id/frameLocIconHistorial"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/txtSelectedZoneTitleHistorial"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Zona Norte (Valle Agrícola)"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/txtSelectedZoneSubHistorial"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="8 Granjas asignadas • 3 listas"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
 
                         <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:contentDescription="Download"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:contentDescription="Dropdown"
+                            android:src="@drawable/ic_arrow_drop_down"
+                            app:tint="@color/krono_navy" />
+                    </RelativeLayout>
+
+                    <!-- Filter Chips Carousel -->
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <!-- Chip 1: Zona Norte -->
+                            <TextView
+                                android:id="@+id/chipHistorialNorte"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:layout_marginEnd="6dp"
+                                android:background="@drawable/bg_button_primary"
+                                android:gravity="center"
+                                android:paddingHorizontal="14dp"
+                                android:text="• Zona Norte (Activo)"
+                                android:textColor="@color/white"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <!-- Chip 2: Zona Valle Central -->
+                            <TextView
+                                android:id="@+id/chipHistorialValle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:layout_marginEnd="6dp"
+                                android:background="@drawable/bg_chip"
+                                android:gravity="center"
+                                android:paddingHorizontal="12dp"
+                                android:text="Zona Valle Central"
+                                android:textColor="@color/krono_chip_text"
+                                android:textSize="12sp" />
+
+                            <!-- Chip 3: Zona Sur -->
+                            <TextView
+                                android:id="@+id/chipHistorialSur"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:layout_marginEnd="6dp"
+                                android:background="@drawable/bg_chip"
+                                android:gravity="center"
+                                android:paddingHorizontal="12dp"
+                                android:text="Zona Sur"
+                                android:textColor="@color/krono_chip_text"
+                                android:textSize="12sp" />
+
+                            <!-- Chip 4: Zona Occidente -->
+                            <TextView
+                                android:id="@+id/chipHistorialOccidente"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:background="@drawable/bg_chip"
+                                android:gravity="center"
+                                android:paddingHorizontal="12dp"
+                                android:text="Zona Occidente"
+                                android:textColor="@color/krono_chip_text"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </HorizontalScrollView>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card 2: Exportar Zona Seleccionada -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardExportZonaHistorial"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/krono_card_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:contentDescription="Export"
                             android:src="@drawable/ic_download"
                             app:tint="@color/krono_navy" />
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:id="@+id/txtTituloExportZona"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
-                            android:text="Exportaciones y Liquidación"
+                            android:layout_weight="1"
+                            android:text="Exportar Pedidos de Zona Norte"
                             android:textColor="@color/krono_navy_dark"
-                            android:textSize="15sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+
+                        <!-- Export CSV de Zona -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnExportZonaCsv"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:backgroundTint="@color/krono_navy"
+                            android:text="📊 CSV Zona"
+                            android:textAllCaps="false"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            app:cornerRadius="8dp"
+                            app:icon="@drawable/ic_table_chart"
+                            app:iconSize="14dp"
+                            app:iconTint="@color/white" />
+
+                        <!-- Export PDF de Zona -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnExportZonaPdf"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:backgroundTint="#FAF4ED"
+                            android:text="📄 PDF Zona"
+                            android:textAllCaps="false"
+                            android:textColor="@color/krono_navy_dark"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            app:cornerRadius="8dp"
+                            app:icon="@drawable/ic_picture_as_pdf"
+                            app:iconSize="14dp"
+                            app:iconTint="@color/krono_navy"
+                            app:strokeColor="@color/krono_card_stroke"
+                            app:strokeWidth="1dp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Sección: Granjas Registradas en la Zona -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="Farm List"
+                        android:src="@drawable/ic_farm"
+                        app:tint="@color/krono_navy" />
+
                     <TextView
+                        android:id="@+id/txtHeaderGranjasHistorial"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Genera expedientes contables auditables y respaldos en formatos abiertos."
-                        android:textColor="@color/krono_text_secondary"
-                        android:textSize="12sp" />
-
-                    <!-- Button 1: Remisiones PDF -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnExportPdf"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="12dp"
-                        android:backgroundTint="@color/krono_navy"
-                        android:text="Remisiones (PDF)"
-                        android:textAllCaps="false"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:cornerRadius="10dp"
-                        app:icon="@drawable/ic_picture_as_pdf"
-                        app:iconGravity="textStart"
-                        app:iconTint="@color/white" />
-
-                    <!-- Button 2: Historial CSV -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnExportCsv"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="8dp"
-                        android:backgroundTint="#FAF4ED"
-                        android:text="Historial (CSV)"
-                        android:textAllCaps="false"
+                        android:layout_marginStart="8dp"
+                        android:text="Granjas Registradas en Zona Norte"
                         android:textColor="@color/krono_navy_dark"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:cornerRadius="10dp"
-                        app:icon="@drawable/ic_table_chart"
-                        app:iconGravity="textStart"
-                        app:iconTint="@color/krono_navy"
-                        app:strokeColor="@color/krono_card_stroke"
-                        app:strokeWidth="1dp" />
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
+                <TextView
+                    android:id="@+id/txtCountVisiblesHistorial"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/bg_chip"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="3 Granjas"
+                    android:textColor="@color/krono_text_secondary"
+                    android:textSize="11sp" />
+            </RelativeLayout>
+
+            <!-- Contenedor Dinámico de Granjas de la Zona con opción de exportar y ver pedidos -->
+            <LinearLayout
+                android:id="@+id/containerGranjasHistorial"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical" />
+
+            <!-- Resumen Operativo (Copia fiel de Zonas y Granjas) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardResumenHistorial"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/krono_card_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/txtResumenZonaHistorial"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:text="Resumen Operativo Zona Norte"
+                            android:textColor="@color/krono_navy_dark"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txtCoberturaHistorial"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:background="@drawable/bg_blue_chip"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="3dp"
+                            android:text="83% Cobertura"
+                            android:textColor="@color/krono_navy_dark"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <!-- Stat 1 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_cierre_box"
+                            android:orientation="vertical"
+                            android:padding="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Insumos Listos"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="11sp" />
+
+                            <TextView
+                                android:id="@+id/txtInsumosCountHistorial"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="148 Unidades"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="10dp"
+                            android:layout_height="0dp" />
+
+                        <!-- Stat 2 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_cierre_box"
+                            android:orientation="vertical"
+                            android:padding="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Total Estimado"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="11sp" />
+
+                            <TextView
+                                android:id="@+id/txtTotalMontoHistorial"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="$12,450 USD"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
