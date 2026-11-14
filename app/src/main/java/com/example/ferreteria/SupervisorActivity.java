@@ -48,6 +48,7 @@ public class SupervisorActivity extends AppCompatActivity {
 
     private Zone currentZone = Zone.NORTE;
     private PedidoRepository pedidoRepository;
+    private com.example.ferreteria.data.AuthRepository auditRepository;
     private String userId;
 
     private TextView txtSelectedZoneTitle;
@@ -71,6 +72,7 @@ public class SupervisorActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         StatusBarUtils.initEdgeToEdge(this);
         pedidoRepository = new PedidoRepository(this);
+        auditRepository = new com.example.ferreteria.data.AuthRepository(this);
         userId = getIntent().getStringExtra("user_id");
         loadZonasView();
     }
