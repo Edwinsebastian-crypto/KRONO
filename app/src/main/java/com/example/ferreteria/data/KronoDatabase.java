@@ -9,12 +9,18 @@ import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.example.ferreteria.data.dao.PedidoDao;
+import com.example.ferreteria.data.dao.AdminDao;
 import com.example.ferreteria.data.entity.InsumoPedidoEntity;
 import com.example.ferreteria.data.entity.PedidoEntity;
+import com.example.ferreteria.data.entity.UserEntity;
+import com.example.ferreteria.data.entity.FarmEntity;
+import com.example.ferreteria.data.entity.ZoneEntity;
+import com.example.ferreteria.data.entity.InventoryEntity;
+import com.example.ferreteria.data.entity.AuditEntity;
 
 @Database(
-        entities = {PedidoEntity.class, InsumoPedidoEntity.class},
-        version = 1,
+        entities = {PedidoEntity.class, InsumoPedidoEntity.class, UserEntity.class, FarmEntity.class, ZoneEntity.class, InventoryEntity.class, AuditEntity.class},
+        version = 2,
         exportSchema = false
 )
 public abstract class KronoDatabase extends RoomDatabase {
@@ -30,6 +36,7 @@ public abstract class KronoDatabase extends RoomDatabase {
     };
 
     public abstract PedidoDao pedidoDao();
+    public abstract AdminDao adminDao();
 
     public static KronoDatabase getInstance(Context context) {
         if (INSTANCE == null) {
