@@ -27,19 +27,11 @@
         android:orientation="horizontal"
         android:paddingHorizontal="16dp">
 
-        <FrameLayout
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:background="@drawable/bg_icon_container">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_gravity="center"
-                android:contentDescription="Krono Rev"
-                android:src="@drawable/ic_inventory"
-                app:tint="@color/krono_navy" />
-        </FrameLayout>
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="@string/cd_logo"
+            android:src="@drawable/logo" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -79,18 +71,27 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- User Avatar Logo -->
-        <ImageView
+        <!-- Cerrar Sesión -->
+        <FrameLayout
             android:id="@+id/btnBackLogin"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_icon_container"
             android:clickable="true"
-            android:contentDescription="Avatar"
-            android:focusable="true"
-            android:src="@drawable/logo" />
+            android:contentDescription="Cerrar sesión"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:contentDescription="Cerrar sesión"
+                android:src="@drawable/ic_logout"
+                app:tint="@color/krono_navy" />
+        </FrameLayout>
     </LinearLayout>
 
-    <!-- Bottom Navigation Bar (4 Tabs) -->
+    <!-- Bottom Navigation Bar (3 Tabs) -->
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
@@ -100,7 +101,7 @@
         android:elevation="8dp"
         android:orientation="horizontal">
 
-        <!-- Tab 1: Zonas y Granjas -->
+        <!-- Tab 1: Zonas y Granjas (Active) -->
         <LinearLayout
             android:id="@+id/tabZonas"
             android:layout_width="0dp"
@@ -114,42 +115,18 @@
                 android:layout_height="20dp"
                 android:contentDescription="Zonas y Granjas"
                 android:src="@drawable/ic_target"
-                app:tint="@color/krono_text_secondary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Zonas y Granjas"
-                android:textColor="@color/krono_text_secondary"
-                android:textSize="10sp" />
-        </LinearLayout>
-
-        <!-- Tab 2: Hoja Pedido (Active) -->
-        <LinearLayout
-            android:id="@+id/tabHojaPedido"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:contentDescription="Hoja Pedido"
-                android:src="@drawable/ic_description"
                 app:tint="@color/krono_navy" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hoja Pedido"
+                android:text="Zonas y Granjas"
                 android:textColor="@color/krono_navy"
                 android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Tab 3: Pedidos -->
+        <!-- Tab 2: Pedidos -->
         <LinearLayout
             android:id="@+id/tabPedidos"
             android:layout_width="0dp"
@@ -173,7 +150,7 @@
                 android:textSize="10sp" />
         </LinearLayout>
 
-        <!-- Tab 4: Historial -->
+        <!-- Tab 3: Historial -->
         <LinearLayout
             android:id="@+id/tabHistorial"
             android:layout_width="0dp"
@@ -212,13 +189,43 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="16dp"
-            android:paddingTop="14dp"
+            android:paddingTop="12dp"
             android:paddingBottom="24dp">
+
+            <!-- Botón de regreso a Zonas y Granjas -->
+            <LinearLayout
+                android:id="@+id/btnVolverGranjas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="Volver"
+                    android:src="@drawable/ic_arrow_back"
+                    app:tint="@color/krono_navy" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="← Volver a Zonas y Granjas"
+                    android:textColor="@color/krono_navy"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <!-- Breadcrumbs Navigation Bar -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -246,16 +253,17 @@
                     app:tint="@color/krono_navy" />
 
                 <TextView
+                    android:id="@+id/txtDetalleGranjaNombre"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
-                    android:text="Granja Los Laureles"
+                    android:text="Finca San Isidro"
                     android:textColor="@color/krono_navy_dark"
                     android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Screen Title: Supervisión Técnica -->
+            <!-- Título de Sección -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -265,44 +273,325 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentStart="true"
-                    android:text="Supervisión Técnica"
+                    android:text="Hojas de Pedidos"
                     android:textColor="@color/krono_navy_dark"
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
-                <LinearLayout
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:background="@drawable/bg_blue_chip"
-                    android:gravity="center_vertical"
                     android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp">
-
-                    <ImageView
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:contentDescription="Lock"
-                        android:src="@drawable/ic_lock"
-                        app:tint="@color/krono_navy" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="Ventana Activa"
-                        android:textColor="@color/krono_navy_dark"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                    android:paddingVertical="4dp"
+                    android:text="3 Registros"
+                    android:textColor="@color/krono_navy_dark"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
             </RelativeLayout>
 
-            <!-- Card 1: Official Document Header Card -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Hojas empaquetadas por fecha. Toque un pedido para desplegar sus productos y dictamen."
+                android:textColor="@color/krono_text_secondary"
+                android:textSize="12sp" />
+
+            <!-- CONTENEDOR DE HOJAS DE PEDIDO EMPAQUETADAS POR FECHA -->
+
+            <!-- 1. Pedido 1: 13 Nov 2026 (En Revisión) -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardRevision1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/krono_card_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Cabecera del Empaque -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:background="@drawable/bg_blue_chip"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:text="⌛ En Revisión Técnica"
+                            android:textColor="@color/krono_navy"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:text="13 Nov 2026 • 10:45 AM"
+                            android:textColor="@color/krono_navy"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Pedido #PED-2026-11-ZN04"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Solicitado por Carlos Méndez • Ordinario"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/arrowRevision1"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="Desplegar pedido"
+                            android:src="@drawable/ic_arrow_drop_down"
+                            app:tint="@color/krono_navy" />
+                    </LinearLayout>
+
+                    <!-- Contenedor Desplegable -->
+                    <LinearLayout
+                        android:id="@+id/detailsRevision1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/krono_card_stroke" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="Productos Solicitados:"
+                            android:textColor="@color/krono_navy"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <!-- Item 1 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/bg_cierre_box"
+                            android:gravity="center_vertical"
+                            android:padding="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Fertilizante NPK 15-15-15 (Sacos 50kg)"
+                                    android:textColor="@color/krono_navy_dark"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Fungicida/Nutricional • SKU: FERT-NPK-50"
+                                    android:textColor="@color/krono_text_secondary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_chip"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="20 sacos"
+                                android:textColor="@color/krono_navy"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Item 2 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/bg_cierre_box"
+                            android:gravity="center_vertical"
+                            android:padding="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Insecticida Concentrado 1L"
+                                    android:textColor="@color/krono_navy_dark"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Protección Fitosanitaria • SKU: INS-L1"
+                                    android:textColor="@color/krono_text_secondary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_chip"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="12 frascos"
+                                android:textColor="@color/krono_navy"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Item 3 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/bg_cierre_box"
+                            android:gravity="center_vertical"
+                            android:padding="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Baldes Plásticos 20L"
+                                    android:textColor="@color/krono_navy_dark"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Insumo Agregado • Registro en Campo"
+                                    android:textColor="@color/krono_text_secondary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_chip"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="2 un."
+                                android:textColor="@color/krono_navy"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Total & Acciones de Supervisor -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:paddingHorizontal="4dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:text="Total Estimado: $1,710 USD"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:text="34 unidades en lista"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="12sp" />
+                        </RelativeLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAprobarHoja"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:layout_marginTop="14dp"
+                            android:backgroundTint="@color/krono_navy"
+                            android:text="Aprobar Hoja y Enviar a Pedidos"
+                            android:textColor="@color/white"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            app:cornerRadius="10dp"
+                            app:icon="@drawable/ic_check_circle"
+                            app:iconGravity="textStart"
+                            app:iconTint="@color/white" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 2. Pedido 2: 28 Oct 2026 (Aprobado) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardRevision2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
@@ -319,767 +608,172 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                        <LinearLayout
+                        <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
-                            android:gravity="center_vertical">
+                            android:background="@drawable/bg_blue_chip"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:text="✓ Aprobado por Supervisor"
+                            android:textColor="@color/krono_navy"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
 
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:contentDescription="Doc"
-                                android:src="@drawable/ic_description"
-                                app:tint="@color/krono_navy" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:text="28 Oct 2026 • 15:20"
+                            android:textColor="@color/krono_navy"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="6dp"
-                                android:text="DOCUMENTO OFICIAL"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp"
+                                android:text="Pedido #PED-2026-10-ZN02"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="16sp"
                                 android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="25 sacos Urea 46% + 10 kits de aspersión"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="12sp" />
                         </LinearLayout>
 
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true">
+                        <ImageView
+                            android:id="@+id/arrowRevision2"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="Desplegar pedido"
+                            android:src="@drawable/ic_arrow_drop_down"
+                            app:tint="@color/krono_navy" />
+                    </LinearLayout>
 
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="10dp"
-                                android:background="@drawable/bg_cierre_box"
-                                android:contentDescription="Edit"
-                                android:padding="3dp"
-                                android:src="@drawable/ic_edit"
-                                app:tint="@color/krono_navy" />
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:background="@drawable/bg_cierre_box"
-                                android:contentDescription="Delete"
-                                android:padding="3dp"
-                                android:src="@drawable/ic_delete"
-                                app:tint="@color/krono_red_text" />
-                        </LinearLayout>
-                    </RelativeLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="HOJA DE PEDIDO MENSUAL"
-                        android:textColor="@color/krono_navy_dark"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="#PED-2024-10-ZN01"
-                        android:textColor="@color/krono_text_secondary"
-                        android:textSize="12sp" />
-
-                    <!-- Inner Grid Details Box -->
+                    <!-- Contenedor Desplegable -->
                     <LinearLayout
+                        android:id="@+id/detailsRevision2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:background="@drawable/bg_cierre_box"
                         android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Solicitado por"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="11sp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Carlos Méndez"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Operario Encargado"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Ciclo Fiscal"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="11sp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Octubre 2024"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Rev. 02 - Ordinario"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-                        </LinearLayout>
+                        android:visibility="gone">
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_marginVertical="8dp"
                             android:background="@color/krono_card_stroke" />
 
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Estado del Formato"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:gravity="center_vertical">
-
-                                <View
-                                    android:layout_width="6dp"
-                                    android:layout_height="6dp"
-                                    android:background="@drawable/bg_chip"
-                                    android:backgroundTint="@color/krono_text_secondary" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="6dp"
-                                    android:text="En Dictamen"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- ITEM 1: Fungicida Mancozeb 80% WP -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/krono_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <FrameLayout
-                            android:id="@+id/frameItem1"
-                            android:layout_width="38dp"
-                            android:layout_height="38dp"
-                            android:layout_alignParentStart="true"
-                            android:background="@drawable/bg_icon_container">
-
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="Flask"
-                                android:src="@drawable/ic_flask"
-                                app:tint="@color/krono_navy" />
-                        </FrameLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:layout_toEndOf="@id/frameItem1"
-                            android:layout_toStartOf="@id/actionsItem1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Fungicida Mancozeb 80% WP"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Químico CAS: 8018-01-7"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/actionsItem1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true">
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="8dp"
-                                android:background="@drawable/bg_cierre_box"
-                                android:contentDescription="Edit"
-                                android:padding="3dp"
-                                android:src="@drawable/ic_edit"
-                                app:tint="@color/krono_navy" />
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:background="@drawable/bg_cierre_box"
-                                android:contentDescription="Delete"
-                                android:padding="3dp"
-                                android:src="@drawable/ic_delete"
-                                app:tint="@color/krono_red_text" />
-                        </LinearLayout>
-                    </RelativeLayout>
-
-                    <!-- Middle Comparison Badge -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:padding="8dp">
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:layout_centerVertical="true"
-                            android:text="Mes Ant.: 10 kg  |  Solicitado: 10 kg"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="12sp"
+                            android:layout_marginTop="12dp"
+                            android:text="Productos Aprobados:"
+                            android:textColor="@color/krono_navy"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:background="@drawable/bg_chip"
-                            android:paddingHorizontal="6dp"
-                            android:paddingVertical="2dp"
-                            android:text="Reposición 100%"
-                            android:textColor="@color/krono_chip_text"
-                            android:textSize="11sp" />
-                    </RelativeLayout>
-
-                    <!-- Bottom Stepper Control -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp">
-
                         <LinearLayout
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:layout_centerVertical="true"
-                            android:gravity="center_vertical">
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/bg_cierre_box"
+                            android:gravity="center_vertical"
+                            android:padding="10dp">
 
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:text="Cantidad Aprobada:"
+                                android:layout_weight="1"
+                                android:text="Urea Agrícola 46% (Sacos 50kg)"
                                 android:textColor="@color/krono_navy_dark"
                                 android:textSize="13sp"
                                 android:textStyle="bold" />
 
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:layout_marginStart="6dp"
-                                android:contentDescription="Check"
-                                android:src="@drawable/ic_check_circle"
-                                app:tint="@color/krono_navy" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="38dp"
-                            android:layout_alignParentEnd="true"
-                            android:background="@drawable/bg_qty_box"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingHorizontal="8dp">
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:contentDescription="Minus"
-                                android:src="@drawable/ic_remove"
-                                app:tint="@color/krono_navy" />
-
-                            <TextView
-                                android:layout_width="48dp"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:text="10 kg"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:contentDescription="Plus"
-                                android:src="@drawable/ic_add"
-                                app:tint="@color/krono_navy" />
-                        </LinearLayout>
-                    </RelativeLayout>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- ITEM 2: Válvula de Bola PVC 2 pulg -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/krono_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <FrameLayout
-                            android:id="@+id/frameItem2"
-                            android:layout_width="38dp"
-                            android:layout_height="38dp"
-                            android:layout_alignParentStart="true"
-                            android:background="@drawable/bg_icon_container">
-
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="Wrench"
-                                android:src="@drawable/ic_wrench"
-                                app:tint="@color/krono_navy" />
-                        </FrameLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:layout_toEndOf="@id/frameItem2"
-                            android:layout_toStartOf="@id/actionsItem2"
-                            android:orientation="vertical">
-
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Válvula de Bola PVC 2 pulg"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Ferretería SKU: HYD-VAL-02"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/actionsItem2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true">
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="8dp"
-                                android:background="@drawable/bg_cierre_box"
-                                android:contentDescription="Edit"
-                                android:padding="3dp"
-                                android:src="@drawable/ic_edit"
-                                app:tint="@color/krono_navy" />
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:background="@drawable/bg_cierre_box"
-                                android:contentDescription="Delete"
-                                android:padding="3dp"
-                                android:src="@drawable/ic_delete"
-                                app:tint="@color/krono_red_text" />
-                        </LinearLayout>
-                    </RelativeLayout>
-
-                    <!-- Middle Comparison Badge -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:padding="8dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:layout_centerVertical="true"
-                            android:text="Mes Ant.: 0 uds  |  Solicitado: 6 uds"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:background="@drawable/bg_blue_chip"
-                            android:paddingHorizontal="6dp"
-                            android:paddingVertical="2dp"
-                            android:text="Sector 3 Ampliación"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="11sp" />
-                    </RelativeLayout>
-
-                    <!-- Bottom Stepper Control -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:layout_centerVertical="true"
-                            android:gravity="center_vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Cantidad Aprobada:"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:layout_marginStart="6dp"
-                                android:contentDescription="Check"
-                                android:src="@drawable/ic_check_circle"
-                                app:tint="@color/krono_navy" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="38dp"
-                            android:layout_alignParentEnd="true"
-                            android:background="@drawable/bg_qty_box"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingHorizontal="8dp">
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:contentDescription="Minus"
-                                android:src="@drawable/ic_remove"
-                                app:tint="@color/krono_navy" />
-
-                            <TextView
-                                android:layout_width="48dp"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:text="6 uds"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:contentDescription="Plus"
-                                android:src="@drawable/ic_add"
-                                app:tint="@color/krono_navy" />
-                        </LinearLayout>
-                    </RelativeLayout>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- ITEM 3: Cable Tensor Galvanizado 3/16 -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/krono_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <FrameLayout
-                            android:id="@+id/frameItem3"
-                            android:layout_width="38dp"
-                            android:layout_height="38dp"
-                            android:layout_alignParentStart="true"
-                            android:background="@drawable/bg_icon_container">
-
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="Wrench"
-                                android:src="@drawable/ic_wrench"
-                                app:tint="@color/krono_navy" />
-                        </FrameLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:layout_toEndOf="@id/frameItem3"
-                            android:layout_toStartOf="@id/actionsItem3"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Cable Tensor Galvanizado 3/16"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Requerimiento Especial (Fuera Catálogo)"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/actionsItem3"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true">
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_marginEnd="8dp"
-                                android:background="@drawable/bg_cierre_box"
-                                android:contentDescription="Edit"
-                                android:padding="3dp"
-                                android:src="@drawable/ic_edit"
-                                app:tint="@color/krono_navy" />
-
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:background="@drawable/bg_cierre_box"
-                                android:contentDescription="Delete"
-                                android:padding="3dp"
-                                android:src="@drawable/ic_delete"
-                                app:tint="@color/krono_red_text" />
-                        </LinearLayout>
-                    </RelativeLayout>
-
-                    <!-- Justification Box -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:orientation="vertical"
-                        android:padding="10dp">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="!"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="6dp"
-                                android:text="Justificación Técnica:"
-                                android:textColor="@color/krono_navy_dark"
+                                android:background="@drawable/bg_chip"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="25 sacos"
+                                android:textColor="@color/krono_navy"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="&quot;Urgencia para apuntalar espalderas del invernadero principal.&quot;"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="12sp"
-                            android:textStyle="italic" />
-                    </LinearLayout>
-
-                    <!-- Bottom Stepper Control -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:layout_centerVertical="true"
-                            android:gravity="center_vertical">
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/bg_cierre_box"
+                            android:gravity="center_vertical"
+                            android:padding="10dp">
 
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:text="Cantidad Aprobada:"
+                                android:layout_weight="1"
+                                android:text="Kits de Aspersión Manual"
                                 android:textColor="@color/krono_navy_dark"
                                 android:textSize="13sp"
                                 android:textStyle="bold" />
 
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:layout_marginStart="6dp"
-                                android:contentDescription="Check"
-                                android:src="@drawable/ic_check_circle"
-                                app:tint="@color/krono_navy" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="38dp"
-                            android:layout_alignParentEnd="true"
-                            android:background="@drawable/bg_qty_box"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingHorizontal="8dp">
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:contentDescription="Minus"
-                                android:src="@drawable/ic_remove"
-                                app:tint="@color/krono_navy" />
-
                             <TextView
-                                android:layout_width="56dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:text="2 rollos"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="14sp"
+                                android:background="@drawable/bg_chip"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="10 kits"
+                                android:textColor="@color/krono_navy"
+                                android:textSize="12sp"
                                 android:textStyle="bold" />
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:contentDescription="Plus"
-                                android:src="@drawable/ic_add"
-                                app:tint="@color/krono_navy" />
                         </LinearLayout>
-                    </RelativeLayout>
 
+                        <!-- Dictamen -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:background="@drawable/bg_blue_chip"
+                            android:padding="10dp"
+                            android:text="✓ Dictamen: Cantidades aprobadas en su totalidad para despacho en Rampa 3."
+                            android:textColor="@color/krono_navy_dark"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card 2: Validation & Dictamen Box -->
+            <!-- 3. Pedido 3: 15 Sep 2026 (Despachado) -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardRevision3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="12dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
@@ -1090,173 +784,168 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="16dp">
 
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                        <LinearLayout
+                        <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
-                            android:gravity="center_vertical">
-
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:contentDescription="Shield"
-                                android:src="@drawable/ic_admin"
-                                app:tint="@color/krono_navy" />
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Validación de Renglones"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Cumple directriz agronómica ZN-24"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:gravity="end"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="3"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="18sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="insumos listos"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </RelativeLayout>
-
-                    <!-- Dictamen Inner Box -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/bg_cierre_box"
-                        android:padding="12dp">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:gravity="center_vertical">
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:contentDescription="Edit"
-                                android:src="@drawable/ic_edit"
-                                app:tint="@color/krono_text_secondary" />
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Dictamen de Hoja"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="11sp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Conforme para Compras y Logística"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-                        </LinearLayout>
+                            android:background="@drawable/bg_chip"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:text="✓ Despachado y Entregado"
+                            android:textColor="@color/krono_navy_dark"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
-                            android:background="@drawable/bg_blue_chip"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp"
-                            android:text="REV. OK"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="11sp"
+                            android:text="15 Sep 2026 • 09:10"
+                            android:textColor="@color/krono_navy"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
                     </RelativeLayout>
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Pedido #PED-2026-09-ZN01"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="40 sacos NPK + 5 repuestos de bomba"
+                                android:textColor="@color/krono_text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/arrowRevision3"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="Desplegar pedido"
+                            android:src="@drawable/ic_arrow_drop_down"
+                            app:tint="@color/krono_navy" />
+                    </LinearLayout>
+
+                    <!-- Contenedor Desplegable -->
+                    <LinearLayout
+                        android:id="@+id/detailsRevision3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/krono_card_stroke" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="Productos Despachados:"
+                            android:textColor="@color/krono_navy"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/bg_cierre_box"
+                            android:gravity="center_vertical"
+                            android:padding="10dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Fertilizante NPK 15-15-15"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_chip"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="40 sacos"
+                                android:textColor="@color/krono_navy"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/bg_cierre_box"
+                            android:gravity="center_vertical"
+                            android:padding="10dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Repuestos Bomba de Riego"
+                                android:textColor="@color/krono_navy_dark"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_chip"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="5 repuestos"
+                                android:textColor="@color/krono_navy"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Remisión -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:background="@drawable/bg_cierre_box"
+                            android:padding="10dp"
+                            android:text="Remisión: #REM-2026-09-082 • Entregado por Cond. Roberto Díaz"
+                            android:textColor="@color/krono_text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
-            <!-- Main Primary Action Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAprobarHoja"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="16dp"
-                android:backgroundTint="@color/krono_navy"
-                android:text="Aprobar Hoja y Pasar a Pedidos"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:cornerRadius="12dp"
-                app:icon="@drawable/ic_check_circle"
-                app:iconTint="@color/white" />
-
-            <!-- Explanation Subtext -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:contentDescription="Swap"
-                    android:src="@drawable/ic_swap_horiz"
-                    app:tint="@color/krono_text_secondary" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:gravity="center"
-                    android:text="Al aprobar, esta hoja se transferirá a la sección Pedidos\ncon estado Pendiente de Despacho."
-                    android:textColor="@color/krono_text_secondary"
-                    android:textSize="12sp" />
-            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

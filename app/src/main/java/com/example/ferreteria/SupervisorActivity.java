@@ -63,29 +63,13 @@ public class SupervisorActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        StatusBarUtils.initEdgeToEdge(this);
         loadZonasView();
-    }
-
-    private void applyStatusBarAndTopBarInsets() {
-        EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
-
-        View statusBarBg = findViewById(R.id.statusBarBg);
-        if (statusBarBg != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(statusBarBg, (v, insets) -> {
-                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                ViewGroup.LayoutParams lp = v.getLayoutParams();
-                if (lp != null && lp.height != systemBars.top) {
-                    lp.height = systemBars.top;
-                    v.setLayoutParams(lp);
-                }
-                return insets;
-            });
-        }
     }
 
     public void loadZonasView() {
         setContentView(R.layout.activity_supervisor);
-        applyStatusBarAndTopBarInsets();
+        StatusBarUtils.applyStatusBarNavyHeader(this);
 
         initZonasViews();
         setupZoneSelection();
@@ -93,22 +77,31 @@ public class SupervisorActivity extends AppCompatActivity {
     }
 
     public void loadHojaPedidoView() {
+        loadHojaPedidoView("Finca San Isidro");
+    }
+
+    public void loadHojaPedidoView(String farmName) {
         setContentView(R.layout.activity_sup_hojapedido);
-        applyStatusBarAndTopBarInsets();
+        StatusBarUtils.applyStatusBarNavyHeader(this);
+
+        TextView txtFarm = findViewById(R.id.txtDetalleGranjaNombre);
+        if (txtFarm != null && farmName != null) {
+            txtFarm.setText(farmName);
+        }
 
         setupHojaPedidoClickListeners();
     }
 
     public void loadPedidosView() {
         setContentView(R.layout.activity_sup_pedidos);
-        applyStatusBarAndTopBarInsets();
+        StatusBarUtils.applyStatusBarNavyHeader(this);
 
         setupPedidosClickListeners();
     }
 
     public void loadHistorialView() {
         setContentView(R.layout.activity_sup_historial);
-        applyStatusBarAndTopBarInsets();
+        StatusBarUtils.applyStatusBarNavyHeader(this);
 
         setupHistorialClickListeners();
     }
@@ -188,16 +181,25 @@ public class SupervisorActivity extends AppCompatActivity {
     private void setupZonasClickListeners() {
         findViewById(R.id.btnBackLogin).setOnClickListener(v -> finish());
 
-        TextView btnVerPedido2 = findViewById(R.id.btnVerPedido2);
-        if (btnVerPedido2 != null) {
-            btnVerPedido2.setOnClickListener(v -> loadHojaPedidoView());
+        View cardFarm1 = findViewById(R.id.cardFarm1);
+        if (cardFarm1 != null) {
+            cardFarm1.setOnClickListener(v -> loadHojaPedidoView("Granja Los Laureles"));
+        }
+
+        View cardFarm2 = findViewById(R.id.cardFarm2);
+        if (cardFarm2 != null) {
+            cardFarm2.setOnClickListener(v -> loadHojaPedidoView("Finca San Isidro"));
+        }
+
+        View cardFarm3 = findViewById(R.id.cardFarm3);
+        if (cardFarm3 != null) {
+            cardFarm3.setOnClickListener(v -> loadHojaPedidoView("Granja Santa Elena"));
         }
 
         findViewById(R.id.tabZonas).setOnClickListener(v ->
                 Toast.makeText(this, "Sección actual: Zonas y Granjas Operativas", Toast.LENGTH_SHORT).show()
         );
 
-        findViewById(R.id.tabHojaPedido).setOnClickListener(v -> loadHojaPedidoView());
         findViewById(R.id.tabPedidos).setOnClickListener(v -> loadPedidosView());
         findViewById(R.id.tabHistorial).setOnClickListener(v -> loadHistorialView());
     }
@@ -205,19 +207,39 @@ public class SupervisorActivity extends AppCompatActivity {
     private void setupHojaPedidoClickListeners() {
         findViewById(R.id.btnBackLogin).setOnClickListener(v -> finish());
 
-        findViewById(R.id.btnAprobarHoja).setOnClickListener(v -> {
-            Toast.makeText(this, "Hoja #PED-2024-10-ZN01 aprobada y transferida a Pedidos (Pendiente de Despacho).", Toast.LENGTH_LONG).show();
-            loadPedidosView();
-        });
+        View btnVolver = findViewById(R.id.btnVolverGranjas);
+        if (btnVolver != null) {
+            btnVolver.setOnClickListener(v -> loadZonasView());
+        }
+
+        View btnAprobar = findViewById(R.id.btnAprobarHoja);
+        if (btnAprobar != null) {
+            btnAprobar.setOnClickListener(v -> {
+                Toast.makeText(this, "Hoja #PED-2026-11-ZN04 aprobada y transferida a Pedidos (Pendiente de Despacho).", Toast.LENGTH_LONG).show();
+                loadPedidosView();
+            });
+        }
+
+        setupCardToggle(R.id.cardRevision1, R.id.detailsRevision1, R.id.arrowRevision1);
+        setupCardToggle(R.id.cardRevision2, R.id.detailsRevision2, R.id.arrowRevision2);
+        setupCardToggle(R.id.cardRevision3, R.id.detailsRevision3, R.id.arrowRevision3);
 
         findViewById(R.id.tabZonas).setOnClickListener(v -> loadZonasView());
-
-        findViewById(R.id.tabHojaPedido).setOnClickListener(v ->
-                Toast.makeText(this, "Sección actual: Supervisión Técnica de Hoja de Pedido", Toast.LENGTH_SHORT).show()
-        );
-
         findViewById(R.id.tabPedidos).setOnClickListener(v -> loadPedidosView());
         findViewById(R.id.tabHistorial).setOnClickListener(v -> loadHistorialView());
+    }
+
+    private void setupCardToggle(int cardId, int detailsId, int arrowId) {
+        View card = findViewById(cardId);
+        View details = findViewById(detailsId);
+        android.widget.ImageView arrow = findViewById(arrowId);
+        if (card != null && details != null && arrow != null) {
+            card.setOnClickListener(v -> {
+                boolean isVisible = details.getVisibility() == View.VISIBLE;
+                details.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+                arrow.animate().rotation(isVisible ? 0f : 180f).setDuration(200).start();
+            });
+        }
     }
 
     private void setupPedidosClickListeners() {
@@ -227,7 +249,7 @@ public class SupervisorActivity extends AppCompatActivity {
         int[] verHojaIds = new int[]{R.id.btnVerHoja1, R.id.btnVerHoja2, R.id.btnVerHoja3, R.id.btnVerHoja4};
         for (int id : verHojaIds) {
             if (findViewById(id) != null) {
-                findViewById(id).setOnClickListener(v -> loadHojaPedidoView());
+                findViewById(id).setOnClickListener(v -> loadHojaPedidoView("Finca San Isidro"));
             }
         }
 
@@ -249,7 +271,6 @@ public class SupervisorActivity extends AppCompatActivity {
         }
 
         findViewById(R.id.tabZonas).setOnClickListener(v -> loadZonasView());
-        findViewById(R.id.tabHojaPedido).setOnClickListener(v -> loadHojaPedidoView());
 
         findViewById(R.id.tabPedidos).setOnClickListener(v ->
                 Toast.makeText(this, "Sección actual: Pedidos Aprobados para Despacho", Toast.LENGTH_SHORT).show()
@@ -277,7 +298,6 @@ public class SupervisorActivity extends AppCompatActivity {
         }
 
         findViewById(R.id.tabZonas).setOnClickListener(v -> loadZonasView());
-        findViewById(R.id.tabHojaPedido).setOnClickListener(v -> loadHojaPedidoView());
         findViewById(R.id.tabPedidos).setOnClickListener(v -> loadPedidosView());
 
         findViewById(R.id.tabHistorial).setOnClickListener(v ->

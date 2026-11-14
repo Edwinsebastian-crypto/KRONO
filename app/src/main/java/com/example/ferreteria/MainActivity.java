@@ -57,21 +57,15 @@ public class MainActivity extends AppCompatActivity {
     private EditText etUserId;
     private EditText etPassword;
 
-    private EditText pin1;
-    private EditText pin2;
-    private EditText pin3;
-    private EditText pin4;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
+        StatusBarUtils.initEdgeToEdge(this);
         setContentView(R.layout.activity_main);
 
         initViews();
         setupWindowInsets();
         setupRoleSelection();
-        setupPinAutoAdvance();
         setupFocusAutoScroll();
         setupClickListeners();
     }
@@ -89,27 +83,14 @@ public class MainActivity extends AppCompatActivity {
 
         etUserId = findViewById(R.id.etUserId);
         etPassword = findViewById(R.id.etPassword);
-
-        pin1 = findViewById(R.id.pin1);
-        pin2 = findViewById(R.id.pin2);
-        pin3 = findViewById(R.id.pin3);
-        pin4 = findViewById(R.id.pin4);
     }
 
     private void setupWindowInsets() {
-        View statusBarBg = findViewById(R.id.statusBarBg);
+        StatusBarUtils.applyStatusBarNavyHeader(this);
 
         ViewCompat.setOnApplyWindowInsetsListener(scrollViewMain, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
-
-            if (statusBarBg != null) {
-                ViewGroup.LayoutParams lp = statusBarBg.getLayoutParams();
-                if (lp != null && lp.height != systemBars.top) {
-                    lp.height = systemBars.top;
-                    statusBarBg.setLayoutParams(lp);
-                }
-            }
 
             lastImeHeight = ime.bottom;
 
@@ -146,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
         View.OnClickListener clickListener = v ->
                 scrollViewMain.postDelayed(() -> scrollToFocusedView(v), 100);
 
-        View[] inputs = new View[]{etUserId, etPassword, pin1, pin2, pin3, pin4};
+        View[] inputs = new View[]{etUserId, etPassword};
         for (View input : inputs) {
             input.setOnFocusChangeListener(focusChangeListener);
             input.setOnClickListener(clickListener);
@@ -156,10 +137,7 @@ public class MainActivity extends AppCompatActivity {
     private View resolveTargetContainer(View view) {
         if (view == null) return null;
         int viewId = view.getId();
-        if (viewId == R.id.pin1 || viewId == R.id.pin2 || viewId == R.id.pin3 || viewId == R.id.pin4) {
-            View pinGrid = findViewById(R.id.layoutPinGrid);
-            return pinGrid != null ? pinGrid : view;
-        } else if (viewId == R.id.etUserId) {
+        if (viewId == R.id.etUserId) {
             View layoutUserId = findViewById(R.id.layoutUserId);
             return layoutUserId != null ? layoutUserId : view;
         } else if (viewId == R.id.etPassword) {
@@ -244,46 +222,8 @@ public class MainActivity extends AppCompatActivity {
         imgRadioAdmin.setImageResource(isAdmin ? R.drawable.ic_radio_checked : R.drawable.ic_radio_unchecked);
     }
 
-    private void setupPinAutoAdvance() {
-        setupPinField(pin1, null, pin2);
-        setupPinField(pin2, pin1, pin3);
-        setupPinField(pin3, pin2, pin4);
-        setupPinField(pin4, pin3, null);
-    }
-
-    private void setupPinField(EditText current, EditText previous, EditText next) {
-        current.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() == 1 && next != null) {
-                    next.requestFocus();
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
-
-        current.setOnKeyListener((v, keyCode, event) -> {
-            if (keyCode == KeyEvent.KEYCODE_DEL && event.getAction() == KeyEvent.ACTION_DOWN) {
-                if (current.getText().length() == 0 && previous != null) {
-                    previous.requestFocus();
-                    previous.setText("");
-                    return true;
-                }
-            }
-            return false;
-        });
-    }
-
     private void setupClickListeners() {
         findViewById(R.id.btnLogin).setOnClickListener(v -> {
-            String userId = etUserId.getText() != null ? etUserId.getText().toString().trim() : "";
-            String pinEntered = getPinText();
-
             if (selectedRole == UserRole.OPERARIO) {
                 Intent intent = new Intent(MainActivity.this, OperarioActivity.class);
                 startActivity(intent);
@@ -293,44 +233,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (selectedRole == UserRole.ADMINISTRADOR) {
                 Intent intent = new Intent(MainActivity.this, AdminActivity.class);
                 startActivity(intent);
-            } else {
-                String message;
-                if (!pinEntered.isEmpty()) {
-                    message = "Acceso PIN (" + pinEntered + ") como: " + selectedRole.getDisplayName();
-                } else if (!userId.isEmpty()) {
-                    message = "Iniciando sesión como: " + selectedRole.getDisplayName() + " (" + userId + ")";
-                } else {
-                    message = "Por favor ingrese su ID o PIN de acceso.";
-                }
-                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
             }
         });
-
-        findViewById(R.id.btnFingerprint).setOnClickListener(v ->
-                Toast.makeText(MainActivity.this, "Autenticación Biométrica (Huella) en proceso...", Toast.LENGTH_SHORT).show()
-        );
-
-        findViewById(R.id.btnSync).setOnClickListener(v ->
-                Toast.makeText(MainActivity.this, "Sincronizando catálogo local con el servidor...", Toast.LENGTH_SHORT).show()
-        );
-
-        findViewById(R.id.txtForgotKey).setOnClickListener(v ->
-                Toast.makeText(MainActivity.this, "Solicitando recuperación de clave corporativa...", Toast.LENGTH_SHORT).show()
-        );
-
-        findViewById(R.id.btnSoporte).setOnClickListener(v ->
-                Toast.makeText(MainActivity.this, "Conectando con Soporte Agronómico...", Toast.LENGTH_SHORT).show()
-        );
-
-        findViewById(R.id.btnDesconectado).setOnClickListener(v ->
-                Toast.makeText(MainActivity.this, "Modo fuera de línea activado", Toast.LENGTH_SHORT).show()
-        );
-    }
-
-    private String getPinText() {
-        return pin1.getText().toString().trim() +
-                pin2.getText().toString().trim() +
-                pin3.getText().toString().trim() +
-                pin4.getText().toString().trim();
     }
 }

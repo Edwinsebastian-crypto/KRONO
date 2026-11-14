@@ -19,21 +19,9 @@ public class AdminActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
+        StatusBarUtils.initEdgeToEdge(this);
         setContentView(R.layout.activity_admin);
-
-        View statusBarBg = findViewById(R.id.statusBarBg);
-        if (statusBarBg != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(statusBarBg, (v, insets) -> {
-                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                ViewGroup.LayoutParams lp = v.getLayoutParams();
-                if (lp != null && lp.height != systemBars.top) {
-                    lp.height = systemBars.top;
-                    v.setLayoutParams(lp);
-                }
-                return insets;
-            });
-        }
+        StatusBarUtils.applyStatusBarNavyHeader(this);
 
         setupClickListeners();
     }

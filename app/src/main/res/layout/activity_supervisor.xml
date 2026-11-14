@@ -27,19 +27,11 @@
         android:orientation="horizontal"
         android:paddingHorizontal="16dp">
 
-        <FrameLayout
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:background="@drawable/bg_icon_container">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_gravity="center"
-                android:contentDescription="Krono Rev"
-                android:src="@drawable/ic_inventory"
-                app:tint="@color/krono_navy" />
-        </FrameLayout>
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="@string/cd_logo"
+            android:src="@drawable/logo" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -79,18 +71,27 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- User Avatar Logo -->
-        <ImageView
+        <!-- Cerrar Sesión -->
+        <FrameLayout
             android:id="@+id/btnBackLogin"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_icon_container"
             android:clickable="true"
-            android:contentDescription="Avatar"
-            android:focusable="true"
-            android:src="@drawable/logo" />
+            android:contentDescription="Cerrar sesión"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:contentDescription="Cerrar sesión"
+                android:src="@drawable/ic_logout"
+                app:tint="@color/krono_navy" />
+        </FrameLayout>
     </LinearLayout>
 
-    <!-- Bottom Navigation Bar (4 Tabs) -->
+    <!-- Bottom Navigation Bar (3 Tabs) -->
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
@@ -125,31 +126,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Tab 2: Hoja Pedido -->
-        <LinearLayout
-            android:id="@+id/tabHojaPedido"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:contentDescription="Hoja Pedido"
-                android:src="@drawable/ic_description"
-                app:tint="@color/krono_text_secondary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Hoja Pedido"
-                android:textColor="@color/krono_text_secondary"
-                android:textSize="10sp" />
-        </LinearLayout>
-
-        <!-- Tab 3: Pedidos -->
+        <!-- Tab 2: Pedidos -->
         <LinearLayout
             android:id="@+id/tabPedidos"
             android:layout_width="0dp"
@@ -173,7 +150,7 @@
                 android:textSize="10sp" />
         </LinearLayout>
 
-        <!-- Tab 4: Historial -->
+        <!-- Tab 3: Historial -->
         <LinearLayout
             android:id="@+id/tabHistorial"
             android:layout_width="0dp"
@@ -610,9 +587,12 @@
 
             <!-- Farm Item 1: Granja Los Laureles -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFarm1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
@@ -674,7 +654,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Sector El Trébol • Parcela 4"
+                            android:text="Enviado: 13 Nov 2026 • 11:20 AM"
                             android:textColor="@color/krono_text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -697,210 +677,152 @@
 
             <!-- Farm Item 2: Finca San Isidro -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFarm2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
                 app:strokeColor="@color/krono_card_stroke"
                 app:strokeWidth="1dp">
 
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:padding="14dp">
 
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                    <FrameLayout
+                        android:id="@+id/frameFarm2"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_alignParentStart="true"
+                        android:background="@drawable/bg_icon_container">
 
-                        <FrameLayout
-                            android:id="@+id/frameFarm2"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:layout_alignParentStart="true"
-                            android:background="@drawable/bg_icon_container">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Tractor"
+                            android:src="@drawable/ic_tractor"
+                            app:tint="@color/krono_navy" />
+                    </FrameLayout>
 
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="Tractor"
-                                android:src="@drawable/ic_tractor"
-                                app:tint="@color/krono_navy" />
-                        </FrameLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
-                            android:layout_marginStart="12dp"
-                            android:layout_toEndOf="@id/frameFarm2"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Finca San Isidro"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Por Mateo Rosales • 10:15 AM"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:background="@drawable/bg_blue_chip"
-                            android:paddingHorizontal="10dp"
-                            android:paddingVertical="5dp"
-                            android:text="✓ Hoja Lista (5)"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </RelativeLayout>
-
-                    <!-- Bottom Details Bar with Ver Pedido > link -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
+                    <LinearLayout
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp">
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="12dp"
+                        android:layout_toEndOf="@id/frameFarm2"
+                        android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:text="Total: $2,890 USD • 32 sacos"
+                            android:text="Finca San Isidro"
+                            android:textColor="@color/krono_navy_dark"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Enviado: 13 Nov 2026 • 10:15 AM"
                             android:textColor="@color/krono_text_secondary"
                             android:textSize="12sp" />
+                    </LinearLayout>
 
-                        <TextView
-                            android:id="@+id/btnVerPedido2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:text="Ver Pedido >"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
-                    </RelativeLayout>
-
-                </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/bg_blue_chip"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="5dp"
+                        android:text="✓ Hoja Lista (5)"
+                        android:textColor="@color/krono_navy_dark"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Farm Item 3: Granja Santa Elena (Draft / Borrador) -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFarm3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
                 app:strokeColor="@color/krono_card_stroke"
                 app:strokeWidth="1dp">
 
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:padding="14dp">
 
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                    <FrameLayout
+                        android:id="@+id/frameFarm3"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_alignParentStart="true"
+                        android:background="@drawable/bg_icon_container">
 
-                        <FrameLayout
-                            android:id="@+id/frameFarm3"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:layout_alignParentStart="true"
-                            android:background="@drawable/bg_icon_container">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Tractor"
+                            android:src="@drawable/ic_tractor"
+                            app:tint="@color/krono_navy" />
+                    </FrameLayout>
 
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="Tractor"
-                                android:src="@drawable/ic_tractor"
-                                app:tint="@color/krono_navy" />
-                        </FrameLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
-                            android:layout_marginStart="12dp"
-                            android:layout_toEndOf="@id/frameFarm3"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Granja Santa Elena"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Agrónomo Laura Peña"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:background="@drawable/bg_chip"
-                            android:paddingHorizontal="10dp"
-                            android:paddingVertical="5dp"
-                            android:text="⌛ En Edición (Borrador)"
-                            android:textColor="@color/krono_chip_text"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-                    </RelativeLayout>
-
-                    <!-- Bottom Details Bar -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
+                    <LinearLayout
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp">
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="12dp"
+                        android:layout_toEndOf="@id/frameFarm3"
+                        android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:text="Pendiente de envío de campo"
+                            android:text="Granja Santa Elena"
+                            android:textColor="@color/krono_navy_dark"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Enviado: 12 Nov 2026 • 16:45 PM"
                             android:textColor="@color/krono_text_secondary"
                             android:textSize="12sp" />
+                    </LinearLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:text="Auto-guardado 09:12 AM"
-                            android:textColor="@color/krono_text_secondary"
-                            android:textSize="11sp" />
-                    </RelativeLayout>
-
-                </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/bg_chip"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="5dp"
+                        android:text="⌛ En Edición (Borrador)"
+                        android:textColor="@color/krono_chip_text"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Resumen Operativo Box -->
