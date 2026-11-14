@@ -263,7 +263,7 @@ public class SupervisorActivity extends AppCompatActivity {
         new AlertDialog.Builder(this).setTitle(pedido.codigo+" • "+pedido.estado).setItems(actions,(d,which)->{
             String status = which==0 ? "APROBADO" : which==1 ? "RECHAZADO" : which==2 ? "EN_DESPACHO" : "DESPACHADO";
             pedidoRepository.actualizarEstado(pedido.id,status,new PedidoRepository.GuardarPedidoCallback(){
-                @Override public void onSuccess(long id){ Toast.makeText(SupervisorActivity.this,"Pedido actualizado: "+status,Toast.LENGTH_SHORT).show(); mostrarPedidosGuardados(); }
+                @Override public void onSuccess(long id){ auditRepository.auditar(getIntent().getStringExtra("user_id"),status,"PEDIDO",pedido.codigo); Toast.makeText(SupervisorActivity.this,"Pedido actualizado: "+status,Toast.LENGTH_SHORT).show(); mostrarPedidosGuardados(); }
                 @Override public void onError(Exception error){ Toast.makeText(SupervisorActivity.this,error.getMessage(),Toast.LENGTH_LONG).show(); }
             });
         }).setNegativeButton("Cancelar",null).show();

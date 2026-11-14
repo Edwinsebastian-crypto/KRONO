@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 
 import com.example.ferreteria.data.PedidoRepository;
 import com.example.ferreteria.data.entity.PedidoEntity;
@@ -86,6 +87,17 @@ public class OperarioActivity extends AppCompatActivity {
         });
     }
 
+    private void mostrarMisPedidos() {
+        pedidoRepository.obtenerPedidosPorOperario(userId, new PedidoRepository.PedidosCallback() {
+            @Override public void onSuccess(List<PedidoEntity> pedidos) {
+                StringBuilder summary = new StringBuilder();
+                for (PedidoEntity p : pedidos) summary.append(p.codigo).append(" • ").append(p.estado).append(" • ").append(p.zona).append("\\n");
+                new AlertDialog.Builder(OperarioActivity.this).setTitle("Mis pedidos").setMessage(summary.length()==0 ? "Aún no has enviado pedidos." : summary.toString()).setPositiveButton("Aceptar",null).show();
+            }
+            @Override public void onError(Exception error) { Toast.makeText(OperarioActivity.this,error.getMessage(),Toast.LENGTH_LONG).show(); }
+        });
+    }
+
     /**
      * Carga la vista de Hoja de Pedido (activity_ope_pedido.xml)
      */
@@ -143,9 +155,7 @@ public class OperarioActivity extends AppCompatActivity {
         // Tabs de Navegación Inferior
         findViewById(R.id.tabPedido).setOnClickListener(v -> loadPedidoView());
 
-        findViewById(R.id.tabRevisiones).setOnClickListener(v ->
-                Toast.makeText(this, "Sección actual: Hojas de Pedidos Enviadas", Toast.LENGTH_SHORT).show()
-        );
+        findViewById(R.id.tabRevisiones).setOnClickListener(v -> mostrarMisPedidos());
     }
 
     /**
