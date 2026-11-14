@@ -22,6 +22,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.card.MaterialCardView;
+import com.example.ferreteria.data.AuthRepository;
+import com.example.ferreteria.data.entity.UserEntity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText etUserId;
     private EditText etPassword;
+    private AuthRepository authRepository;
+    private boolean databaseReady = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +72,11 @@ public class MainActivity extends AppCompatActivity {
         setupRoleSelection();
         setupFocusAutoScroll();
         setupClickListeners();
+        authRepository = new AuthRepository(this);
+        authRepository.inicializarDatos(new AuthRepository.ResultCallback<Void>() {
+            @Override public void onSuccess(Void ignored) { databaseReady = true; }
+            @Override public void onError(Exception error) { Toast.makeText(MainActivity.this, "No se pudo preparar la base de datos: " + error.getMessage(), Toast.LENGTH_LONG).show(); }
+        });
     }
 
     private void initViews() {
@@ -186,8 +195,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupRoleSelection() {
-        // Set initial selected state (Supervisor selected by default as in reference image)
-        updateRoleUI(UserRole.SUPERVISOR);
+        updateRoleUI(UserRole.OPERARIO);
 
         cardRoleOperario.setOnClickListener(v -> updateRoleUI(UserRole.OPERARIO));
         cardRoleSupervisor.setOnClickListener(v -> updateRoleUI(UserRole.SUPERVISOR));
@@ -224,16 +232,24 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
         findViewById(R.id.btnLogin).setOnClickListener(v -> {
-            if (selectedRole == UserRole.OPERARIO) {
-                Intent intent = new Intent(MainActivity.this, OperarioActivity.class);
-                startActivity(intent);
-            } else if (selectedRole == UserRole.SUPERVISOR) {
-                Intent intent = new Intent(MainActivity.this, SupervisorActivity.class);
-                startActivity(intent);
-            } else if (selectedRole == UserRole.ADMINISTRADOR) {
-                Intent intent = new Intent(MainActivity.this, AdminActivity.class);
-                startActivity(intent);
-            }
+            String userId = etUserId.getText() == null ? "" : etUserId.getText().toString().trim();
+            String password = etPassword.getText() == null ? "" : etPassword.getText().toString();
+            if (userId.isEmpty()) { etUserId.setError("Ingresa tu código"); return; }
+            if (password.isEmpty()) { etPassword.setError("Ingresa tu contraseña"); return; }
+            if (!databaseReady) { Toast.makeText(this, "Preparando la base de datos. Intenta de nuevo en unos segundos.", Toast.LENGTH_SHORT).show(); return; }
+            String role = selectedRole.name();
+            authRepository.autenticar(userId, password, role, new AuthRepository.ResultCallback<UserEntity>() {
+                @Override public void onSuccess(UserEntity user) {
+                    if (user == null) { etPassword.setError("Credenciales incorrectas o rol no autorizado"); return; }
+                    Class<?> destination = selectedRole == UserRole.OPERARIO ? OperarioActivity.class :
+                            selectedRole == UserRole.SUPERVISOR ? SupervisorActivity.class : AdminActivity.class;
+                    Intent intent = new Intent(MainActivity.this, destination);
+                    intent.putExtra("user_id", user.userId);
+                    intent.putExtra("user_name", user.nombre);
+                    startActivity(intent);
+                }
+                @Override public void onError(Exception error) { Toast.makeText(MainActivity.this, "Error al iniciar sesión: " + error.getMessage(), Toast.LENGTH_LONG).show(); }
+            });
         });
     }
 }

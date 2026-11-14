@@ -15,6 +15,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.ferreteria.data.PedidoRepository;
+import com.example.ferreteria.data.entity.PedidoEntity;
+import com.example.ferreteria.data.entity.InsumoPedidoEntity;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
@@ -37,11 +41,17 @@ public class OperarioActivity extends AppCompatActivity {
     private final List<InsumoItem> insumosList = new ArrayList<>();
     private LinearLayout containerInsumos;
     private boolean pedidoEnviado = false;
+    private PedidoRepository pedidoRepository;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         StatusBarUtils.initEdgeToEdge(this);
+
+        pedidoRepository = new PedidoRepository(this);
+        userId = getIntent().getStringExtra("user_id");
+        if (userId == null) userId = "E100";
 
         // Inicializar insumos por defecto
         insumosList.clear();
@@ -57,6 +67,23 @@ public class OperarioActivity extends AppCompatActivity {
         ));
 
         loadPedidoView();
+    }
+
+    private void guardarPedidoEnRoom() {
+        if (insumosList.isEmpty()) { Toast.makeText(this, "Agrega al menos un insumo antes de enviar.", Toast.LENGTH_SHORT).show(); return; }
+        long now = System.currentTimeMillis();
+        String code = "PED-" + now;
+        PedidoEntity pedido = new PedidoEntity(code, userId, "Zona Norte", "ENVIADO", now, now);
+        List<InsumoPedidoEntity> lines = new ArrayList<>();
+        for (InsumoItem item : insumosList) lines.add(new InsumoPedidoEntity(0, item.nombre, item.cantidad, item.sku));
+        pedidoRepository.guardarPedido(pedido, lines, new PedidoRepository.GuardarPedidoCallback() {
+            @Override public void onSuccess(long pedidoId) {
+                pedidoEnviado = true;
+                Toast.makeText(OperarioActivity.this, "Pedido " + code + " guardado y enviado a revisión.", Toast.LENGTH_LONG).show();
+                loadRevisionesView();
+            }
+            @Override public void onError(Exception error) { Toast.makeText(OperarioActivity.this, "No se pudo guardar el pedido: " + error.getMessage(), Toast.LENGTH_LONG).show(); }
+        });
     }
 
     /**
@@ -76,11 +103,7 @@ public class OperarioActivity extends AppCompatActivity {
         findViewById(R.id.btnAddInsumo).setOnClickListener(v -> showAgregarInsumoDialog());
 
         // Botón Enviar Hoja de Pedido a Revisión (Fijo inferior)
-        findViewById(R.id.btnEnviarPedido).setOnClickListener(v -> {
-            pedidoEnviado = true;
-            Toast.makeText(this, "Hoja #PED-2026-11-ZN04 enviada exitosamente a revisión.", Toast.LENGTH_LONG).show();
-            loadRevisionesView();
-        });
+        findViewById(R.id.btnEnviarPedido).setOnClickListener(v -> guardarPedidoEnRoom());
 
         // Tabs de Navegación Inferior
         findViewById(R.id.tabPedido).setOnClickListener(v ->

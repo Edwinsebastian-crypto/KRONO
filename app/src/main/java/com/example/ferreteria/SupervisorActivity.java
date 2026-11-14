@@ -10,6 +10,10 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
+
+import com.example.ferreteria.data.PedidoRepository;
+import com.example.ferreteria.data.entity.PedidoEntity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -43,6 +47,8 @@ public class SupervisorActivity extends AppCompatActivity {
     }
 
     private Zone currentZone = Zone.NORTE;
+    private PedidoRepository pedidoRepository;
+    private String userId;
 
     private TextView txtSelectedZoneTitle;
     private TextView txtSelectedZoneSub;
@@ -64,6 +70,8 @@ public class SupervisorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         StatusBarUtils.initEdgeToEdge(this);
+        pedidoRepository = new PedidoRepository(this);
+        userId = getIntent().getStringExtra("user_id");
         loadZonasView();
     }
 
@@ -97,6 +105,7 @@ public class SupervisorActivity extends AppCompatActivity {
         StatusBarUtils.applyStatusBarNavyHeader(this);
 
         setupPedidosClickListeners();
+        mostrarPedidosGuardados();
     }
 
     public void loadHistorialView() {
@@ -213,12 +222,7 @@ public class SupervisorActivity extends AppCompatActivity {
         }
 
         View btnAprobar = findViewById(R.id.btnAprobarHoja);
-        if (btnAprobar != null) {
-            btnAprobar.setOnClickListener(v -> {
-                Toast.makeText(this, "Hoja #PED-2026-11-ZN04 aprobada y transferida a Pedidos (Pendiente de Despacho).", Toast.LENGTH_LONG).show();
-                loadPedidosView();
-            });
-        }
+        if (btnAprobar != null) btnAprobar.setOnClickListener(v -> mostrarPedidosGuardados());
 
         setupCardToggle(R.id.cardRevision1, R.id.detailsRevision1, R.id.arrowRevision1);
         setupCardToggle(R.id.cardRevision2, R.id.detailsRevision2, R.id.arrowRevision2);
@@ -240,6 +244,29 @@ public class SupervisorActivity extends AppCompatActivity {
                 arrow.animate().rotation(isVisible ? 0f : 180f).setDuration(200).start();
             });
         }
+    }
+
+    private void mostrarPedidosGuardados() {
+        pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
+            @Override public void onSuccess(java.util.List<PedidoEntity> pedidos) {
+                if (pedidos.isEmpty()) { Toast.makeText(SupervisorActivity.this, "Todavía no hay pedidos enviados.", Toast.LENGTH_SHORT).show(); return; }
+                String[] labels = new String[pedidos.size()];
+                for (int i=0;i<pedidos.size();i++) { PedidoEntity p=pedidos.get(i); labels[i]=p.codigo+" • "+p.operarioId+" • "+p.estado; }
+                new AlertDialog.Builder(SupervisorActivity.this).setTitle("Pedidos registrados").setItems(labels,(dialog,which)->accionesPedido(pedidos.get(which))).setNegativeButton("Cerrar",null).show();
+            }
+            @Override public void onError(Exception error) { Toast.makeText(SupervisorActivity.this, "Error consultando pedidos: "+error.getMessage(), Toast.LENGTH_LONG).show(); }
+        });
+    }
+
+    private void accionesPedido(PedidoEntity pedido) {
+        String[] actions = {"Aprobar pedido", "Rechazar pedido", "Iniciar despacho", "Marcar despachado"};
+        new AlertDialog.Builder(this).setTitle(pedido.codigo+" • "+pedido.estado).setItems(actions,(d,which)->{
+            String status = which==0 ? "APROBADO" : which==1 ? "RECHAZADO" : which==2 ? "EN_DESPACHO" : "DESPACHADO";
+            pedidoRepository.actualizarEstado(pedido.id,status,new PedidoRepository.GuardarPedidoCallback(){
+                @Override public void onSuccess(long id){ Toast.makeText(SupervisorActivity.this,"Pedido actualizado: "+status,Toast.LENGTH_SHORT).show(); mostrarPedidosGuardados(); }
+                @Override public void onError(Exception error){ Toast.makeText(SupervisorActivity.this,error.getMessage(),Toast.LENGTH_LONG).show(); }
+            });
+        }).setNegativeButton("Cancelar",null).show();
     }
 
     private void setupPedidosClickListeners() {
@@ -272,9 +299,7 @@ public class SupervisorActivity extends AppCompatActivity {
 
         findViewById(R.id.tabZonas).setOnClickListener(v -> loadZonasView());
 
-        findViewById(R.id.tabPedidos).setOnClickListener(v ->
-                Toast.makeText(this, "Sección actual: Pedidos Aprobados para Despacho", Toast.LENGTH_SHORT).show()
-        );
+        findViewById(R.id.tabPedidos).setOnClickListener(v -> mostrarPedidosGuardados());
 
         findViewById(R.id.tabHistorial).setOnClickListener(v -> loadHistorialView());
     }

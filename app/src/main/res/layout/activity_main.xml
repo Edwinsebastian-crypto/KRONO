@@ -444,7 +444,7 @@
                         android:layout_height="wrap_content"
                         android:hint="@string/hint_id"
                         android:inputType="text"
-                        android:text="@string/default_user_id"
+                        android:text=""
                         android:textColor="@color/krono_navy_dark"
                         android:textSize="15sp" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -481,7 +481,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
-                        android:text="@string/default_password"
+                        android:text=""
                         android:textColor="@color/krono_navy_dark"
                         android:textSize="15sp" />
                 </com.google.android.material.textfield.TextInputLayout>

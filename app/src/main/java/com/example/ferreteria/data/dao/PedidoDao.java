@@ -21,6 +21,9 @@ public interface PedidoDao {
     @Query("SELECT * FROM pedidos WHERE id = :pedidoId LIMIT 1")
     PedidoEntity obtenerPedido(long pedidoId);
 
+    @Query("SELECT * FROM pedidos WHERE operarioId = :operarioId ORDER BY creadoEn DESC")
+    List<PedidoEntity> obtenerPorOperario(String operarioId);
+
     @Query("SELECT * FROM pedidos ORDER BY creadoEn DESC")
     List<PedidoEntity> obtenerTodos();
 
