@@ -362,6 +362,8 @@ public class SupervisorActivity extends AppCompatActivity {
             @Override public void onSuccess(RevisionPedidoEntity revision) {
                 if (revision == null) previous.addView(texto("Este pedido todavía no tiene modificaciones del supervisor.",12,panelMuted,false));
                 else {
+                    if (revision.textoEditado != null && !revision.textoEditado.trim().isEmpty()) edited.setText(revision.textoEditado);
+                    if (revision.observacion != null) note.setText(revision.observacion);
                     previous.addView(texto(revision.textoEditado,13,panelInk,false),params(-1,-2,0,6,0,4));
                     if (revision.observacion != null && !revision.observacion.trim().isEmpty()) previous.addView(texto("Observación: "+revision.observacion,12,panelMuted,false));
                     previous.addView(texto("Guardado: "+android.text.format.DateFormat.format("dd/MM/yyyy HH:mm",revision.fecha),11,panelMuted,false),params(-1,-2,0,6,0,0));
