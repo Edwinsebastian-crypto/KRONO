@@ -471,6 +471,10 @@ public class SupervisorActivity extends AppCompatActivity {
     }
     private int dp(int value) { return (int)(value * getResources().getDisplayMetrics().density + 0.5f); }
 
+    private void mostrarPedidosGuardados() {
+        loadPedidosView();
+    }
+
     private void setupPedidosClickListeners() {
         findViewById(R.id.btnBackLogin).setOnClickListener(v -> finish());
 
