@@ -326,7 +326,7 @@
                         android:layout_height="50dp"
                         android:layout_marginTop="14dp"
                         android:backgroundTint="@color/krono_navy"
-                        android:text="Enviar Recordatorio Push a Granjas Pendientes"
+                        android:text="Administrar Usuarios del Sistema"
                         android:textAllCaps="false"
                         android:textColor="@color/white"
                         android:textSize="13sp"
@@ -433,7 +433,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Exportar Cierre Mensual Consolidado"
+                                android:text="Administrar Inventario, Granjas y Zonas"
                                 android:textColor="@color/krono_navy_dark"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
