@@ -237,12 +237,13 @@ public class MainActivity extends AppCompatActivity {
             if (userId.isEmpty()) { etUserId.setError("Ingresa tu código"); return; }
             if (password.isEmpty()) { etPassword.setError("Ingresa tu contraseña"); return; }
             if (!databaseReady) { Toast.makeText(this, "Preparando la base de datos. Intenta de nuevo en unos segundos.", Toast.LENGTH_SHORT).show(); return; }
-            String role = selectedRole.name();
+            final UserRole requestedRole = selectedRole;
+            String role = requestedRole.name();
             authRepository.autenticar(userId, password, role, new AuthRepository.ResultCallback<UserEntity>() {
                 @Override public void onSuccess(UserEntity user) {
                     if (user == null) { etPassword.setError("Credenciales incorrectas o rol no autorizado"); return; }
-                    Class<?> destination = selectedRole == UserRole.OPERARIO ? OperarioActivity.class :
-                            selectedRole == UserRole.SUPERVISOR ? SupervisorActivity.class : AdminActivity.class;
+                    Class<?> destination = requestedRole == UserRole.OPERARIO ? OperarioActivity.class :
+                            requestedRole == UserRole.SUPERVISOR ? SupervisorActivity.class : AdminActivity.class;
                     Intent intent = new Intent(MainActivity.this, destination);
                     intent.putExtra("user_id", user.userId);
                     intent.putExtra("user_name", user.nombre);
