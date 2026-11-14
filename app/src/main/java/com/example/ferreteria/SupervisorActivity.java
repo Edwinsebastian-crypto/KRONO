@@ -5,6 +5,19 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.EditText;
+import android.widget.Button;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.text.InputType;
+import android.view.Gravity;
+import android.view.ViewGroup;
+import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -14,6 +27,8 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.example.ferreteria.data.PedidoRepository;
 import com.example.ferreteria.data.entity.PedidoEntity;
+import com.example.ferreteria.data.entity.InsumoPedidoEntity;
+import com.example.ferreteria.data.entity.RevisionPedidoEntity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -50,6 +65,12 @@ public class SupervisorActivity extends AppCompatActivity {
     private PedidoRepository pedidoRepository;
     private com.example.ferreteria.data.AuthRepository auditRepository;
     private String userId;
+    private LinearLayout dynamicContent;
+    private final int panelNavy = Color.rgb(43, 48, 71);
+    private final int panelInk = Color.rgb(35, 39, 57);
+    private final int panelMuted = Color.rgb(105, 111, 130);
+    private final int panelBg = Color.rgb(249, 246, 240);
+    private final int panelStroke = Color.rgb(226, 221, 213);
 
     private TextView txtSelectedZoneTitle;
     private TextView txtSelectedZoneSub;
@@ -103,11 +124,8 @@ public class SupervisorActivity extends AppCompatActivity {
     }
 
     public void loadPedidosView() {
-        setContentView(R.layout.activity_sup_pedidos);
-        StatusBarUtils.applyStatusBarNavyHeader(this);
-
-        setupPedidosClickListeners();
-        mostrarPedidosGuardados();
+        construirPanel("Pedidos por zona", "Selecciona una zona para consultar sus hojas de pedido", true);
+        cargarPedidosAgrupados();
     }
 
     public void loadHistorialView() {
@@ -248,28 +266,208 @@ public class SupervisorActivity extends AppCompatActivity {
         }
     }
 
-    private void mostrarPedidosGuardados() {
+    private void cargarPedidosAgrupados() {
         pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
-            @Override public void onSuccess(java.util.List<PedidoEntity> pedidos) {
-                if (pedidos.isEmpty()) { Toast.makeText(SupervisorActivity.this, "Todavía no hay pedidos enviados.", Toast.LENGTH_SHORT).show(); return; }
-                String[] labels = new String[pedidos.size()];
-                for (int i=0;i<pedidos.size();i++) { PedidoEntity p=pedidos.get(i); labels[i]=p.codigo+" • "+p.operarioId+" • "+p.estado; }
-                new AlertDialog.Builder(SupervisorActivity.this).setTitle("Pedidos registrados").setItems(labels,(dialog,which)->accionesPedido(pedidos.get(which))).setNegativeButton("Cerrar",null).show();
+            @Override public void onSuccess(List<PedidoEntity> pedidos) {
+                dynamicContent.removeAllViews();
+                if (pedidos.isEmpty()) { agregarVacio("Todavía no hay pedidos enviados."); return; }
+                Map<String, List<PedidoEntity>> grupos = new LinkedHashMap<>();
+                for (PedidoEntity pedido : pedidos) {
+                    String zona = pedido.zona == null || pedido.zona.trim().isEmpty() ? "Sin zona asignada" : pedido.zona;
+                    if (!grupos.containsKey(zona)) grupos.put(zona, new ArrayList<>());
+                    grupos.get(zona).add(pedido);
+                }
+                for (Map.Entry<String, List<PedidoEntity>> entry : grupos.entrySet()) {
+                    agregarGrupoZona(entry.getKey(), entry.getValue());
+                }
             }
-            @Override public void onError(Exception error) { Toast.makeText(SupervisorActivity.this, "Error consultando pedidos: "+error.getMessage(), Toast.LENGTH_LONG).show(); }
+            @Override public void onError(Exception error) { agregarVacio("No se pudieron cargar los pedidos: " + error.getMessage()); }
         });
     }
 
-    private void accionesPedido(PedidoEntity pedido) {
-        String[] actions = {"Aprobar pedido", "Rechazar pedido", "Iniciar despacho", "Marcar despachado"};
-        new AlertDialog.Builder(this).setTitle(pedido.codigo+" • "+pedido.estado).setItems(actions,(d,which)->{
-            String status = which==0 ? "APROBADO" : which==1 ? "RECHAZADO" : which==2 ? "EN_DESPACHO" : "DESPACHADO";
-            pedidoRepository.actualizarEstado(pedido.id,status,new PedidoRepository.GuardarPedidoCallback(){
-                @Override public void onSuccess(long id){ auditRepository.auditar(getIntent().getStringExtra("user_id"),status,"PEDIDO",pedido.codigo); Toast.makeText(SupervisorActivity.this,"Pedido actualizado: "+status,Toast.LENGTH_SHORT).show(); mostrarPedidosGuardados(); }
-                @Override public void onError(Exception error){ Toast.makeText(SupervisorActivity.this,error.getMessage(),Toast.LENGTH_LONG).show(); }
-            });
-        }).setNegativeButton("Cancelar",null).show();
+    private void agregarGrupoZona(String zona, List<PedidoEntity> pedidos) {
+        LinearLayout card = crearTarjeta();
+        LinearLayout header = new LinearLayout(this);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(dp(14), dp(14), dp(14), dp(14));
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout labels = new LinearLayout(this); labels.setOrientation(LinearLayout.VERTICAL);
+        TextView name = texto(zona, 16, panelInk, true);
+        TextView count = texto(pedidos.size() + (pedidos.size()==1 ? " pedido" : " pedidos"), 12, panelMuted, false);
+        labels.addView(name); labels.addView(count);
+        header.addView(labels, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView arrow = texto("⌄", 24, panelNavy, true); header.addView(arrow);
+        card.addView(header);
+        LinearLayout orders = new LinearLayout(this); orders.setOrientation(LinearLayout.VERTICAL);
+        orders.setPadding(dp(12), 0, dp(12), dp(12)); orders.setVisibility(View.GONE);
+        for (PedidoEntity pedido : pedidos) {
+            LinearLayout order = crearTarjeta();
+            order.setPadding(dp(12), dp(10), dp(12), dp(10));
+            TextView code = texto(pedido.codigo == null ? "Pedido #" + pedido.id : pedido.codigo, 14, panelInk, true);
+            TextView detail = texto("Operario: " + pedido.operarioId + "   •   " + pedido.estado, 12, panelMuted, false);
+            order.addView(code); order.addView(detail);
+            order.setOnClickListener(v -> abrirDetallePedido(pedido));
+            orders.addView(order, params(-1, -2, 0, 0, 0, 8));
+        }
+        card.addView(orders);
+        header.setOnClickListener(v -> {
+            boolean visible = orders.getVisibility() == View.VISIBLE;
+            orders.setVisibility(visible ? View.GONE : View.VISIBLE);
+            arrow.setText(visible ? "⌄" : "⌃");
+        });
+        dynamicContent.addView(card, params(-1, -2, 0, 0, 0, 12));
     }
+
+    private void abrirDetallePedido(PedidoEntity pedido) {
+        construirPanel("Detalle del pedido", pedido.codigo == null ? "Pedido #" + pedido.id : pedido.codigo, false);
+        agregarBoton("← Regresar a hojas de pedidos", () -> loadPedidosView(), false);
+        agregarTextoSeccion("Datos del envío original");
+        agregarInfo("Operario", pedido.operarioId);
+        agregarInfo("Zona", pedido.zona);
+        agregarInfo("Estado", pedido.estado);
+        agregarInfo("Enviado", android.text.format.DateFormat.format("dd/MM/yyyy HH:mm", pedido.creadoEn).toString());
+        agregarTextoSeccion("Insumos enviados por el operario");
+        LinearLayout originalBox = crearTarjeta();
+        originalBox.setPadding(dp(14), dp(12), dp(14), dp(12));
+        dynamicContent.addView(originalBox, params(-1, -2, 0, 0, 0, 10));
+        pedidoRepository.obtenerInsumos(pedido.id, new PedidoRepository.InsumosCallback() {
+            @Override public void onSuccess(List<InsumoPedidoEntity> items) {
+                originalBox.removeAllViews();
+                if (items.isEmpty()) originalBox.addView(texto("Este pedido no contiene insumos.", 13, panelMuted, false));
+                StringBuilder draft = new StringBuilder();
+                for (InsumoPedidoEntity item : items) {
+                    originalBox.addView(texto(item.nombre, 14, panelInk, true));
+                    originalBox.addView(texto("Cantidad: " + item.cantidad + (item.sku == null || item.sku.isEmpty() ? "" : "   •   SKU: " + item.sku), 12, panelMuted, false), params(-1, -2, 0, 3, 0, 9));
+                    draft.append(item.nombre).append(" | Cantidad: ").append(item.cantidad);
+                    if (item.sku != null && !item.sku.isEmpty()) draft.append(" | SKU: ").append(item.sku);
+                    draft.append("\\n");
+                }
+                cargarEditorRevision(pedido, draft.toString());
+            }
+            @Override public void onError(Exception error) { agregarAviso("No se pudieron consultar los insumos: " + error.getMessage()); }
+        });
+    }
+
+    private void cargarEditorRevision(PedidoEntity pedido, String textoOriginal) {
+        agregarTextoSeccion("Revisión del supervisor");
+        agregarTextoAyuda("El texto original de arriba no se modifica. Aquí puedes ajustar las cantidades, quitar o agregar insumos.");
+        EditText edited = campoMultilinea("Escribe el pedido revisado...", textoOriginal);
+        dynamicContent.addView(edited, params(-1, -2, 0, 0, 0, 10));
+        EditText note = campoMultilinea("Observaciones del supervisor (opcional)", "");
+        dynamicContent.addView(note, params(-1, -2, 0, 0, 0, 10));
+        LinearLayout previous = crearTarjeta(); previous.setPadding(dp(14),dp(12),dp(14),dp(12));
+        dynamicContent.addView(previous, params(-1,-2,0,0,0,10));
+        previous.addView(texto("Última revisión guardada",14,panelInk,true));
+        pedidoRepository.obtenerUltimaRevision(pedido.id, new PedidoRepository.RevisionCallback() {
+            @Override public void onSuccess(RevisionPedidoEntity revision) {
+                if (revision == null) previous.addView(texto("Este pedido todavía no tiene modificaciones del supervisor.",12,panelMuted,false));
+                else {
+                    previous.addView(texto(revision.textoEditado,13,panelInk,false),params(-1,-2,0,6,0,4));
+                    if (revision.observacion != null && !revision.observacion.trim().isEmpty()) previous.addView(texto("Observación: "+revision.observacion,12,panelMuted,false));
+                    previous.addView(texto("Guardado: "+android.text.format.DateFormat.format("dd/MM/yyyy HH:mm",revision.fecha),11,panelMuted,false),params(-1,-2,0,6,0,0));
+                }
+            }
+            @Override public void onError(Exception error) { previous.addView(texto("No se pudo cargar la revisión anterior.",12,panelMuted,false)); }
+        });
+        agregarBoton("Guardar revisión del supervisor", () -> {
+            String editedText = edited.getText().toString().trim();
+            if (editedText.isEmpty()) { agregarAviso("El texto revisado no puede quedar vacío."); return; }
+            RevisionPedidoEntity revision = new RevisionPedidoEntity(pedido.id, userId,
+                    editedText, note.getText().toString().trim(), System.currentTimeMillis());
+            pedidoRepository.guardarRevision(revision, new PedidoRepository.GuardarPedidoCallback() {
+                @Override public void onSuccess(long id) {
+                    auditRepository.auditar(userId, "REVISION_GUARDADA", "PEDIDO", pedido.codigo);
+                    abrirDetallePedido(pedido);
+                }
+                @Override public void onError(Exception error) { agregarAviso("No se pudo guardar la revisión: "+error.getMessage()); }
+            });
+        }, true);
+        agregarBoton("Aprobar pedido", () -> cambiarEstadoPedido(pedido, "APROBADO"), false);
+        agregarBoton("Rechazar pedido", () -> cambiarEstadoPedido(pedido, "RECHAZADO"), false);
+    }
+
+    private void cambiarEstadoPedido(PedidoEntity pedido, String status) {
+        pedidoRepository.actualizarEstado(pedido.id, status, new PedidoRepository.GuardarPedidoCallback() {
+            @Override public void onSuccess(long id) {
+                auditRepository.auditar(userId, status, "PEDIDO", pedido.codigo);
+                Toast.makeText(SupervisorActivity.this, "Pedido actualizado: " + status, Toast.LENGTH_SHORT).show();
+                loadPedidosView();
+            }
+            @Override public void onError(Exception error) { agregarAviso(error.getMessage()); }
+        });
+    }
+
+    private void construirPanel(String title, String subtitle, boolean showNav) {
+        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(panelBg);
+        View status = new View(this); status.setBackgroundColor(panelNavy); root.addView(status, new LinearLayout.LayoutParams(-1, dp(26)));
+        LinearLayout top = new LinearLayout(this); top.setGravity(Gravity.CENTER_VERTICAL); top.setPadding(dp(18),dp(14),dp(18),dp(14)); top.setBackgroundColor(Color.WHITE);
+        TextView brand = texto("KRONO  •  SUPERVISOR", 15, panelNavy, true); top.addView(brand);
+        root.addView(top);
+        TextView heading = texto(title, 23, panelInk, true); heading.setPadding(dp(18),dp(18),dp(18),0); root.addView(heading);
+        TextView sub = texto(subtitle, 13, panelMuted, false); sub.setPadding(dp(18),dp(4),dp(18),dp(12)); root.addView(sub);
+        ScrollView scroll = new ScrollView(this); scroll.setFillViewport(true);
+        dynamicContent = new LinearLayout(this); dynamicContent.setOrientation(LinearLayout.VERTICAL); dynamicContent.setPadding(dp(16),dp(4),dp(16),dp(20));
+        scroll.addView(dynamicContent); root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+        if (showNav) {
+            LinearLayout nav = new LinearLayout(this); nav.setBackgroundColor(Color.WHITE); nav.setPadding(dp(8),dp(8),dp(8),dp(8));
+            nav.addView(navButton("Zonas", () -> loadZonasView()), new LinearLayout.LayoutParams(0,dp(44),1));
+            nav.addView(navButton("Pedidos", () -> loadPedidosView()), new LinearLayout.LayoutParams(0,dp(44),1));
+            nav.addView(navButton("Historial", () -> loadHistorialView()), new LinearLayout.LayoutParams(0,dp(44),1));
+            root.addView(nav);
+        }
+        setContentView(root);
+    }
+
+    private Button navButton(String label, Runnable action) {
+        Button button = new Button(this); button.setText(label); button.setTextSize(12); button.setAllCaps(false);
+        button.setOnClickListener(v -> action.run()); return button;
+    }
+    private LinearLayout crearTarjeta() {
+        LinearLayout card = new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setBackground(panelDrawable(Color.WHITE, panelStroke, 14)); card.setClipToOutline(true);
+        return card;
+    }
+    private GradientDrawable panelDrawable(int fill, int stroke, int radius) {
+        GradientDrawable d = new GradientDrawable(); d.setColor(fill); d.setCornerRadius(dp(radius)); d.setStroke(dp(1),stroke); return d;
+    }
+    private TextView texto(String value, int size, int color, boolean bold) {
+        TextView t = new TextView(this); t.setText(value == null ? "" : value); t.setTextSize(size); t.setTextColor(color);
+        if (bold) t.setTypeface(Typeface.DEFAULT, Typeface.BOLD); return t;
+    }
+    private void agregarTextoSeccion(String title) {
+        TextView t = texto(title,16,panelInk,true); dynamicContent.addView(t,params(-1,-2,0,14,0,8));
+    }
+    private void agregarTextoAyuda(String value) {
+        dynamicContent.addView(texto(value,12,panelMuted,false),params(-1,-2,0,0,0,8));
+    }
+    private void agregarInfo(String label, String value) {
+        LinearLayout card = crearTarjeta(); card.setPadding(dp(12),dp(9),dp(12),dp(9));
+        card.addView(texto(label,11,panelMuted,true)); card.addView(texto(value == null ? "—" : value,14,panelInk,false));
+        dynamicContent.addView(card,params(-1,-2,0,0,0,7));
+    }
+    private EditText campoMultilinea(String hint, String value) {
+        EditText edit = new EditText(this); edit.setText(value); edit.setHint(hint); edit.setTextSize(14); edit.setTextColor(panelInk); edit.setHintTextColor(panelMuted);
+        edit.setGravity(Gravity.TOP|Gravity.START); edit.setMinLines(4); edit.setPadding(dp(13),dp(12),dp(13),dp(12));
+        edit.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        edit.setBackground(panelDrawable(Color.WHITE,panelStroke,12)); return edit;
+    }
+    private void agregarBoton(String label, Runnable action, boolean primary) {
+        Button button = new Button(this); button.setText(label); button.setAllCaps(false); button.setTextSize(14);
+        button.setTextColor(primary ? Color.WHITE : panelNavy);
+        button.setBackground(panelDrawable(primary ? panelNavy : Color.WHITE, primary ? panelNavy : panelStroke, 12));
+        button.setOnClickListener(v -> action.run());
+        dynamicContent.addView(button,params(-1,dp(50),0,8,0,8));
+    }
+    private void agregarAviso(String message) {
+        Toast.makeText(this,message,Toast.LENGTH_LONG).show();
+    }
+    private void agregarVacio(String message) {
+        TextView empty = texto(message,14,panelMuted,false); empty.setGravity(Gravity.CENTER); empty.setPadding(dp(20),dp(30),dp(20),dp(30));
+        dynamicContent.addView(empty);
+    }
+    private LinearLayout.LayoutParams params(int width,int height,int left,int top,int right,int bottom) {
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(width,height); p.setMargins(dp(left),dp(top),dp(right),dp(bottom)); return p;
+    }
+    private int dp(int value) { return (int)(value * getResources().getDisplayMetrics().density + 0.5f); }
 
     private void setupPedidosClickListeners() {
         findViewById(R.id.btnBackLogin).setOnClickListener(v -> finish());

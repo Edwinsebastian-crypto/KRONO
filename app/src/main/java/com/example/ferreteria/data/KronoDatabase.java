@@ -17,10 +17,11 @@ import com.example.ferreteria.data.entity.FarmEntity;
 import com.example.ferreteria.data.entity.ZoneEntity;
 import com.example.ferreteria.data.entity.InventoryEntity;
 import com.example.ferreteria.data.entity.AuditEntity;
+import com.example.ferreteria.data.entity.RevisionPedidoEntity;
 
 @Database(
-        entities = {PedidoEntity.class, InsumoPedidoEntity.class, UserEntity.class, FarmEntity.class, ZoneEntity.class, InventoryEntity.class, AuditEntity.class},
-        version = 2,
+        entities = {PedidoEntity.class, InsumoPedidoEntity.class, UserEntity.class, FarmEntity.class, ZoneEntity.class, InventoryEntity.class, AuditEntity.class, RevisionPedidoEntity.class},
+        version = 3,
         exportSchema = false
 )
 public abstract class KronoDatabase extends RoomDatabase {
@@ -35,6 +36,13 @@ public abstract class KronoDatabase extends RoomDatabase {
         }
     };
 
+    private static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override public void migrate(SupportSQLiteDatabase db) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS revisiones_pedido (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, pedidoId INTEGER NOT NULL, supervisorId TEXT, textoEditado TEXT, observacion TEXT, fecha INTEGER NOT NULL)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_revisiones_pedido_pedidoId ON revisiones_pedido (pedidoId)");
+        }
+    };
+
     public abstract PedidoDao pedidoDao();
     public abstract AdminDao adminDao();
 
@@ -46,7 +54,7 @@ public abstract class KronoDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             KronoDatabase.class,
                             "krono_local.db"
-                    ).addMigrations(MIGRATION_1_2).build();
+                    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build();
                 }
             }
         }

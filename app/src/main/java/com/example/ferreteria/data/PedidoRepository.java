@@ -7,6 +7,7 @@ import android.os.Looper;
 import com.example.ferreteria.data.dao.PedidoDao;
 import com.example.ferreteria.data.entity.InsumoPedidoEntity;
 import com.example.ferreteria.data.entity.PedidoEntity;
+import com.example.ferreteria.data.entity.RevisionPedidoEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,16 @@ import java.util.concurrent.Executors;
 public class PedidoRepository {
     public interface GuardarPedidoCallback {
         void onSuccess(long pedidoId);
+        void onError(Exception error);
+    }
+
+    public interface InsumosCallback {
+        void onSuccess(List<InsumoPedidoEntity> insumos);
+        void onError(Exception error);
+    }
+
+    public interface RevisionCallback {
+        void onSuccess(RevisionPedidoEntity revision);
         void onError(Exception error);
     }
 
@@ -81,6 +92,27 @@ public class PedidoRepository {
             } catch (Exception error) {
                 MAIN_HANDLER.post(() -> callback.onError(error));
             }
+        });
+    }
+
+    public void obtenerInsumos(long pedidoId, InsumosCallback callback) {
+        IO_EXECUTOR.execute(() -> {
+            try { List<InsumoPedidoEntity> items = pedidoDao.obtenerInsumos(pedidoId); MAIN_HANDLER.post(() -> callback.onSuccess(items)); }
+            catch (Exception error) { MAIN_HANDLER.post(() -> callback.onError(error)); }
+        });
+    }
+
+    public void obtenerUltimaRevision(long pedidoId, RevisionCallback callback) {
+        IO_EXECUTOR.execute(() -> {
+            try { RevisionPedidoEntity revision = pedidoDao.obtenerUltimaRevision(pedidoId); MAIN_HANDLER.post(() -> callback.onSuccess(revision)); }
+            catch (Exception error) { MAIN_HANDLER.post(() -> callback.onError(error)); }
+        });
+    }
+
+    public void guardarRevision(RevisionPedidoEntity revision, GuardarPedidoCallback callback) {
+        IO_EXECUTOR.execute(() -> {
+            try { long id = pedidoDao.insertarRevision(revision); MAIN_HANDLER.post(() -> callback.onSuccess(id)); }
+            catch (Exception error) { MAIN_HANDLER.post(() -> callback.onError(error)); }
         });
     }
 

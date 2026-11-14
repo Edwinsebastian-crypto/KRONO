@@ -7,6 +7,7 @@ import androidx.room.Transaction;
 
 import com.example.ferreteria.data.entity.InsumoPedidoEntity;
 import com.example.ferreteria.data.entity.PedidoEntity;
+import com.example.ferreteria.data.entity.RevisionPedidoEntity;
 
 import java.util.List;
 
@@ -35,6 +36,12 @@ public interface PedidoDao {
 
     @Query("UPDATE pedidos SET estado = :nuevoEstado, actualizadoEn = :actualizadoEn WHERE id = :pedidoId")
     int actualizarEstado(long pedidoId, String nuevoEstado, long actualizadoEn);
+
+    @Insert
+    long insertarRevision(RevisionPedidoEntity revision);
+
+    @Query("SELECT * FROM revisiones_pedido WHERE pedidoId = :pedidoId ORDER BY fecha DESC, id DESC LIMIT 1")
+    RevisionPedidoEntity obtenerUltimaRevision(long pedidoId);
 
     @Query("DELETE FROM pedidos WHERE id = :pedidoId")
     int eliminarPedido(long pedidoId);
