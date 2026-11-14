@@ -126,31 +126,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Tab 2: Pedidos -->
-        <LinearLayout
-            android:id="@+id/tabPedidos"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:contentDescription="Pedidos"
-                android:src="@drawable/ic_truck"
-                app:tint="@color/krono_text_secondary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pedidos"
-                android:textColor="@color/krono_text_secondary"
-                android:textSize="10sp" />
-        </LinearLayout>
-
-        <!-- Tab 3: Historial -->
+        <!-- Tab 2: Historial -->
         <LinearLayout
             android:id="@+id/tabHistorial"
             android:layout_width="0dp"
@@ -192,40 +168,50 @@
             android:paddingTop="12dp"
             android:paddingBottom="24dp">
 
-            <!-- Botón de regreso a Zonas y Granjas -->
-            <LinearLayout
+            <!-- Botón de regreso a Zonas y Granjas con estilo Card Píldora -->
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/btnVolverGranjas"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingVertical="8dp">
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="1dp"
+                app:strokeColor="@color/krono_card_stroke"
+                app:strokeWidth="1dp">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="Volver"
-                    android:src="@drawable/ic_arrow_back"
-                    app:tint="@color/krono_navy" />
-
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="← Volver a Zonas y Granjas"
-                    android:textColor="@color/krono_navy"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="9dp">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:contentDescription="Volver"
+                        android:src="@drawable/ic_arrow_back"
+                        app:tint="@color/krono_navy" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Volver a Zonas y Granjas"
+                        android:textColor="@color/krono_navy_dark"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Breadcrumbs Navigation Bar -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -296,11 +282,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Hojas empaquetadas por fecha. Toque un pedido para desplegar sus productos y dictamen."
+                android:text="Toque un pedido para ingresar a sus productos y dictamen."
                 android:textColor="@color/krono_text_secondary"
                 android:textSize="12sp" />
 
-            <!-- CONTENEDOR DE HOJAS DE PEDIDO EMPAQUETADAS POR FECHA -->
+            <!-- CONTENEDOR DE HOJAS DE PEDIDO DINÁMICAS -->
+            <LinearLayout
+                android:id="@+id/containerHojasDinamicas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
 
             <!-- 1. Pedido 1: 13 Nov 2026 (En Revisión) -->
             <com.google.android.material.card.MaterialCardView
@@ -322,7 +313,6 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <!-- Cabecera del Empaque -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
@@ -380,206 +370,20 @@
                                 android:textSize="12sp" />
                         </LinearLayout>
 
-                        <ImageView
-                            android:id="@+id/arrowRevision1"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:contentDescription="Desplegar pedido"
-                            android:src="@drawable/ic_arrow_drop_down"
-                            app:tint="@color/krono_navy" />
-                    </LinearLayout>
+                        <FrameLayout
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_chip">
 
-                    <!-- Contenedor Desplegable -->
-                    <LinearLayout
-                        android:id="@+id/detailsRevision1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:background="@color/krono_card_stroke" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="Productos Solicitados:"
-                            android:textColor="@color/krono_navy"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
-
-                        <!-- Item 1 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:padding="10dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Fertilizante NPK 15-15-15 (Sacos 50kg)"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Fungicida/Nutricional • SKU: FERT-NPK-50"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_chip"
-                                android:paddingHorizontal="10dp"
-                                android:paddingVertical="4dp"
-                                android:text="20 sacos"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <!-- Item 2 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:padding="10dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Insecticida Concentrado 1L"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Protección Fitosanitaria • SKU: INS-L1"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_chip"
-                                android:paddingHorizontal="10dp"
-                                android:paddingVertical="4dp"
-                                android:text="12 frascos"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <!-- Item 3 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:padding="10dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Baldes Plásticos 20L"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Insumo Agregado • Registro en Campo"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_chip"
-                                android:paddingHorizontal="10dp"
-                                android:paddingVertical="4dp"
-                                android:text="2 un."
-                                android:textColor="@color/krono_navy"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <!-- Total & Acciones de Supervisor -->
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:paddingHorizontal="4dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentStart="true"
-                                android:text="Total Estimado: $1,710 USD"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:text="34 unidades en lista"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="12sp" />
-                        </RelativeLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnAprobarHoja"
-                            android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:layout_marginTop="14dp"
-                            android:backgroundTint="@color/krono_navy"
-                            android:text="Aprobar Hoja y Enviar a Pedidos"
-                            android:textColor="@color/white"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            app:cornerRadius="10dp"
-                            app:icon="@drawable/ic_check_circle"
-                            app:iconGravity="textStart"
-                            app:iconTint="@color/white" />
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="Abrir pedido"
+                                android:src="@drawable/ic_arrow_forward"
+                                app:tint="@color/krono_navy" />
+                        </FrameLayout>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -612,11 +416,11 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
-                            android:background="@drawable/bg_blue_chip"
+                            android:background="@drawable/bg_green_chip"
                             android:paddingHorizontal="10dp"
                             android:paddingVertical="4dp"
                             android:text="✓ Aprobado por Supervisor"
-                            android:textColor="@color/krono_navy"
+                            android:textColor="@color/krono_green_text"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
@@ -661,107 +465,20 @@
                                 android:textSize="12sp" />
                         </LinearLayout>
 
-                        <ImageView
-                            android:id="@+id/arrowRevision2"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:contentDescription="Desplegar pedido"
-                            android:src="@drawable/ic_arrow_drop_down"
-                            app:tint="@color/krono_navy" />
-                    </LinearLayout>
+                        <FrameLayout
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_chip">
 
-                    <!-- Contenedor Desplegable -->
-                    <LinearLayout
-                        android:id="@+id/detailsRevision2"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:background="@color/krono_card_stroke" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="Productos Aprobados:"
-                            android:textColor="@color/krono_navy"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:padding="10dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Urea Agrícola 46% (Sacos 50kg)"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_chip"
-                                android:paddingHorizontal="10dp"
-                                android:paddingVertical="4dp"
-                                android:text="25 sacos"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:padding="10dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Kits de Aspersión Manual"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_chip"
-                                android:paddingHorizontal="10dp"
-                                android:paddingVertical="4dp"
-                                android:text="10 kits"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <!-- Dictamen -->
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:background="@drawable/bg_blue_chip"
-                            android:padding="10dp"
-                            android:text="✓ Dictamen: Cantidades aprobadas en su totalidad para despacho en Rampa 3."
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="Abrir pedido"
+                                android:src="@drawable/ic_arrow_forward"
+                                app:tint="@color/krono_navy" />
+                        </FrameLayout>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -843,106 +560,20 @@
                                 android:textSize="12sp" />
                         </LinearLayout>
 
-                        <ImageView
-                            android:id="@+id/arrowRevision3"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:contentDescription="Desplegar pedido"
-                            android:src="@drawable/ic_arrow_drop_down"
-                            app:tint="@color/krono_navy" />
-                    </LinearLayout>
+                        <FrameLayout
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_chip">
 
-                    <!-- Contenedor Desplegable -->
-                    <LinearLayout
-                        android:id="@+id/detailsRevision3"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:background="@color/krono_card_stroke" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="Productos Despachados:"
-                            android:textColor="@color/krono_navy"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:padding="10dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Fertilizante NPK 15-15-15"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_chip"
-                                android:paddingHorizontal="10dp"
-                                android:paddingVertical="4dp"
-                                android:text="40 sacos"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:padding="10dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Repuestos Bomba de Riego"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_chip"
-                                android:paddingHorizontal="10dp"
-                                android:paddingVertical="4dp"
-                                android:text="5 repuestos"
-                                android:textColor="@color/krono_navy"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <!-- Remisión -->
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:padding="10dp"
-                            android:text="Remisión: #REM-2026-09-082 • Entregado por Cond. Roberto Díaz"
-                            android:textColor="@color/krono_text_secondary"
-                            android:textSize="12sp" />
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="Abrir pedido"
+                                android:src="@drawable/ic_arrow_forward"
+                                app:tint="@color/krono_navy" />
+                        </FrameLayout>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

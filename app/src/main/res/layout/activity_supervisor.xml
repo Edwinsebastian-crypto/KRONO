@@ -126,31 +126,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Tab 2: Pedidos -->
-        <LinearLayout
-            android:id="@+id/tabPedidos"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:contentDescription="Pedidos"
-                android:src="@drawable/ic_truck"
-                app:tint="@color/krono_text_secondary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pedidos"
-                android:textColor="@color/krono_text_secondary"
-                android:textSize="10sp" />
-        </LinearLayout>
-
-        <!-- Tab 3: Historial -->
+        <!-- Tab 2: Historial -->
         <LinearLayout
             android:id="@+id/tabHistorial"
             android:layout_width="0dp"

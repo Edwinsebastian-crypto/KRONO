@@ -251,7 +251,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Pedidos Aprobados"
+                android:text="Pedidos por Zona y Granja"
                 android:textColor="@color/krono_navy_dark"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -260,7 +260,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Clasificación por Zona y Granja para Logística de Despacho"
+                android:text="Seguimiento y revisión jerárquica: Zona → Granja → Hojas de Pedido"
                 android:textColor="@color/krono_text_secondary"
                 android:textSize="12sp" />
 
@@ -469,6 +469,13 @@
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- Contenedor dinámico de pedidos registrados -->
+            <LinearLayout
+                android:id="@+id/containerPedidosDinamicos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
 
             <!-- SECTION 1: ZONA NORTE -->
             <RelativeLayout

@@ -8,6 +8,7 @@ import com.example.ferreteria.data.dao.AdminDao;
 import com.example.ferreteria.data.entity.AuditEntity;
 import com.example.ferreteria.data.entity.FarmEntity;
 import com.example.ferreteria.data.entity.InventoryEntity;
+import com.example.ferreteria.data.entity.PedidoEntity;
 import com.example.ferreteria.data.entity.UserEntity;
 import com.example.ferreteria.data.entity.ZoneEntity;
 
@@ -31,9 +32,6 @@ public class AuthRepository {
     public void inicializarDatos(ResultCallback<Void> callback) {
         IO.execute(() -> {
             try {
-                if (dao.obtenerUsuario("E100") == null) dao.guardarUsuario(new UserEntity("E100", "Operario de prueba", hash("12345678"), "OPERARIO", true, System.currentTimeMillis()));
-                if (dao.obtenerUsuario("S100") == null) dao.guardarUsuario(new UserEntity("S100", "Supervisor de prueba", hash("12345678"), "SUPERVISOR", true, System.currentTimeMillis()));
-                if (dao.obtenerUsuario("A100") == null) dao.guardarUsuario(new UserEntity("A100", "Administrador", hash("12345678"), "ADMINISTRADOR", true, System.currentTimeMillis()));
                 if (dao.obtenerZonas().isEmpty()) {
                     dao.guardarZona(new ZoneEntity("Zona Norte", "Zona agrícola norte", true));
                     dao.guardarZona(new ZoneEntity("Zona Valle Central", "Zona agrícola central", true));
@@ -41,10 +39,15 @@ public class AuthRepository {
                     dao.guardarZona(new ZoneEntity("Zona Occidente", "Zona agrícola occidental", true));
                 }
                 if (dao.obtenerGranjas().isEmpty()) {
-                    dao.guardarGranja(new FarmEntity("Granja Los Laureles", "Zona Norte", true));
-                    dao.guardarGranja(new FarmEntity("Finca San Isidro", "Zona Valle Central", true));
-                    dao.guardarGranja(new FarmEntity("Granja Santa Elena", "Zona Sur", true));
+                    dao.guardarGranja(new FarmEntity("Granja Los Laureles", "Zona Norte", true, "E100", "12345678"));
+                    dao.guardarGranja(new FarmEntity("Finca San Isidro", "Zona Valle Central", true, "E101", "12345678"));
+                    dao.guardarGranja(new FarmEntity("Granja Santa Elena", "Zona Sur", true, "E102", "12345678"));
                 }
+                if (dao.obtenerUsuario("E100") == null) dao.guardarUsuario(new UserEntity("E100", "Granja Los Laureles", hash("12345678"), "OPERARIO", true, System.currentTimeMillis()));
+                if (dao.obtenerUsuario("E101") == null) dao.guardarUsuario(new UserEntity("E101", "Finca San Isidro", hash("12345678"), "OPERARIO", true, System.currentTimeMillis()));
+                if (dao.obtenerUsuario("E102") == null) dao.guardarUsuario(new UserEntity("E102", "Granja Santa Elena", hash("12345678"), "OPERARIO", true, System.currentTimeMillis()));
+                if (dao.obtenerUsuario("S100") == null) dao.guardarUsuario(new UserEntity("S100", "Supervisor de prueba", hash("12345678"), "SUPERVISOR", true, System.currentTimeMillis()));
+                if (dao.obtenerUsuario("A100") == null) dao.guardarUsuario(new UserEntity("A100", "Administrador", hash("12345678"), "ADMINISTRADOR", true, System.currentTimeMillis()));
                 if (dao.obtenerInventario().isEmpty()) {
                     dao.guardarInventario(new InventoryEntity("Fertilizante NPK 15-15-15", "FERT-NPK-50", 20, "sacos"));
                     dao.guardarInventario(new InventoryEntity("Insecticida Concentrado 1L", "INS-L1", 12, "frascos"));
@@ -83,8 +86,41 @@ public class AuthRepository {
     public void listarInventario(ResultCallback<List<InventoryEntity>> cb) { run(dao::obtenerInventario, cb); }
     public void listarAuditoria(ResultCallback<List<AuditEntity>> cb) { run(dao::obtenerAuditoria, cb); }
 
+    public void crearGranja(String nombre, String zona, String codigoAcceso, String password, ResultCallback<Void> cb) {
+        IO.execute(() -> {
+            try {
+                if (nombre.trim().isEmpty() || codigoAcceso.trim().isEmpty()) {
+                    throw new IllegalArgumentException("Nombre y clave/código de la granja son obligatorios.");
+                }
+                String pass = (password == null || password.trim().isEmpty()) ? "12345678" : password.trim();
+                dao.guardarGranja(new FarmEntity(nombre.trim(), zona, true, codigoAcceso.trim(), pass));
+                dao.guardarUsuario(new UserEntity(codigoAcceso.trim(), nombre.trim(), hash(pass), "OPERARIO", true, System.currentTimeMillis()));
+                audit("CREAR", "GRANJA", nombre.trim() + " (" + codigoAcceso.trim() + ")");
+                MAIN.post(() -> cb.onSuccess(null));
+            } catch (Exception e) {
+                MAIN.post(() -> cb.onError(e));
+            }
+        });
+    }
+
     public void crearGranja(String nombre, String zona, ResultCallback<Void> cb) {
-        IO.execute(() -> { try { dao.guardarGranja(new FarmEntity(nombre, zona, true)); audit("CREAR","GRANJA",nombre); MAIN.post(() -> cb.onSuccess(null)); } catch(Exception e){ MAIN.post(() -> cb.onError(e)); }});
+        crearGranja(nombre, zona, "G" + (System.currentTimeMillis() % 10000), "12345678", cb);
+    }
+
+    public void listarGranjasPorZona(String zona, ResultCallback<List<FarmEntity>> cb) {
+        run(() -> dao.obtenerGranjasPorZona(zona), cb);
+    }
+
+    public void listarPedidosPorGranja(String granja, String codigo, ResultCallback<List<PedidoEntity>> cb) {
+        run(() -> dao.obtenerPedidosPorGranja(granja, codigo), cb);
+    }
+
+    public void listarPedidosPorZona(String zona, ResultCallback<List<PedidoEntity>> cb) {
+        run(() -> dao.obtenerPedidosPorZona(zona), cb);
+    }
+
+    public void listarTodosLosPedidos(ResultCallback<List<PedidoEntity>> cb) {
+        run(dao::obtenerTodosLosPedidos, cb);
     }
     public void crearZona(String nombre, String descripcion, ResultCallback<Void> cb) {
         IO.execute(() -> { try { dao.guardarZona(new ZoneEntity(nombre, descripcion, true)); audit("CREAR","ZONA",nombre); MAIN.post(() -> cb.onSuccess(null)); } catch(Exception e){ MAIN.post(() -> cb.onError(e)); }});

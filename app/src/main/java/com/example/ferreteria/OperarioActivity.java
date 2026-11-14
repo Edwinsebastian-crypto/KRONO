@@ -44,6 +44,7 @@ public class OperarioActivity extends AppCompatActivity {
     private boolean pedidoEnviado = false;
     private PedidoRepository pedidoRepository;
     private String userId;
+    private String farmName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +54,7 @@ public class OperarioActivity extends AppCompatActivity {
         pedidoRepository = new PedidoRepository(this);
         userId = getIntent().getStringExtra("user_id");
         if (userId == null) userId = "E100";
+        farmName = getIntent().getStringExtra("farm_name");
 
         // Inicializar insumos por defecto
         insumosList.clear();
@@ -74,7 +76,11 @@ public class OperarioActivity extends AppCompatActivity {
         if (insumosList.isEmpty()) { Toast.makeText(this, "Agrega al menos un insumo antes de enviar.", Toast.LENGTH_SHORT).show(); return; }
         long now = System.currentTimeMillis();
         String code = "PED-" + now;
-        PedidoEntity pedido = new PedidoEntity(code, userId, "Zona Norte", "ENVIADO", now, now);
+        String farm = (farmName != null && !farmName.isEmpty()) ? farmName :
+                (userId.equals("E100") ? "Granja Los Laureles" :
+                (userId.equals("E101") ? "Finca San Isidro" :
+                (userId.equals("E102") ? "Granja Santa Elena" : "Granja " + userId)));
+        PedidoEntity pedido = new PedidoEntity(code, userId, "Zona Norte", "ENVIADO", farm, now, now);
         List<InsumoPedidoEntity> lines = new ArrayList<>();
         for (InsumoItem item : insumosList) lines.add(new InsumoPedidoEntity(0, item.nombre, item.cantidad, item.sku));
         pedidoRepository.guardarPedido(pedido, lines, new PedidoRepository.GuardarPedidoCallback() {

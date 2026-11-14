@@ -54,7 +54,9 @@ public abstract class KronoDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             KronoDatabase.class,
                             "krono_local.db"
-                    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build();
+                    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                     .fallbackToDestructiveMigration()
+                     .build();
                 }
             }
         }

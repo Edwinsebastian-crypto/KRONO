@@ -246,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
                             requestedRole == UserRole.SUPERVISOR ? SupervisorActivity.class : AdminActivity.class;
                     Intent intent = new Intent(MainActivity.this, destination);
                     intent.putExtra("user_id", user.userId);
+                    intent.putExtra("farm_name", user.nombre);
                     intent.putExtra("user_name", user.nombre);
                     startActivity(intent);
                 }
