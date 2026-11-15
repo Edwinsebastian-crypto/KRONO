@@ -146,20 +146,42 @@ public final class StatusBarUtils {
         });
     }
 
+    private static View resolveTargetContainer(ScrollView scrollView, View focusedView) {
+        if (scrollView == null || focusedView == null) return focusedView;
+
+        View root = scrollView.getRootView();
+        int viewId = focusedView.getId();
+
+        // En el login se desplaza el bloque completo para conservar visible
+        // tanto la etiqueta como el campo de entrada.
+        if (viewId == R.id.etUserId) {
+            View container = root.findViewById(R.id.layoutUserId);
+            return container != null ? container : focusedView;
+        }
+        if (viewId == R.id.etPassword) {
+            View container = root.findViewById(R.id.layoutPassword);
+            return container != null ? container : focusedView;
+        }
+        return focusedView;
+    }
+
     public static void scrollToFocusedView(ScrollView scrollView, View focusedView) {
         if (scrollView == null || focusedView == null) return;
 
+        final View targetView = resolveTargetContainer(scrollView, focusedView);
         scrollView.post(() -> {
             try {
                 android.graphics.Rect rect = new android.graphics.Rect();
-                focusedView.getDrawingRect(rect);
-                scrollView.offsetDescendantRectToMyCoords(focusedView, rect);
+                targetView.getDrawingRect(rect);
+                scrollView.offsetDescendantRectToMyCoords(targetView, rect);
 
                 int scrollY = scrollView.getScrollY();
-                int visibleHeight = scrollView.getHeight() - scrollView.getPaddingTop() - scrollView.getPaddingBottom();
+                int visibleHeight = scrollView.getHeight()
+                        - scrollView.getPaddingTop() - scrollView.getPaddingBottom();
                 if (visibleHeight <= 0) return;
 
-                int margin = (int) (32 * scrollView.getResources().getDisplayMetrics().density);
+                // Recupera el margen de seguridad del login original.
+                int margin = (int) (36 * scrollView.getResources().getDisplayMetrics().density);
 
                 if (rect.bottom + margin > scrollY + visibleHeight) {
                     int targetScrollY = (rect.bottom + margin) - visibleHeight;

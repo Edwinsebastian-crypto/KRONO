@@ -363,7 +363,13 @@ public class AdminActivity extends AppCompatActivity {
         Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_editar_zona, null);
-        dialog.setContentView(dialogView);
+        ScrollView dialogScroll = new ScrollView(this);
+        dialogScroll.setFillViewport(true);
+        dialogScroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        dialogScroll.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        dialogScroll.addView(dialogView);
+        dialog.setContentView(dialogScroll);
 
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -378,6 +384,8 @@ public class AdminActivity extends AppCompatActivity {
         EditText edDesc = dialogView.findViewById(R.id.etEditDescZona);
         edNombre.setText(zona.nombre);
         edDesc.setText(zona.descripcion != null ? zona.descripcion : "");
+        StatusBarUtils.attachFocusAutoScroll(dialogScroll, edNombre);
+        StatusBarUtils.attachFocusAutoScroll(dialogScroll, edDesc);
 
         dialogView.findViewById(R.id.btnDialogZonaCancelar).setOnClickListener(v -> dialog.dismiss());
         dialogView.findViewById(R.id.btnDialogZonaGuardar).setOnClickListener(v -> {
@@ -1270,6 +1278,13 @@ public class AdminActivity extends AppCompatActivity {
         View boxZona = dialogView.findViewById(R.id.boxEditZonaGranja);
         EditText edCode = dialogView.findViewById(R.id.etEditClaveGranja);
         EditText edPass = dialogView.findViewById(R.id.etEditPassGranja);
+
+        ScrollView dialogScroll = (ScrollView) dialogView;
+        dialogScroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        StatusBarUtils.attachFocusAutoScroll(dialogScroll, edName);
+        StatusBarUtils.attachFocusAutoScroll(dialogScroll, edLote);
+        StatusBarUtils.attachFocusAutoScroll(dialogScroll, edCode);
+        StatusBarUtils.attachFocusAutoScroll(dialogScroll, edPass);
 
         edName.setText(granja.nombre);
         edLote.setText(granja.lote != null ? granja.lote : "Lote 01");
