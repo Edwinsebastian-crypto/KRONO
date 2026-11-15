@@ -5,12 +5,15 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.example.ferreteria.data.dao.PedidoDao;
+import com.example.ferreteria.data.entity.FarmEntity;
 import com.example.ferreteria.data.entity.InsumoPedidoEntity;
 import com.example.ferreteria.data.entity.PedidoEntity;
 import com.example.ferreteria.data.entity.RevisionPedidoEntity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -36,6 +39,13 @@ public class PedidoRepository {
 
     public interface PedidosCallback {
         void onSuccess(List<PedidoEntity> pedidos);
+        void onError(Exception error);
+    }
+
+    public interface ExportDataCallback {
+        void onSuccess(List<PedidoEntity> pedidos,
+                       Map<Long, List<InsumoPedidoEntity>> insumosPorPedido,
+                       Map<Long, RevisionPedidoEntity> revisionesPorPedido);
         void onError(Exception error);
     }
 
@@ -129,6 +139,64 @@ public class PedidoRepository {
                 MAIN_HANDLER.post(() -> callback.onSuccess(pedidoId));
             } catch (Exception error) {
                 MAIN_HANDLER.post(() -> callback.onError(error));
+            }
+        });
+    }
+
+    public void obtenerDatosExportacionCompleta(ExportDataCallback callback) {
+        IO_EXECUTOR.execute(() -> {
+            try {
+                List<PedidoEntity> pedidos = pedidoDao.obtenerTodos();
+                List<InsumoPedidoEntity> insumos = pedidoDao.obtenerTodosLosInsumos();
+                List<RevisionPedidoEntity> revisiones = pedidoDao.obtenerTodasLasRevisiones();
+
+                Map<Long, List<InsumoPedidoEntity>> insumosMap = new HashMap<>();
+                if (insumos != null) {
+                    for (InsumoPedidoEntity it : insumos) {
+                        List<InsumoPedidoEntity> l = insumosMap.get(it.pedidoId);
+                        if (l == null) {
+                            l = new ArrayList<>();
+                            insumosMap.put(it.pedidoId, l);
+                        }
+                        l.add(it);
+                    }
+                }
+
+                Map<Long, RevisionPedidoEntity> revMap = new HashMap<>();
+                if (revisiones != null) {
+                    for (RevisionPedidoEntity rev : revisiones) {
+                        if (!revMap.containsKey(rev.pedidoId)) {
+                            revMap.put(rev.pedidoId, rev);
+                        }
+                    }
+                }
+
+                MAIN_HANDLER.post(() -> callback.onSuccess(pedidos, insumosMap, revMap));
+            } catch (Exception error) {
+                MAIN_HANDLER.post(() -> callback.onError(error));
+            }
+        });
+    }
+
+    public void sincronizarPedidosConGranjas(List<FarmEntity> granjas, Runnable onComplete) {
+        IO_EXECUTOR.execute(() -> {
+            try {
+                if (granjas != null) {
+                    for (FarmEntity f : granjas) {
+                        if (f.codigoAcceso != null && !f.codigoAcceso.trim().isEmpty()) {
+                            String farmName = f.nombre != null ? f.nombre.trim() : "";
+                            String farmZona = f.zona != null ? f.zona.trim() : "";
+                            pedidoDao.sincronizarGranjaYZonaPorOperario(f.codigoAcceso.trim(), farmName, farmZona);
+                        }
+                    }
+                }
+                if (onComplete != null) {
+                    MAIN_HANDLER.post(onComplete);
+                }
+            } catch (Exception error) {
+                if (onComplete != null) {
+                    MAIN_HANDLER.post(onComplete);
+                }
             }
         });
     }

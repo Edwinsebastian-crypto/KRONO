@@ -416,20 +416,12 @@
                 android:padding="16dp">
 
                 <!-- User ID Field -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Codigo Institucional"
-                    android:textColor="@color/krono_navy_dark"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/layoutUserId"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:hint="Código Institucional"
                     app:boxCornerRadiusBottomEnd="12dp"
                     app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusTopEnd="12dp"
@@ -442,7 +434,6 @@
                         android:id="@+id/etUserId"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/hint_id"
                         android:inputType="text"
                         android:text=""
                         android:textColor="@color/krono_navy_dark"
@@ -450,22 +441,13 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Password Field -->
-                <TextView
-                    android:id="@+id/txtLabelPassword"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:text="@string/label_contrasena"
-                    android:textColor="@color/krono_navy_dark"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/layoutPassword"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="12dp"
+                    android:hint="Contraseña"
                     app:boxCornerRadiusBottomEnd="12dp"
                     app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusTopEnd="12dp"

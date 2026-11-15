@@ -68,12 +68,19 @@
             android:layout_marginVertical="14dp"
             android:background="@color/krono_card_stroke" />
 
-        <!-- Contenedor dinámico de opciones de zona -->
-        <LinearLayout
-            android:id="@+id/containerOpcionesZonas"
+        <!-- Contenedor dinámico de opciones de zona con ScrollView para no distorsionar toques -->
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:overScrollMode="never"
+            android:scrollbars="vertical">
+
+            <LinearLayout
+                android:id="@+id/containerOpcionesZonas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
 
         <!-- Botón Cancelar -->
         <com.google.android.material.button.MaterialButton

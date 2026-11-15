@@ -46,9 +46,12 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SupervisorActivity extends AppCompatActivity {
 
@@ -93,9 +96,9 @@ public class SupervisorActivity extends AppCompatActivity {
     }
 
     private Zone currentZone = Zone.NORTE;
-    private String currentZoneName = "Zona Norte";
+    private String currentZoneName = "";
     private Zone currentHistorialZone = Zone.NORTE;
-    private String currentHistorialZoneName = "Zona Norte";
+    private String currentHistorialZoneName = "";
     private PedidoRepository pedidoRepository;
     private AuthRepository auditRepository;
     private String userId;
@@ -125,6 +128,16 @@ public class SupervisorActivity extends AppCompatActivity {
         auditRepository = new AuthRepository(this);
         userId = getIntent().getStringExtra("user_id");
         if (userId == null) userId = "S100";
+
+        auditRepository.listarGranjas(new AuthRepository.ResultCallback<List<FarmEntity>>() {
+            @Override
+            public void onSuccess(List<FarmEntity> granjas) {
+                pedidoRepository.sincronizarPedidosConGranjas(granjas, null);
+            }
+            @Override
+            public void onError(Exception error) {}
+        });
+
         loadZonasView();
     }
 
@@ -139,7 +152,34 @@ public class SupervisorActivity extends AppCompatActivity {
         initZonasViews();
         setupZoneSelection();
         setupZonasClickListeners();
-        selectZoneByName(currentZoneName);
+
+        // Cargar primera zona real desde SQLite (ej. Zona Motoso)
+        auditRepository.listarZonas(new AuthRepository.ResultCallback<List<ZoneEntity>>() {
+            @Override
+            public void onSuccess(List<ZoneEntity> zonas) {
+                if (zonas != null && !zonas.isEmpty()) {
+                    boolean encontrada = false;
+                    for (ZoneEntity z : zonas) {
+                        if (z.nombre != null && z.nombre.equalsIgnoreCase(currentZoneName)) {
+                            encontrada = true;
+                            break;
+                        }
+                    }
+                    if (!encontrada) {
+                        currentZoneName = zonas.get(0).nombre;
+                    }
+                } else if (currentZoneName == null || currentZoneName.isEmpty()) {
+                    currentZoneName = "Zona Motoso";
+                }
+                selectZoneByName(currentZoneName);
+            }
+
+            @Override
+            public void onError(Exception error) {
+                if (currentZoneName == null || currentZoneName.isEmpty()) currentZoneName = "Zona Motoso";
+                selectZoneByName(currentZoneName);
+            }
+        });
     }
 
     private void initZonasViews() {
@@ -175,17 +215,15 @@ public class SupervisorActivity extends AppCompatActivity {
     }
 
     private void setupZoneSelection() {
-        if (chipZoneNorte == null) return;
-
-        chipZoneNorte.setOnClickListener(v -> selectZone(Zone.NORTE));
-        chipZoneValle.setOnClickListener(v -> selectZone(Zone.VALLE));
-        chipZoneSur.setOnClickListener(v -> selectZone(Zone.SUR));
-        chipZoneOccidente.setOnClickListener(v -> selectZone(Zone.OCCIDENTE));
-
         View btnDropdown = findViewById(R.id.btnZoneDropdown);
         if (btnDropdown != null) {
             btnDropdown.setOnClickListener(v -> mostrarDialogoSeleccionarZona(false));
         }
+
+        if (chipZoneNorte != null) chipZoneNorte.setOnClickListener(v -> selectZoneByName("Zona Motoso"));
+        if (chipZoneValle != null) chipZoneValle.setOnClickListener(v -> selectZoneByName("Zona Norte"));
+        if (chipZoneSur != null) chipZoneSur.setOnClickListener(v -> selectZoneByName("Zona Sur"));
+        if (chipZoneOccidente != null) chipZoneOccidente.setOnClickListener(v -> selectZoneByName("Zona Occidente"));
     }
 
     private void selectZone(Zone zone) {
@@ -193,7 +231,7 @@ public class SupervisorActivity extends AppCompatActivity {
     }
 
     private void selectZoneByName(String zoneName) {
-        if (zoneName == null || zoneName.isEmpty()) zoneName = "Zona Norte";
+        if (zoneName == null || zoneName.isEmpty()) zoneName = "Zona Motoso";
         currentZoneName = zoneName;
 
         for (Zone z : Zone.values()) {
@@ -216,7 +254,7 @@ public class SupervisorActivity extends AppCompatActivity {
         if (txtHeaderGranjas != null) txtHeaderGranjas.setText("Granjas Registradas en " + zoneName);
 
         final String finalZoneName = zoneName;
-        // Consultar conteos reales desde SQLite (datos no quemados)
+        // Consultar conteos reales desde SQLite por granja (datos no quemados)
         auditRepository.listarGranjasPorZona(finalZoneName, new AuthRepository.ResultCallback<List<FarmEntity>>() {
             @Override
             public void onSuccess(List<FarmEntity> granjas) {
@@ -226,14 +264,25 @@ public class SupervisorActivity extends AppCompatActivity {
                     public void onSuccess(List<PedidoEntity> pedidos) {
                         int listas = 0;
                         int pendientes = 0;
-                        if (pedidos != null) {
-                            for (PedidoEntity p : pedidos) {
-                                if (p.zona != null && p.zona.equalsIgnoreCase(finalZoneName)) {
-                                    if ("APROBADO".equalsIgnoreCase(p.estado)) {
-                                        listas++;
-                                    } else {
-                                        pendientes++;
+                        if (granjas != null && !granjas.isEmpty()) {
+                            for (FarmEntity f : granjas) {
+                                PedidoEntity ultimo = null;
+                                if (pedidos != null) {
+                                    for (PedidoEntity p : pedidos) {
+                                        if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
+                                        boolean match = (p.granja != null && p.granja.equalsIgnoreCase(f.nombre)) ||
+                                                (f.codigoAcceso != null && !f.codigoAcceso.isEmpty() && f.codigoAcceso.equalsIgnoreCase(p.operarioId));
+                                        if (match) {
+                                            if (ultimo == null || p.creadoEn > ultimo.creadoEn) {
+                                                ultimo = p;
+                                            }
+                                        }
                                     }
+                                }
+                                if (ultimo != null && "APROBADO".equalsIgnoreCase(ultimo.estado)) {
+                                    listas++;
+                                } else {
+                                    pendientes++;
                                 }
                             }
                         }
@@ -291,10 +340,36 @@ public class SupervisorActivity extends AppCompatActivity {
                     return;
                 }
 
-                for (FarmEntity farm : granjas) {
-                    View farmCard = crearCardGranjaZonas(farm);
-                    container.addView(farmCard, params(-1, -2, 0, 8, 0, 0));
-                }
+                pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
+                    @Override
+                    public void onSuccess(List<PedidoEntity> pedidos) {
+                        for (FarmEntity farm : granjas) {
+                            PedidoEntity ultimo = null;
+                            if (pedidos != null) {
+                                for (PedidoEntity p : pedidos) {
+                                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
+                                    boolean match = (p.granja != null && p.granja.equalsIgnoreCase(farm.nombre)) ||
+                                            (farm.codigoAcceso != null && !farm.codigoAcceso.isEmpty() && farm.codigoAcceso.equalsIgnoreCase(p.operarioId));
+                                    if (match) {
+                                        if (ultimo == null || p.creadoEn > ultimo.creadoEn) {
+                                            ultimo = p;
+                                        }
+                                    }
+                                }
+                            }
+                            View farmCard = crearCardGranjaZonas(farm, ultimo);
+                            container.addView(farmCard, params(-1, -2, 0, 8, 0, 0));
+                        }
+                    }
+
+                    @Override
+                    public void onError(Exception error) {
+                        for (FarmEntity farm : granjas) {
+                            View farmCard = crearCardGranjaZonas(farm, null);
+                            container.addView(farmCard, params(-1, -2, 0, 8, 0, 0));
+                        }
+                    }
+                });
             }
 
             @Override
@@ -325,9 +400,10 @@ public class SupervisorActivity extends AppCompatActivity {
 
                 container.removeAllViews();
                 for (String zName : listZonas) {
-                    boolean isActive = zName.equalsIgnoreCase(activeZoneName);
+                    final String targetZone = zName;
+                    boolean isActive = targetZone.equalsIgnoreCase(activeZoneName);
                     TextView chip = new TextView(SupervisorActivity.this);
-                    chip.setText(isActive ? "• " + zName + " (Activo)" : zName);
+                    chip.setText(isActive ? "• " + targetZone + " (Activo)" : targetZone);
                     chip.setTextSize(12);
                     chip.setGravity(Gravity.CENTER);
                     chip.setPadding(dp(12), 0, dp(12), 0);
@@ -338,9 +414,9 @@ public class SupervisorActivity extends AppCompatActivity {
                     chip.setFocusable(true);
                     chip.setOnClickListener(v -> {
                         if (esHistorial) {
-                            actualizarVistaHistorialZonaByName(zName);
+                            actualizarVistaHistorialZonaByName(targetZone);
                         } else {
-                            selectZoneByName(zName);
+                            selectZoneByName(targetZone);
                         }
                     });
 
@@ -358,7 +434,7 @@ public class SupervisorActivity extends AppCompatActivity {
         });
     }
 
-    private View crearCardGranjaZonas(FarmEntity farm) {
+    private View crearCardGranjaZonas(FarmEntity farm, PedidoEntity ultimoPedido) {
         MaterialCardView card = new MaterialCardView(this);
         card.setCardBackgroundColor(Color.WHITE);
         card.setRadius(dp(16));
@@ -388,12 +464,37 @@ public class SupervisorActivity extends AppCompatActivity {
 
         TextView badge = new TextView(this);
         badge.setId(View.generateViewId());
-        badge.setText("✓ Hoja Lista");
         badge.setTextSize(11);
         badge.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        badge.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
-        badge.setBackgroundResource(R.drawable.bg_blue_chip);
         badge.setPadding(dp(10), dp(5), dp(10), dp(5));
+
+        if (ultimoPedido != null && "APROBADO".equalsIgnoreCase(ultimoPedido.estado)) {
+            badge.setText("✓ Hoja Lista");
+            badge.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+            badge.setBackgroundResource(R.drawable.bg_blue_chip);
+        } else if (ultimoPedido != null && ("EN REVISIÓN".equalsIgnoreCase(ultimoPedido.estado) || "REVISION".equalsIgnoreCase(ultimoPedido.estado))) {
+            badge.setText("⏳ En Revisión");
+            badge.setTextColor(Color.parseColor("#B06000"));
+            GradientDrawable yBg = new GradientDrawable();
+            yBg.setColor(Color.parseColor("#FEF7E0"));
+            yBg.setCornerRadius(dp(8));
+            badge.setBackground(yBg);
+        } else if (ultimoPedido != null && "RECHAZADO".equalsIgnoreCase(ultimoPedido.estado)) {
+            badge.setText("✖ Rechazado");
+            badge.setTextColor(ContextCompat.getColor(this, R.color.krono_red_text));
+            GradientDrawable rBg = new GradientDrawable();
+            rBg.setColor(Color.parseColor("#FCE8E6"));
+            rBg.setCornerRadius(dp(8));
+            badge.setBackground(rBg);
+        } else {
+            badge.setText("○ Sin Pedido");
+            badge.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+            GradientDrawable gBg = new GradientDrawable();
+            gBg.setColor(Color.parseColor("#F0EAE1"));
+            gBg.setCornerRadius(dp(8));
+            badge.setBackground(gBg);
+        }
+
         RelativeLayout.LayoutParams bLp = new RelativeLayout.LayoutParams(-2, -2);
         bLp.addRule(RelativeLayout.ALIGN_PARENT_END);
         bLp.addRule(RelativeLayout.CENTER_VERTICAL);
@@ -405,7 +506,7 @@ public class SupervisorActivity extends AppCompatActivity {
         LinearLayout nameRow = new LinearLayout(this);
         nameRow.setGravity(Gravity.CENTER_VERTICAL);
         TextView txtName = new TextView(this);
-        txtName.setText(farm.nombre);
+        txtName.setText(farm.nombre != null && !farm.nombre.isEmpty() ? farm.nombre : "Granja sin nombre");
         txtName.setTextSize(15);
         txtName.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         txtName.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
@@ -419,8 +520,10 @@ public class SupervisorActivity extends AppCompatActivity {
         nameRow.addView(check, cLp);
         textCol.addView(nameRow);
 
+        String claveTxt = (farm.codigoAcceso != null && !farm.codigoAcceso.trim().isEmpty()) ? farm.codigoAcceso.trim() :
+                (farm.lote != null && !farm.lote.trim().isEmpty() ? farm.lote.trim() : "E100");
         TextView txtEnv = new TextView(this);
-        txtEnv.setText("Clave: " + (farm.codigoAcceso != null ? farm.codigoAcceso : "E100") + " • Toca para abrir pedidos");
+        txtEnv.setText("Clave: " + claveTxt + " • Toca para abrir pedidos");
         txtEnv.setTextSize(11);
         txtEnv.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
         txtEnv.setPadding(0, dp(2), 0, 0);
@@ -508,38 +611,65 @@ public class SupervisorActivity extends AppCompatActivity {
         if (container == null) return;
         container.removeAllViews();
 
-        pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
+        auditRepository.listarGranjas(new AuthRepository.ResultCallback<List<FarmEntity>>() {
             @Override
-            public void onSuccess(List<PedidoEntity> pedidos) {
-                List<PedidoEntity> filtrados = new ArrayList<>();
-                for (PedidoEntity p : pedidos) {
-                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
-                    if (p.granja != null && p.granja.trim().equalsIgnoreCase(farmName.trim())) {
-                        filtrados.add(p);
+            public void onSuccess(List<FarmEntity> granjas) {
+                pedidoRepository.sincronizarPedidosConGranjas(granjas, () -> {
+                    String codAcceso = "";
+                    if (granjas != null) {
+                        for (FarmEntity f : granjas) {
+                            if (f.nombre != null && f.nombre.trim().equalsIgnoreCase(farmName.trim())) {
+                                codAcceso = f.codigoAcceso != null ? f.codigoAcceso.trim() : "";
+                                break;
+                            }
+                        }
                     }
-                }
+                    final String finalCod = codAcceso;
 
-                container.removeAllViews();
-                if (filtrados.isEmpty()) {
-                    MaterialCardView emptyCard = new MaterialCardView(SupervisorActivity.this);
-                    emptyCard.setCardBackgroundColor(Color.WHITE);
-                    emptyCard.setRadius(dp(14));
-                    emptyCard.setStrokeColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_card_stroke));
-                    emptyCard.setStrokeWidth(dp(1));
-                    TextView txt = new TextView(SupervisorActivity.this);
-                    txt.setText("No hay hojas de pedido pendientes para " + farmName + ".");
-                    txt.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
-                    txt.setTextSize(13);
-                    txt.setPadding(dp(16), dp(16), dp(16), dp(16));
-                    emptyCard.addView(txt);
-                    container.addView(emptyCard, params(-1, -2, 0, 10, 0, 0));
-                    return;
-                }
+                    pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
+                        @Override
+                        public void onSuccess(List<PedidoEntity> pedidos) {
+                            List<PedidoEntity> filtrados = new ArrayList<>();
+                            if (pedidos != null) {
+                                for (PedidoEntity p : pedidos) {
+                                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
+                                    boolean match = (p.granja != null && (p.granja.trim().equalsIgnoreCase(farmName.trim()) ||
+                                            p.granja.trim().toLowerCase().contains(farmName.trim().toLowerCase()) ||
+                                            farmName.trim().toLowerCase().contains(p.granja.trim().toLowerCase()))) ||
+                                            (!finalCod.isEmpty() && finalCod.equalsIgnoreCase(p.operarioId));
+                                    if (match) {
+                                        filtrados.add(p);
+                                    }
+                                }
+                            }
 
-                for (PedidoEntity p : filtrados) {
-                    View card = crearCardPedidoParaGranja(p, farmName);
-                    container.addView(card, params(-1, -2, 0, 10, 0, 0));
-                }
+                            container.removeAllViews();
+                            if (filtrados.isEmpty()) {
+                                MaterialCardView emptyCard = new MaterialCardView(SupervisorActivity.this);
+                                emptyCard.setCardBackgroundColor(Color.WHITE);
+                                emptyCard.setRadius(dp(14));
+                                emptyCard.setStrokeColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_card_stroke));
+                                emptyCard.setStrokeWidth(dp(1));
+                                TextView txt = new TextView(SupervisorActivity.this);
+                                txt.setText("No hay hojas de pedido pendientes para " + farmName + ".");
+                                txt.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
+                                txt.setTextSize(13);
+                                txt.setPadding(dp(16), dp(16), dp(16), dp(16));
+                                emptyCard.addView(txt);
+                                container.addView(emptyCard, params(-1, -2, 0, 10, 0, 0));
+                                return;
+                            }
+
+                            for (PedidoEntity p : filtrados) {
+                                View card = crearCardPedidoParaGranja(p, farmName);
+                                container.addView(card, params(-1, -2, 0, 10, 0, 0));
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception error) {}
+                    });
+                });
             }
 
             @Override
@@ -710,27 +840,32 @@ public class SupervisorActivity extends AppCompatActivity {
             pedidoRepository.obtenerInsumos(pedido.id, new PedidoRepository.InsumosCallback() {
                 @Override
                 public void onSuccess(List<InsumoPedidoEntity> items) {
-                    prepararDictamenes(items, containerOriginales, txtUltimaRevision);
+                    final List<InsumoPedidoEntity> listaInsumos = (items != null) ? items : new ArrayList<>();
+                    pedidoRepository.obtenerUltimaRevision(pedido.id, new PedidoRepository.RevisionCallback() {
+                        @Override
+                        public void onSuccess(RevisionPedidoEntity revision) {
+                            prepararDictamenesConRevision(listaInsumos, revision, containerOriginales, txtUltimaRevision);
+                            if (revision != null) {
+                                if (revision.observacion != null && etObs != null) {
+                                    etObs.setText(revision.observacion);
+                                }
+                                if (txtUltimaRevision != null) {
+                                    txtUltimaRevision.setText("Último guardado: " + android.text.format.DateFormat.format("dd MMM yyyy • HH:mm", revision.fecha));
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception error) {
+                            prepararDictamenes(listaInsumos, containerOriginales, txtUltimaRevision);
+                        }
+                    });
                 }
 
                 @Override
                 public void onError(Exception error) {
                     prepararDictamenes(fallbackItems != null ? fallbackItems : new ArrayList<>(), containerOriginales, txtUltimaRevision);
                 }
-            });
-
-            pedidoRepository.obtenerUltimaRevision(pedido.id, new PedidoRepository.RevisionCallback() {
-                @Override
-                public void onSuccess(RevisionPedidoEntity revision) {
-                    if (revision != null) {
-                        if (revision.observacion != null && etObs != null) {
-                            etObs.setText(revision.observacion);
-                        }
-                    }
-                }
-
-                @Override
-                public void onError(Exception error) {}
             });
         } else {
             prepararDictamenes(fallbackItems != null ? fallbackItems : new ArrayList<>(), containerOriginales, txtUltimaRevision);
@@ -740,7 +875,7 @@ public class SupervisorActivity extends AppCompatActivity {
         MaterialButton btnGuardar = findViewById(R.id.btnGuardarRevision);
         if (btnGuardar != null) {
             btnGuardar.setOnClickListener(v -> {
-                guardarRevisionActual(pedido, farmName, etObs != null ? etObs.getText().toString().trim() : "", fallbackItems);
+                guardarRevisionActual(pedido, farmName, etObs != null ? etObs.getText().toString().trim() : "", fallbackItems, etObs, txtUltimaRevision);
             });
         }
 
@@ -756,9 +891,49 @@ public class SupervisorActivity extends AppCompatActivity {
         MaterialButton btnRechazar = findViewById(R.id.btnRechazarPedido);
         if (btnRechazar != null) {
             btnRechazar.setOnClickListener(v -> {
-                rechazarPedido(pedido, farmName, fallbackItems);
+                rechazarPedido(pedido, farmName, fallbackItems, etObs != null ? etObs.getText().toString().trim() : "");
             });
         }
+    }
+
+    private void prepararDictamenesConRevision(List<InsumoPedidoEntity> items, RevisionPedidoEntity rev, LinearLayout container, TextView txtResumen) {
+        dictamenList.clear();
+        for (InsumoPedidoEntity it : items) {
+            InsumoDictamen d = new InsumoDictamen(it);
+            if (rev != null && rev.textoEditado != null && !rev.textoEditado.isEmpty()) {
+                String texto = rev.textoEditado;
+                int idx = texto.indexOf(it.nombre);
+                if (idx >= 0) {
+                    int bracketStart = texto.indexOf("[", idx);
+                    int bracketEnd = texto.indexOf("]", bracketStart);
+                    if (bracketStart >= 0 && bracketEnd > bracketStart) {
+                        String contenido = texto.substring(bracketStart + 1, bracketEnd);
+                        if (contenido.contains("RECHAZADO")) {
+                            d.estado = "RECHAZADO";
+                        } else if (contenido.contains("AJUSTADO")) {
+                            d.estado = "AJUSTADO";
+                        } else if (contenido.contains("APROBADO")) {
+                            d.estado = "APROBADO";
+                        }
+                        if (contenido.contains("-")) {
+                            String[] parts = contenido.split("-", 2);
+                            if (parts.length > 1) {
+                                d.cantidadAjustada = parts[1].trim();
+                            }
+                        }
+                    }
+                    int pipeIdx = texto.indexOf("|", idx);
+                    if (pipeIdx < 0) pipeIdx = texto.length();
+                    int parenStart = texto.indexOf("(", idx);
+                    int parenEnd = texto.indexOf(")", parenStart);
+                    if (parenStart >= 0 && parenEnd > parenStart && parenStart < pipeIdx) {
+                        d.observacion = texto.substring(parenStart + 1, parenEnd).trim();
+                    }
+                }
+            }
+            dictamenList.add(d);
+        }
+        renderizarListaInsumosDictamen(container, txtResumen);
     }
 
     private void prepararDictamenes(List<InsumoPedidoEntity> items, LinearLayout container, TextView txtResumen) {
@@ -992,21 +1167,31 @@ public class SupervisorActivity extends AppCompatActivity {
         return sb.toString();
     }
 
-    private void guardarRevisionActual(PedidoEntity pedido, String farmName, String obsGeneral, List<InsumoPedidoEntity> fallbackItems) {
+    private String construirDetalleAuditoriaPedido(PedidoEntity pedido, String farmName) {
+        String loteVal = (pedido != null && pedido.lote != null && !pedido.lote.trim().isEmpty()) ? pedido.lote : "Lote 01";
+        String granjaVal = (pedido != null && pedido.granja != null && !pedido.granja.trim().isEmpty()) ? pedido.granja : (farmName != null ? farmName : "Granja Rosales");
+        String zonaVal = (pedido != null && pedido.zona != null && !pedido.zona.trim().isEmpty()) ? pedido.zona : (currentZoneName != null ? currentZoneName : "Zona Motoso");
+        return "Número de Lote: " + loteVal + "\nGranja: " + granjaVal + " • Zona: " + zonaVal;
+    }
+
+    private void guardarRevisionActual(PedidoEntity pedido, String farmName, String obsGeneral, List<InsumoPedidoEntity> fallbackItems, EditText etObs, TextView txtUltimaRevision) {
         String textoResumen = construirTextoResumenDictamen();
+        long now = System.currentTimeMillis();
 
         if (pedido.id <= 0) {
             pedidoRepository.guardarPedido(pedido, fallbackItems != null ? fallbackItems : new ArrayList<>(), new PedidoRepository.GuardarPedidoCallback() {
                 @Override
                 public void onSuccess(long pedidoId) {
                     pedido.id = pedidoId;
-                    RevisionPedidoEntity rev = new RevisionPedidoEntity(pedidoId, userId, textoResumen, obsGeneral, System.currentTimeMillis());
+                    RevisionPedidoEntity rev = new RevisionPedidoEntity(pedidoId, userId, textoResumen, obsGeneral, now);
                     pedidoRepository.guardarRevision(rev, new PedidoRepository.GuardarPedidoCallback() {
                         @Override
                         public void onSuccess(long revId) {
-                            auditRepository.auditar(userId, "REVISION_GUARDADA", "PEDIDO", pedido.codigo);
-                            Toast.makeText(SupervisorActivity.this, "Revisión guardada en base de datos local SQLite.", Toast.LENGTH_SHORT).show();
-                            abrirDetallePedido(pedido, farmName, fallbackItems);
+                            auditRepository.auditar(userId, "REVISION_GUARDADA", "PEDIDO", construirDetalleAuditoriaPedido(pedido, farmName));
+                            Toast.makeText(SupervisorActivity.this, "✓ Revisión temporal guardada en SQLite.", Toast.LENGTH_SHORT).show();
+                            if (txtUltimaRevision != null) {
+                                txtUltimaRevision.setText("Último guardado: " + android.text.format.DateFormat.format("dd MMM yyyy • HH:mm", now));
+                            }
                         }
 
                         @Override
@@ -1022,13 +1207,15 @@ public class SupervisorActivity extends AppCompatActivity {
                 }
             });
         } else {
-            RevisionPedidoEntity rev = new RevisionPedidoEntity(pedido.id, userId, textoResumen, obsGeneral, System.currentTimeMillis());
+            RevisionPedidoEntity rev = new RevisionPedidoEntity(pedido.id, userId, textoResumen, obsGeneral, now);
             pedidoRepository.guardarRevision(rev, new PedidoRepository.GuardarPedidoCallback() {
                 @Override
                 public void onSuccess(long revId) {
-                    auditRepository.auditar(userId, "REVISION_GUARDADA", "PEDIDO", pedido.codigo);
-                    Toast.makeText(SupervisorActivity.this, "Revisión guardada en base de datos local SQLite.", Toast.LENGTH_SHORT).show();
-                    abrirDetallePedido(pedido, farmName, fallbackItems);
+                    auditRepository.auditar(userId, "REVISION_GUARDADA", "PEDIDO", construirDetalleAuditoriaPedido(pedido, farmName));
+                    Toast.makeText(SupervisorActivity.this, "✓ Revisión temporal guardada en SQLite.", Toast.LENGTH_SHORT).show();
+                    if (txtUltimaRevision != null) {
+                        txtUltimaRevision.setText("Último guardado: " + android.text.format.DateFormat.format("dd MMM yyyy • HH:mm", now));
+                    }
                 }
 
                 @Override
@@ -1052,7 +1239,7 @@ public class SupervisorActivity extends AppCompatActivity {
                     pedidoRepository.guardarRevision(rev, new PedidoRepository.GuardarPedidoCallback() {
                         @Override
                         public void onSuccess(long revId) {
-                            auditRepository.auditar(userId, "APROBADO", "PEDIDO", pedido.codigo);
+                            auditRepository.auditar(userId, "APROBADO", "PEDIDO", construirDetalleAuditoriaPedido(pedido, farmName));
                             Toast.makeText(SupervisorActivity.this, "✓ Pedido " + pedido.codigo + " aprobado y registrado en Historial.", Toast.LENGTH_SHORT).show();
                             loadHistorialView();
                         }
@@ -1077,7 +1264,7 @@ public class SupervisorActivity extends AppCompatActivity {
                     pedidoRepository.guardarRevision(rev, new PedidoRepository.GuardarPedidoCallback() {
                         @Override
                         public void onSuccess(long revId) {
-                            auditRepository.auditar(userId, "APROBADO", "PEDIDO", pedido.codigo);
+                            auditRepository.auditar(userId, "APROBADO", "PEDIDO", construirDetalleAuditoriaPedido(pedido, farmName));
                             Toast.makeText(SupervisorActivity.this, "✓ Pedido aprobado y registrado en Historial.", Toast.LENGTH_SHORT).show();
                             loadHistorialView();
                         }
@@ -1097,18 +1284,38 @@ public class SupervisorActivity extends AppCompatActivity {
         }
     }
 
-    private void rechazarPedido(PedidoEntity pedido, String farmName, List<InsumoPedidoEntity> fallbackItems) {
+    private void rechazarPedido(PedidoEntity pedido, String farmName, List<InsumoPedidoEntity> fallbackItems, String obsGeneral) {
+        // Al rechazar el pedido, todos los productos pasan a ser rechazados
+        for (InsumoDictamen d : dictamenList) {
+            d.estado = "RECHAZADO";
+            if (d.observacion == null || d.observacion.trim().isEmpty()) {
+                d.observacion = "Rechazado en dictamen general del pedido";
+            }
+        }
         String textoResumen = construirTextoResumenDictamen();
         pedido.estado = "RECHAZADO";
+        long now = System.currentTimeMillis();
+        String obsFinal = (obsGeneral != null && !obsGeneral.trim().isEmpty()) ? obsGeneral : "Pedido rechazado en su totalidad por supervisión.";
 
         if (pedido.id <= 0) {
             pedidoRepository.guardarPedido(pedido, fallbackItems != null ? fallbackItems : new ArrayList<>(), new PedidoRepository.GuardarPedidoCallback() {
                 @Override
                 public void onSuccess(long pedidoId) {
                     pedido.id = pedidoId;
-                    auditRepository.auditar(userId, "RECHAZADO", "PEDIDO", pedido.codigo);
-                    Toast.makeText(SupervisorActivity.this, "Pedido marcado como Rechazado.", Toast.LENGTH_SHORT).show();
-                    loadHistorialView();
+                    RevisionPedidoEntity rev = new RevisionPedidoEntity(pedidoId, userId, textoResumen, obsFinal, now);
+                    pedidoRepository.guardarRevision(rev, new PedidoRepository.GuardarPedidoCallback() {
+                        @Override
+                        public void onSuccess(long revId) {
+                            auditRepository.auditar(userId, "RECHAZADO", "PEDIDO", construirDetalleAuditoriaPedido(pedido, farmName));
+                            Toast.makeText(SupervisorActivity.this, "✓ Pedido e insumos marcados como Rechazados.", Toast.LENGTH_SHORT).show();
+                            loadHistorialView();
+                        }
+
+                        @Override
+                        public void onError(Exception error) {
+                            loadHistorialView();
+                        }
+                    });
                 }
 
                 @Override
@@ -1120,9 +1327,20 @@ public class SupervisorActivity extends AppCompatActivity {
             pedidoRepository.actualizarEstado(pedido.id, "RECHAZADO", new PedidoRepository.GuardarPedidoCallback() {
                 @Override
                 public void onSuccess(long id) {
-                    auditRepository.auditar(userId, "RECHAZADO", "PEDIDO", pedido.codigo);
-                    Toast.makeText(SupervisorActivity.this, "Pedido marcado como Rechazado.", Toast.LENGTH_SHORT).show();
-                    loadHistorialView();
+                    RevisionPedidoEntity rev = new RevisionPedidoEntity(pedido.id, userId, textoResumen, obsFinal, now);
+                    pedidoRepository.guardarRevision(rev, new PedidoRepository.GuardarPedidoCallback() {
+                        @Override
+                        public void onSuccess(long revId) {
+                            auditRepository.auditar(userId, "RECHAZADO", "PEDIDO", construirDetalleAuditoriaPedido(pedido, farmName));
+                            Toast.makeText(SupervisorActivity.this, "✓ Pedido e insumos marcados como Rechazados.", Toast.LENGTH_SHORT).show();
+                            loadHistorialView();
+                        }
+
+                        @Override
+                        public void onError(Exception error) {
+                            loadHistorialView();
+                        }
+                    });
                 }
 
                 @Override
@@ -1379,7 +1597,34 @@ public class SupervisorActivity extends AppCompatActivity {
         StatusBarUtils.setupIntelligentKeyboard(this, findViewById(R.id.scrollViewHistorial));
 
         setupHistorialClickListeners();
-        actualizarVistaHistorialZonaByName(currentHistorialZoneName);
+
+        // Cargar primera zona real desde SQLite si no está seleccionada
+        auditRepository.listarZonas(new AuthRepository.ResultCallback<List<ZoneEntity>>() {
+            @Override
+            public void onSuccess(List<ZoneEntity> zonas) {
+                if (zonas != null && !zonas.isEmpty()) {
+                    boolean encontrada = false;
+                    for (ZoneEntity z : zonas) {
+                        if (z.nombre != null && z.nombre.equalsIgnoreCase(currentHistorialZoneName)) {
+                            encontrada = true;
+                            break;
+                        }
+                    }
+                    if (!encontrada) {
+                        currentHistorialZoneName = zonas.get(0).nombre;
+                    }
+                } else if (currentHistorialZoneName == null || currentHistorialZoneName.isEmpty()) {
+                    currentHistorialZoneName = "Zona Motoso";
+                }
+                actualizarVistaHistorialZonaByName(currentHistorialZoneName);
+            }
+
+            @Override
+            public void onError(Exception error) {
+                if (currentHistorialZoneName == null || currentHistorialZoneName.isEmpty()) currentHistorialZoneName = "Zona Motoso";
+                actualizarVistaHistorialZonaByName(currentHistorialZoneName);
+            }
+        });
     }
 
     private void setupHistorialClickListeners() {
@@ -1398,20 +1643,20 @@ public class SupervisorActivity extends AppCompatActivity {
         TextView chipSur = findViewById(R.id.chipHistorialSur);
         TextView chipOccidente = findViewById(R.id.chipHistorialOccidente);
 
-        if (chipNorte != null) chipNorte.setOnClickListener(v -> actualizarVistaHistorialZona(Zone.NORTE));
-        if (chipValle != null) chipValle.setOnClickListener(v -> actualizarVistaHistorialZona(Zone.VALLE));
-        if (chipSur != null) chipSur.setOnClickListener(v -> actualizarVistaHistorialZona(Zone.SUR));
-        if (chipOccidente != null) chipOccidente.setOnClickListener(v -> actualizarVistaHistorialZona(Zone.OCCIDENTE));
+        if (chipNorte != null) chipNorte.setOnClickListener(v -> selectZoneByName("Zona Motoso"));
+        if (chipValle != null) chipValle.setOnClickListener(v -> selectZoneByName("Zona Norte"));
+        if (chipSur != null) chipSur.setOnClickListener(v -> selectZoneByName("Zona Sur"));
+        if (chipOccidente != null) chipOccidente.setOnClickListener(v -> selectZoneByName("Zona Occidente"));
 
         // Exportación de la zona seleccionada
         View btnCsv = findViewById(R.id.btnExportZonaCsv);
         if (btnCsv != null) {
-            btnCsv.setOnClickListener(v -> exportarPedidosFiltrados(currentHistorialZone.shortName, null, false));
+            btnCsv.setOnClickListener(v -> exportarPedidosFiltrados(currentHistorialZoneName, null, false));
         }
 
         View btnPdf = findViewById(R.id.btnExportZonaPdf);
         if (btnPdf != null) {
-            btnPdf.setOnClickListener(v -> exportarPedidosFiltrados(currentHistorialZone.shortName, null, true));
+            btnPdf.setOnClickListener(v -> exportarPedidosFiltrados(currentHistorialZoneName, null, true));
         }
 
         View tabZonas = findViewById(R.id.tabZonas);
@@ -1430,7 +1675,7 @@ public class SupervisorActivity extends AppCompatActivity {
     }
 
     private void actualizarVistaHistorialZonaByName(String zoneName) {
-        if (zoneName == null || zoneName.isEmpty()) zoneName = "Zona Norte";
+        if (zoneName == null || zoneName.isEmpty()) zoneName = "Zona Motoso";
         currentHistorialZoneName = zoneName;
 
         for (Zone z : Zone.values()) {
@@ -1488,9 +1733,22 @@ public class SupervisorActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(List<PedidoEntity> pedidos) {
                         int listas = 0;
-                        if (pedidos != null) {
-                            for (PedidoEntity p : pedidos) {
-                                if (p.zona != null && p.zona.equalsIgnoreCase(finalZoneName) && "APROBADO".equalsIgnoreCase(p.estado)) {
+                        if (granjas != null && !granjas.isEmpty()) {
+                            for (FarmEntity f : granjas) {
+                                PedidoEntity ultimo = null;
+                                if (pedidos != null) {
+                                    for (PedidoEntity p : pedidos) {
+                                        if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
+                                        boolean match = (p.granja != null && p.granja.equalsIgnoreCase(f.nombre)) ||
+                                                (f.codigoAcceso != null && !f.codigoAcceso.isEmpty() && f.codigoAcceso.equalsIgnoreCase(p.operarioId));
+                                        if (match) {
+                                            if (ultimo == null || p.creadoEn > ultimo.creadoEn) {
+                                                ultimo = p;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (ultimo != null && "APROBADO".equalsIgnoreCase(ultimo.estado)) {
                                     listas++;
                                 }
                             }
@@ -1747,11 +2005,14 @@ public class SupervisorActivity extends AppCompatActivity {
                         }
                     }
 
+                    final String activeTarget = (currentActiveName != null && !currentActiveName.isEmpty()) ?
+                            currentActiveName : (!displayList.isEmpty() ? displayList.get(0).nombre : "Zona Motoso");
+
                     container.removeAllViews();
                     for (ZoneEntity z : displayList) {
                         MaterialCardView optionCard = new MaterialCardView(SupervisorActivity.this);
                         optionCard.setRadius(dp(12));
-                        boolean isSelected = z.nombre.equalsIgnoreCase(currentActiveName);
+                        boolean isSelected = z.nombre.equalsIgnoreCase(activeTarget);
                         optionCard.setCardBackgroundColor(isSelected ? ContextCompat.getColor(SupervisorActivity.this, R.color.krono_bg) : Color.WHITE);
                         optionCard.setStrokeColor(ContextCompat.getColor(SupervisorActivity.this, isSelected ? R.color.krono_navy : R.color.krono_card_stroke));
                         optionCard.setStrokeWidth(dp(isSelected ? 2 : 1));
@@ -1803,14 +2064,19 @@ public class SupervisorActivity extends AppCompatActivity {
                         optionCard.addView(row);
 
                         final String selectedName = z.nombre;
-                        optionCard.setOnClickListener(v -> {
+                        View.OnClickListener onZoneClick = v -> {
                             dialog.dismiss();
                             if (esHistorial) {
                                 actualizarVistaHistorialZonaByName(selectedName);
                             } else {
                                 selectZoneByName(selectedName);
                             }
-                        });
+                        };
+                        optionCard.setOnClickListener(onZoneClick);
+                        row.setOnClickListener(onZoneClick);
+                        col.setOnClickListener(onZoneClick);
+                        title.setOnClickListener(onZoneClick);
+                        sub.setOnClickListener(onZoneClick);
 
                         container.addView(optionCard, params(-1, -2, 0, 4, 0, 4));
                     }
@@ -1891,40 +2157,69 @@ public class SupervisorActivity extends AppCompatActivity {
         containerPedidos.setOrientation(LinearLayout.VERTICAL);
         contentLayout.addView(containerPedidos, params(-1, -2, 0, 0, 0, 0));
 
-        pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
+        auditRepository.listarGranjas(new AuthRepository.ResultCallback<List<FarmEntity>>() {
             @Override
-            public void onSuccess(List<PedidoEntity> pedidos) {
-                containerPedidos.removeAllViews();
-                List<PedidoEntity> filtrados = new ArrayList<>();
-                for (PedidoEntity p : pedidos) {
-                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
-                    if (p.granja != null && p.granja.trim().equalsIgnoreCase(farmName.trim())) {
-                        filtrados.add(p);
+            public void onSuccess(List<FarmEntity> granjas) {
+                pedidoRepository.sincronizarPedidosConGranjas(granjas, () -> {
+                    String codAcceso = "";
+                    if (granjas != null) {
+                        for (FarmEntity f : granjas) {
+                            if (f.nombre != null && f.nombre.trim().equalsIgnoreCase(farmName.trim())) {
+                                codAcceso = f.codigoAcceso != null ? f.codigoAcceso.trim() : "";
+                                break;
+                            }
+                        }
                     }
-                }
+                    final String finalCod = codAcceso;
 
-                if (filtrados.isEmpty()) {
-                    MaterialCardView emptyCard = new MaterialCardView(SupervisorActivity.this);
-                    emptyCard.setCardBackgroundColor(Color.WHITE);
-                    emptyCard.setRadius(dp(14));
-                    emptyCard.setStrokeColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_card_stroke));
-                    emptyCard.setStrokeWidth(dp(1));
-                    TextView txtEmpty = new TextView(SupervisorActivity.this);
-                    txtEmpty.setText("No hay pedidos registrados para " + farmName + ".");
-                    txtEmpty.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
-                    txtEmpty.setTextSize(13);
-                    txtEmpty.setPadding(dp(16), dp(16), dp(16), dp(16));
-                    emptyCard.addView(txtEmpty);
-                    containerPedidos.addView(emptyCard, params(-1, -2, 0, 4, 0, 0));
-                    return;
-                }
+                    pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
+                        @Override
+                        public void onSuccess(List<PedidoEntity> pedidos) {
+                            containerPedidos.removeAllViews();
+                            List<PedidoEntity> filtrados = new ArrayList<>();
+                            if (pedidos != null) {
+                                for (PedidoEntity p : pedidos) {
+                                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
+                                    boolean match = (p.granja != null && (p.granja.trim().equalsIgnoreCase(farmName.trim()) ||
+                                            p.granja.trim().toLowerCase().contains(farmName.trim().toLowerCase()) ||
+                                            farmName.trim().toLowerCase().contains(p.granja.trim().toLowerCase()))) ||
+                                            (!finalCod.isEmpty() && finalCod.equalsIgnoreCase(p.operarioId));
+                                    if (match) {
+                                        filtrados.add(p);
+                                    }
+                                }
+                            }
 
-                badgeCount.setText(filtrados.size() + " Registros");
+                            if (filtrados.isEmpty()) {
+                                MaterialCardView emptyCard = new MaterialCardView(SupervisorActivity.this);
+                                emptyCard.setCardBackgroundColor(Color.WHITE);
+                                emptyCard.setRadius(dp(14));
+                                emptyCard.setStrokeColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_card_stroke));
+                                emptyCard.setStrokeWidth(dp(1));
+                                TextView txtEmpty = new TextView(SupervisorActivity.this);
+                                txtEmpty.setText("No hay pedidos registrados para " + farmName + ".");
+                                txtEmpty.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
+                                txtEmpty.setTextSize(13);
+                                txtEmpty.setPadding(dp(16), dp(16), dp(16), dp(16));
+                                emptyCard.addView(txtEmpty);
+                                containerPedidos.addView(emptyCard, params(-1, -2, 0, 4, 0, 0));
+                                return;
+                            }
 
-                for (PedidoEntity p : filtrados) {
-                    View cardView = crearCardPedidoHistorialLectura(p, farmName, zonaName);
-                    containerPedidos.addView(cardView, params(-1, -2, 0, 0, 0, 10));
-                }
+                            badgeCount.setText(filtrados.size() + " Registros");
+
+                            for (PedidoEntity p : filtrados) {
+                                View cardView = crearCardPedidoHistorialLectura(p, farmName, zonaName);
+                                containerPedidos.addView(cardView, params(-1, -2, 0, 0, 0, 10));
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception error) {
+                            Toast.makeText(SupervisorActivity.this, "Error al cargar pedidos: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
             }
 
             @Override
@@ -2398,79 +2693,224 @@ public class SupervisorActivity extends AppCompatActivity {
     // ==========================================
     // EXPORTACIÓN FUNCIONAL POR ZONA O POR GRANJA
     // ==========================================
-    private void exportarPedidosFiltrados(String filtroZona, String filtroGranja, boolean esPdf) {
-        pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
-            @Override
-            public void onSuccess(List<PedidoEntity> pedidos) {
-                List<PedidoEntity> list = (pedidos != null && !pedidos.isEmpty()) ? pedidos : new ArrayList<>();
+    public static class InsumoExportado {
+        public String nombre;
+        public String sku;
+        public String cantidadSolicitada;
+        public String dictamen;
+        public String cantidadAutorizada;
+        public String nota;
 
-                // Datos base de respaldo si está recién instalada la BD
-                if (list.isEmpty()) {
-                    long now = System.currentTimeMillis();
-                    list.add(new PedidoEntity("PED-1794671240166", "E100", "Zona Norte", "APROBADO", "Granja Los Laureles", now - 3600000, now));
-                    list.add(new PedidoEntity("#PED-2026-11-ZN04", "Carlos Méndez", "Zona Norte", "APROBADO", "Granja Los Laureles", now - 7200000, now));
-                    list.add(new PedidoEntity("#PED-2026-11-VC01", "E101", "Zona Valle Central", "APROBADO", "Finca San Isidro", now - 86400000, now));
-                    list.add(new PedidoEntity("#PED-2026-10-ZS09", "E102", "Zona Sur", "REVISION", "Granja Santa Elena", now - 172800000, now));
-                }
+        public InsumoExportado(String nombre, String sku, String cantidadSolicitada, String dictamen, String cantidadAutorizada, String nota) {
+            this.nombre = nombre != null ? nombre : "Insumo";
+            this.sku = sku != null ? sku : "SKU: GENERAL";
+            this.cantidadSolicitada = cantidadSolicitada != null ? cantidadSolicitada : "1 unidad";
+            this.dictamen = dictamen != null ? dictamen : "PENDIENTE";
+            this.cantidadAutorizada = cantidadAutorizada != null ? cantidadAutorizada : this.cantidadSolicitada;
+            this.nota = nota != null ? nota : "";
+        }
+    }
 
-                // Filtrar según zona y granja
-                List<PedidoEntity> filtrados = new ArrayList<>();
-                for (PedidoEntity p : list) {
-                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
-                    String z = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "";
-                    String g = (p.granja != null && !p.granja.isEmpty()) ? p.granja : "";
+    private List<InsumoExportado> resolverInsumosParaExportacion(PedidoEntity p,
+                                                                 List<InsumoPedidoEntity> insumos,
+                                                                 RevisionPedidoEntity rev) {
+        List<InsumoExportado> resultado = new ArrayList<>();
+        if (insumos == null || insumos.isEmpty()) {
+            String dict = "APROBADO".equalsIgnoreCase(p.estado) ? "APROBADO" : ("RECHAZADO".equalsIgnoreCase(p.estado) ? "RECHAZADO" : "PENDIENTE");
+            resultado.add(new InsumoExportado("Fertilizante NPK 15-15-15 (Sacos 50kg)", "SKU: FERT-NPK-50", "20 sacos", dict, "RECHAZADO".equals(dict) ? "0 sacos" : "20 sacos", ""));
+            resultado.add(new InsumoExportado("Insecticida Concentrado 1L", "SKU: INS-L1", "12 frascos", dict, "RECHAZADO".equals(dict) ? "0 frascos" : "12 frascos", ""));
+            return resultado;
+        }
 
-                    boolean matchZona = (filtroZona == null || z.toLowerCase().contains(filtroZona.toLowerCase()));
-                    boolean matchGranja = (filtroGranja == null || g.toLowerCase().contains(filtroGranja.toLowerCase()));
+        String texto = (rev != null && rev.textoEditado != null) ? rev.textoEditado : "";
 
-                    if (matchZona && matchGranja) {
-                        filtrados.add(p);
+        for (InsumoPedidoEntity it : insumos) {
+            String prodNombre = it.nombre != null ? it.nombre : "Insumo";
+            String sku = it.sku != null ? it.sku : "SKU: GENERAL";
+            String cantSol = it.cantidad != null ? it.cantidad : "1 unidad";
+            String dictamen = "APROBADO".equalsIgnoreCase(p.estado) ? "APROBADO" : ("RECHAZADO".equalsIgnoreCase(p.estado) ? "RECHAZADO" : "PENDIENTE");
+            String cantAut = "RECHAZADO".equalsIgnoreCase(dictamen) ? "0" : cantSol;
+            String nota = "";
+
+            if (!texto.isEmpty() && texto.contains(prodNombre)) {
+                int idx = texto.indexOf(prodNombre);
+                int bracketStart = texto.indexOf("[", idx);
+                int bracketEnd = texto.indexOf("]", bracketStart);
+                if (bracketStart >= 0 && bracketEnd > bracketStart) {
+                    String contenido = texto.substring(bracketStart + 1, bracketEnd);
+                    if (contenido.contains("RECHAZADO")) {
+                        dictamen = "RECHAZADO";
+                        cantAut = "0";
+                    } else if (contenido.contains("AJUSTADO")) {
+                        dictamen = "AJUSTADO";
+                        if (contenido.contains("-")) {
+                            String[] sp = contenido.split("-", 2);
+                            if (sp.length > 1) cantAut = sp[1].trim();
+                        }
+                    } else if (contenido.contains("APROBADO")) {
+                        dictamen = "APROBADO";
+                        cantAut = cantSol;
                     }
                 }
-
-                if (filtrados.isEmpty()) {
-                    filtrados.addAll(list);
+                int pipeIdx = texto.indexOf("|", idx);
+                if (pipeIdx < 0) pipeIdx = texto.length();
+                int parenStart = texto.indexOf("(", idx);
+                int parenEnd = texto.indexOf(")", parenStart);
+                if (parenStart >= 0 && parenEnd > parenStart && parenStart < pipeIdx) {
+                    nota = texto.substring(parenStart + 1, parenEnd).trim();
                 }
+            }
 
-                String labelEntidad = filtroGranja != null ? filtroGranja : (filtroZona != null ? filtroZona : "General");
+            resultado.add(new InsumoExportado(prodNombre, sku, cantSol, dictamen, cantAut, nota));
+        }
+        return resultado;
+    }
 
-                if (esPdf) {
-                    generarYCompartirPDF(filtrados, labelEntidad);
-                } else {
-                    generarYCompartirCSV(filtrados, labelEntidad);
-                }
+    private void exportarPedidosFiltrados(String filtroZona, String filtroGranja, boolean esPdf) {
+        auditRepository.listarGranjas(new AuthRepository.ResultCallback<List<FarmEntity>>() {
+            @Override
+            public void onSuccess(List<FarmEntity> granjas) {
+                pedidoRepository.sincronizarPedidosConGranjas(granjas, () -> {
+                    pedidoRepository.obtenerDatosExportacionCompleta(new PedidoRepository.ExportDataCallback() {
+                        @Override
+                        public void onSuccess(List<PedidoEntity> pedidos,
+                                              Map<Long, List<InsumoPedidoEntity>> insumosMap,
+                                              Map<Long, RevisionPedidoEntity> revMap) {
+                            List<PedidoEntity> list = (pedidos != null && !pedidos.isEmpty()) ? pedidos : new ArrayList<>();
+                            List<PedidoEntity> filtrados = new ArrayList<>();
+                            String labelEntidad;
+
+                            boolean tieneFiltroGranja = filtroGranja != null && !filtroGranja.trim().isEmpty();
+
+                            if (tieneFiltroGranja) {
+                                labelEntidad = filtroGranja.trim();
+                                String codigoAcceso = "";
+                                if (granjas != null) {
+                                    for (FarmEntity f : granjas) {
+                                        if (f.nombre != null && f.nombre.trim().equalsIgnoreCase(labelEntidad)) {
+                                            codigoAcceso = f.codigoAcceso != null ? f.codigoAcceso.trim() : "";
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                for (PedidoEntity p : list) {
+                                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
+                                    boolean match = (p.granja != null && (p.granja.trim().equalsIgnoreCase(labelEntidad) ||
+                                            p.granja.trim().toLowerCase().contains(labelEntidad.toLowerCase()) ||
+                                            labelEntidad.toLowerCase().contains(p.granja.trim().toLowerCase()))) ||
+                                            (!codigoAcceso.isEmpty() && codigoAcceso.equalsIgnoreCase(p.operarioId));
+                                    if (match) {
+                                        filtrados.add(p);
+                                    }
+                                }
+                            } else {
+                                labelEntidad = (filtroZona != null && !filtroZona.trim().isEmpty()) ? filtroZona.trim() : "Zona Motoso";
+                                Set<String> nombresDeZona = new HashSet<>();
+                                Set<String> codigosDeZona = new HashSet<>();
+                                if (granjas != null) {
+                                    for (FarmEntity f : granjas) {
+                                        if (f.zona != null && (f.zona.trim().equalsIgnoreCase(labelEntidad) ||
+                                                f.zona.trim().toLowerCase().contains(labelEntidad.toLowerCase()) ||
+                                                labelEntidad.toLowerCase().contains(f.zona.trim().toLowerCase()))) {
+                                            if (f.nombre != null) nombresDeZona.add(f.nombre.trim().toLowerCase());
+                                            if (f.codigoAcceso != null && !f.codigoAcceso.trim().isEmpty()) {
+                                                codigosDeZona.add(f.codigoAcceso.trim().toLowerCase());
+                                            }
+                                        }
+                                    }
+                                }
+
+                                for (PedidoEntity p : list) {
+                                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
+                                    String pZona = p.zona != null ? p.zona.trim().toLowerCase() : "";
+                                    String pGranja = p.granja != null ? p.granja.trim().toLowerCase() : "";
+                                    String pOp = p.operarioId != null ? p.operarioId.trim().toLowerCase() : "";
+
+                                    boolean matchZona = (!pZona.isEmpty() && (pZona.equalsIgnoreCase(labelEntidad.toLowerCase()) ||
+                                            pZona.contains(labelEntidad.toLowerCase()) ||
+                                            labelEntidad.toLowerCase().contains(pZona))) ||
+                                            (!pGranja.isEmpty() && nombresDeZona.contains(pGranja)) ||
+                                            (!pOp.isEmpty() && codigosDeZona.contains(pOp));
+
+                                    if (matchZona) {
+                                        filtrados.add(p);
+                                    }
+                                }
+                            }
+
+                            if (filtrados.isEmpty()) {
+                                Toast.makeText(SupervisorActivity.this, "No se encontraron pedidos registrados para " + labelEntidad + ".", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            if (esPdf) {
+                                generarYCompartirPDF(filtrados, insumosMap, revMap, labelEntidad);
+                            } else {
+                                generarYCompartirCSV(filtrados, insumosMap, revMap, labelEntidad);
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception error) {
+                            Toast.makeText(SupervisorActivity.this, "Error al obtener datos: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
             }
 
             @Override
             public void onError(Exception error) {
-                Toast.makeText(SupervisorActivity.this, "Error al filtrar pedidos: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SupervisorActivity.this, "Error al consultar granjas: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void generarYCompartirCSV(List<PedidoEntity> pedidos, String etiqueta) {
+    private void generarYCompartirCSV(List<PedidoEntity> pedidos,
+                                      Map<Long, List<InsumoPedidoEntity>> insumosMap,
+                                      Map<Long, RevisionPedidoEntity> revMap,
+                                      String etiqueta) {
         try {
             File dir = new File(getExternalFilesDir(null), "reports");
             if (!dir.exists()) dir.mkdirs();
-            File csvFile = new File(dir, "KRONO_Pedidos_" + etiqueta.replace(" ", "_") + ".csv");
+            File csvFile = new File(dir, "KRONO_Reporte_Detallado_" + etiqueta.replace(" ", "_") + ".csv");
 
             FileOutputStream fos = new FileOutputStream(csvFile);
             OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
             writer.write("\uFEFF"); // BOM Excel
-            writer.write("Zona,Granja,Folio,Fecha,Estado,Solicitante,Dictamen\n");
+            writer.write("Zona,Granja,Lote,Fecha Pedido,Estado Pedido,Solicitante,Producto / Insumo,SKU / Categoría,Cantidad Solicitada,Dictamen Supervisor,Cantidad Autorizada,Nota del Producto,Observaciones Supervisor\n");
 
             for (PedidoEntity p : pedidos) {
-                String zona = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "Zona Norte";
-                String granja = (p.granja != null && !p.granja.isEmpty()) ? p.granja : "Granja Los Laureles";
-                String folio = p.codigo != null ? p.codigo : ("PED-" + p.id);
+                String zona = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "Zona Motoso";
+                String granja = (p.granja != null && !p.granja.isEmpty()) ? p.granja : "Granja Rosales";
+                String lote = (p.lote != null && !p.lote.isEmpty()) ? p.lote : "Lote 01";
                 String fecha = android.text.format.DateFormat.format("dd/MM/yyyy HH:mm",
                         p.creadoEn > 0 ? p.creadoEn : System.currentTimeMillis()).toString();
                 String estado = p.estado != null ? p.estado : "APROBADO";
                 String solicitante = p.operarioId != null ? p.operarioId : "E100";
-                String dictamen = "APROBADO".equalsIgnoreCase(estado) ? "Aprobado para despacho" : "En revisión";
 
-                writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
-                        zona, granja, folio, fecha, estado, solicitante, dictamen));
+                RevisionPedidoEntity rev = revMap != null ? revMap.get(p.id) : null;
+                String obsSupervisor = (rev != null && rev.observacion != null) ? rev.observacion.replace("\"", "\"\"") : "";
+
+                List<InsumoPedidoEntity> items = insumosMap != null ? insumosMap.get(p.id) : null;
+                List<InsumoExportado> insumosExp = resolverInsumosParaExportacion(p, items, rev);
+
+                for (InsumoExportado ins : insumosExp) {
+                    writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                            zona.replace("\"", "\"\""),
+                            granja.replace("\"", "\"\""),
+                            lote.replace("\"", "\"\""),
+                            fecha,
+                            estado,
+                            solicitante,
+                            ins.nombre.replace("\"", "\"\""),
+                            ins.sku.replace("\"", "\"\""),
+                            ins.cantidadSolicitada.replace("\"", "\"\""),
+                            ins.dictamen,
+                            ins.cantidadAutorizada.replace("\"", "\"\""),
+                            ins.nota.replace("\"", "\"\""),
+                            obsSupervisor));
+                }
             }
 
             writer.flush();
@@ -2481,124 +2921,330 @@ public class SupervisorActivity extends AppCompatActivity {
             Intent sendIntent = new Intent(Intent.ACTION_SEND);
             sendIntent.setType("text/csv");
             sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-            sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Reporte Pedidos - " + etiqueta);
+            sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Reporte Detallado de Insumos - " + etiqueta);
             sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             startActivity(Intent.createChooser(sendIntent, "Abrir o compartir CSV (" + etiqueta + ")"));
-            Toast.makeText(this, "✓ Reporte CSV de " + etiqueta + " generado.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "✓ Reporte CSV de productos generado.", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Toast.makeText(this, "Error al generar CSV: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
-    private void generarYCompartirPDF(List<PedidoEntity> pedidos, String etiqueta) {
+    private static class PdfPageState {
+        PdfDocument document;
+        PdfDocument.Page currentPage;
+        Canvas canvas;
+        int pageNumber = 1;
+        int currentY = 0;
+        String etiqueta;
+        Paint paint;
+    }
+
+    private void drawPdfHeaderPageOne(PdfPageState state) {
+        Paint paint = state.paint;
+        Canvas canvas = state.canvas;
+
+        // Banner Navy Superior
+        paint.setColor(Color.rgb(43, 48, 71));
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawRect(0, 0, 595, 78, paint);
+
+        // Logo / Título
+        paint.setColor(Color.WHITE);
+        paint.setTextSize(22);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        canvas.drawText("KRONO", 35, 38, paint);
+
+        paint.setTextSize(9.5f);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        canvas.drawText("SUPERVISIÓN OPERATIVA • REPORTE DETALLADO DE PRODUCTOS E INSUMOS", 35, 58, paint);
+
+        // Etiqueta Filtro
+        paint.setTextSize(11);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        canvas.drawText(state.etiqueta, 410, 44, paint);
+
+        // Subcabecera
+        paint.setColor(Color.rgb(104, 110, 130));
+        paint.setTextSize(9.5f);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        String now = android.text.format.DateFormat.format("dd/MM/yyyy HH:mm", System.currentTimeMillis()).toString();
+        canvas.drawText("Fecha de emisión: " + now + "  •  Terminal Operativa KRONO Rev. 4.2", 35, 100, paint);
+
+        paint.setColor(Color.rgb(226, 221, 213));
+        paint.setStrokeWidth(1);
+        canvas.drawLine(35, 108, 560, 108, paint);
+
+        state.currentY = 126;
+    }
+
+    private void drawPdfContinuationHeader(PdfPageState state) {
+        Paint paint = state.paint;
+        Canvas canvas = state.canvas;
+
+        // Barra compacta Navy
+        paint.setColor(Color.rgb(43, 48, 71));
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawRect(0, 0, 595, 42, paint);
+
+        paint.setColor(Color.WHITE);
+        paint.setTextSize(11);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        canvas.drawText("KRONO • REPORTE DE PRODUCTOS (Continuación) — " + state.etiqueta, 35, 26, paint);
+
+        paint.setTextSize(10);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        canvas.drawText("Página " + state.pageNumber, 500, 26, paint);
+
+        paint.setColor(Color.rgb(226, 221, 213));
+        paint.setStrokeWidth(1);
+        canvas.drawLine(35, 50, 560, 50, paint);
+
+        state.currentY = 66;
+    }
+
+    private void drawPdfFooter(PdfPageState state) {
+        Paint paint = state.paint;
+        Canvas canvas = state.canvas;
+
+        paint.setColor(Color.rgb(226, 221, 213));
+        paint.setStrokeWidth(1);
+        canvas.drawLine(35, 808, 560, 808, paint);
+
+        paint.setColor(Color.rgb(104, 110, 130));
+        paint.setTextSize(8.5f);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        canvas.drawText("KRONO • Certificación y Trazabilidad Agropecuaria Oficial", 35, 822, paint);
+        canvas.drawText("Página " + state.pageNumber, 510, 822, paint);
+    }
+
+    private void checkPdfPageBreak(PdfPageState state, int requiredHeight) {
+        if (state.currentY + requiredHeight > 795) {
+            drawPdfFooter(state);
+            state.document.finishPage(state.currentPage);
+
+            state.pageNumber++;
+            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, state.pageNumber).create();
+            state.currentPage = state.document.startPage(pageInfo);
+            state.canvas = state.currentPage.getCanvas();
+
+            drawPdfContinuationHeader(state);
+        }
+    }
+
+    private void drawTableColumnsHeader(PdfPageState state) {
+        Paint paint = state.paint;
+        Canvas canvas = state.canvas;
+
+        paint.setColor(Color.rgb(43, 48, 71));
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawRect(35, state.currentY, 560, state.currentY + 18, paint);
+
+        paint.setColor(Color.WHITE);
+        paint.setTextSize(8f);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+
+        canvas.drawText("PRODUCTO / INSUMO", 42, state.currentY + 12, paint);
+        canvas.drawText("SKU / CATEGORÍA", 235, state.currentY + 12, paint);
+        canvas.drawText("SOLICITADO", 355, state.currentY + 12, paint);
+        canvas.drawText("DICTAMEN", 435, state.currentY + 12, paint);
+        canvas.drawText("AUTORIZADO", 498, state.currentY + 12, paint);
+
+        state.currentY += 18;
+    }
+
+    private void generarYCompartirPDF(List<PedidoEntity> pedidos,
+                                      Map<Long, List<InsumoPedidoEntity>> insumosMap,
+                                      Map<Long, RevisionPedidoEntity> revMap,
+                                      String etiqueta) {
         try {
-            PdfDocument pdfDocument = new PdfDocument();
-            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create();
-            PdfDocument.Page page = pdfDocument.startPage(pageInfo);
-            Canvas canvas = page.getCanvas();
-            Paint paint = new Paint();
+            PdfPageState state = new PdfPageState();
+            state.document = new PdfDocument();
+            state.etiqueta = etiqueta;
+            state.paint = new Paint();
+            state.paint.setAntiAlias(true);
 
-            // Encabezado Navy KRONO
-            paint.setColor(Color.rgb(43, 48, 71));
-            canvas.drawRect(0, 0, 595, 80, paint);
+            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, state.pageNumber).create();
+            state.currentPage = state.document.startPage(pageInfo);
+            state.canvas = state.currentPage.getCanvas();
 
-            paint.setColor(Color.WHITE);
-            paint.setTextSize(22);
-            paint.setFakeBoldText(true);
-            canvas.drawText("KRONO", 30, 42, paint);
-
-            paint.setTextSize(12);
-            paint.setFakeBoldText(false);
-            canvas.drawText("Reporte Consolidado de Pedidos - " + etiqueta, 30, 62, paint);
-
-            // Subcabecera
-            paint.setColor(Color.rgb(30, 34, 53));
-            paint.setTextSize(11);
-            paint.setFakeBoldText(true);
-            String now = android.text.format.DateFormat.format("dd/MM/yyyy HH:mm", System.currentTimeMillis()).toString();
-            canvas.drawText("Fecha de emisión: " + now + "  |  Terminal Operativa KRONO", 30, 105, paint);
-
-            paint.setColor(Color.rgb(226, 221, 213));
-            paint.setStrokeWidth(1);
-            canvas.drawLine(30, 115, 565, 115, paint);
-
-            // Encabezados tabla
-            int y = 140;
-            paint.setColor(Color.rgb(250, 244, 237));
-            canvas.drawRect(30, y - 18, 565, y + 8, paint);
-
-            paint.setColor(Color.rgb(43, 48, 71));
-            paint.setTextSize(11);
-            paint.setFakeBoldText(true);
-            canvas.drawText("FOLIO", 35, y, paint);
-            canvas.drawText("ZONA", 155, y, paint);
-            canvas.drawText("GRANJA", 265, y, paint);
-            canvas.drawText("ESTADO", 415, y, paint);
-            canvas.drawText("FECHA", 495, y, paint);
-
-            y += 24;
-            paint.setFakeBoldText(false);
-            paint.setTextSize(10);
+            drawPdfHeaderPageOne(state);
 
             for (PedidoEntity p : pedidos) {
-                if (y > 780) break;
+                // Verificar espacio para la cabecera del pedido (tarjeta de ~44pt)
+                checkPdfPageBreak(state, 50);
 
-                String folio = p.codigo != null ? p.codigo : ("PED-" + p.id);
-                String zona = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "Zona Norte";
-                String granja = (p.granja != null && !p.granja.isEmpty()) ? p.granja : "Granja Los Laureles";
+                String lote = (p.lote != null && !p.lote.isEmpty()) ? p.lote : "Lote 01";
+                String granja = (p.granja != null && !p.granja.isEmpty()) ? p.granja : "Granja Rosales";
+                String zona = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "Zona Motoso";
                 String estado = p.estado != null ? p.estado : "APROBADO";
-                String fecha = android.text.format.DateFormat.format("dd/MM/yy",
+                String solicitante = p.operarioId != null ? p.operarioId : "E100";
+                String fecha = android.text.format.DateFormat.format("dd/MM/yyyy HH:mm",
                         p.creadoEn > 0 ? p.creadoEn : System.currentTimeMillis()).toString();
 
-                paint.setColor(Color.rgb(30, 34, 53));
-                canvas.drawText(folio.length() > 18 ? folio.substring(0, 18) : folio, 35, y, paint);
-                canvas.drawText(zona.length() > 16 ? zona.substring(0, 16) : zona, 155, y, paint);
-                canvas.drawText(granja.length() > 20 ? granja.substring(0, 20) : granja, 265, y, paint);
+                // Tarjeta de fondo de Pedido
+                state.paint.setColor(Color.rgb(250, 244, 237));
+                state.paint.setStyle(Paint.Style.FILL);
+                state.canvas.drawRect(35, state.currentY, 560, state.currentY + 36, state.paint);
 
+                state.paint.setColor(Color.rgb(226, 221, 213));
+                state.paint.setStyle(Paint.Style.STROKE);
+                state.paint.setStrokeWidth(1);
+                state.canvas.drawRect(35, state.currentY, 560, state.currentY + 36, state.paint);
+                state.paint.setStyle(Paint.Style.FILL);
+
+                // Título de Lote y Granja
+                state.paint.setColor(Color.rgb(43, 48, 71));
+                state.paint.setTextSize(10.5f);
+                state.paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                state.canvas.drawText("Número de Lote: " + lote + "  •  " + granja + " (" + zona + ")", 42, state.currentY + 15, state.paint);
+
+                // Estado Pedido
                 if ("APROBADO".equalsIgnoreCase(estado)) {
-                    paint.setColor(Color.rgb(0, 135, 90));
+                    state.paint.setColor(Color.rgb(0, 135, 90));
                 } else if ("RECHAZADO".equalsIgnoreCase(estado)) {
-                    paint.setColor(Color.rgb(186, 26, 26));
+                    state.paint.setColor(Color.rgb(186, 26, 26));
                 } else {
-                    paint.setColor(Color.rgb(180, 100, 0));
+                    state.paint.setColor(Color.rgb(217, 119, 6));
                 }
-                paint.setFakeBoldText(true);
-                canvas.drawText(estado, 415, y, paint);
+                state.paint.setTextSize(10);
+                state.paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                state.canvas.drawText("ESTADO: " + estado, 455, state.currentY + 15, state.paint);
 
-                paint.setColor(Color.rgb(104, 110, 130));
-                paint.setFakeBoldText(false);
-                canvas.drawText(fecha, 495, y, paint);
+                // Subtexto con Solicitante y Fecha
+                state.paint.setColor(Color.rgb(104, 110, 130));
+                state.paint.setTextSize(8.5f);
+                state.paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+                state.canvas.drawText("Solicitado por: " + solicitante + "   •   Fecha: " + fecha, 42, state.currentY + 29, state.paint);
 
-                paint.setColor(Color.rgb(240, 235, 227));
-                canvas.drawLine(30, y + 6, 565, y + 6, paint);
+                state.currentY += 40;
 
-                y += 24;
+                // Encabezados de tabla de productos
+                checkPdfPageBreak(state, 22);
+                drawTableColumnsHeader(state);
+
+                RevisionPedidoEntity rev = revMap != null ? revMap.get(p.id) : null;
+                List<InsumoPedidoEntity> items = insumosMap != null ? insumosMap.get(p.id) : null;
+                List<InsumoExportado> insumosExp = resolverInsumosParaExportacion(p, items, rev);
+
+                boolean esFilaPar = false;
+                for (InsumoExportado ins : insumosExp) {
+                    boolean hasNota = ins.nota != null && !ins.nota.trim().isEmpty();
+                    int rowHeight = hasNota ? 28 : 20;
+
+                    // Si se corta de página a mitad de los insumos, abrir página y redibujar columnas
+                    if (state.currentY + rowHeight > 795) {
+                        checkPdfPageBreak(state, rowHeight + 25);
+                        drawTableColumnsHeader(state);
+                    }
+
+                    // Fondo de fila
+                    state.paint.setColor(esFilaPar ? Color.rgb(247, 245, 240) : Color.WHITE);
+                    state.paint.setStyle(Paint.Style.FILL);
+                    state.canvas.drawRect(35, state.currentY, 560, state.currentY + rowHeight, state.paint);
+
+                    // Línea inferior de fila
+                    state.paint.setColor(Color.rgb(240, 235, 227));
+                    state.paint.setStrokeWidth(0.8f);
+                    state.canvas.drawLine(35, state.currentY + rowHeight, 560, state.currentY + rowHeight, state.paint);
+
+                    // Nombre Insumo
+                    state.paint.setColor(Color.rgb(30, 34, 53));
+                    state.paint.setTextSize(8.5f);
+                    state.paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                    String nomDisplay = ins.nombre.length() > 34 ? (ins.nombre.substring(0, 32) + "...") : ins.nombre;
+                    state.canvas.drawText(nomDisplay, 42, state.currentY + 13, state.paint);
+
+                    // Nota del producto si existe
+                    if (hasNota) {
+                        state.paint.setColor(Color.rgb(104, 110, 130));
+                        state.paint.setTextSize(7.2f);
+                        state.paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.ITALIC));
+                        String notaDisplay = "Nota: " + (ins.nota.length() > 40 ? ins.nota.substring(0, 38) + "..." : ins.nota);
+                        state.canvas.drawText(notaDisplay, 42, state.currentY + 23, state.paint);
+                    }
+
+                    // SKU
+                    state.paint.setColor(Color.rgb(104, 110, 130));
+                    state.paint.setTextSize(8f);
+                    state.paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+                    String skuDisplay = ins.sku.length() > 20 ? (ins.sku.substring(0, 18) + "..") : ins.sku;
+                    state.canvas.drawText(skuDisplay, 235, state.currentY + 13, state.paint);
+
+                    // Cantidad Solicitada
+                    state.paint.setColor(Color.rgb(30, 34, 53));
+                    state.paint.setTextSize(8f);
+                    state.canvas.drawText(ins.cantidadSolicitada, 355, state.currentY + 13, state.paint);
+
+                    // Dictamen
+                    if ("APROBADO".equalsIgnoreCase(ins.dictamen)) {
+                        state.paint.setColor(Color.rgb(0, 135, 90));
+                    } else if ("RECHAZADO".equalsIgnoreCase(ins.dictamen)) {
+                        state.paint.setColor(Color.rgb(186, 26, 26));
+                    } else {
+                        state.paint.setColor(Color.rgb(217, 119, 6));
+                    }
+                    state.paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                    state.canvas.drawText(ins.dictamen, 435, state.currentY + 13, state.paint);
+
+                    // Cantidad Autorizada
+                    state.paint.setColor(Color.rgb(30, 34, 53));
+                    state.paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                    state.canvas.drawText(ins.cantidadAutorizada, 498, state.currentY + 13, state.paint);
+
+                    state.currentY += rowHeight;
+                    esFilaPar = !esFilaPar;
+                }
+
+                // Observación de supervisor si existe
+                if (rev != null && rev.observacion != null && !rev.observacion.trim().isEmpty()) {
+                    checkPdfPageBreak(state, 24);
+
+                    state.paint.setColor(Color.rgb(255, 255, 255));
+                    state.paint.setStyle(Paint.Style.FILL);
+                    state.canvas.drawRect(35, state.currentY, 560, state.currentY + 18, state.paint);
+
+                    state.paint.setColor(Color.rgb(226, 221, 213));
+                    state.paint.setStyle(Paint.Style.STROKE);
+                    state.paint.setStrokeWidth(0.8f);
+                    state.canvas.drawRect(35, state.currentY, 560, state.currentY + 18, state.paint);
+                    state.paint.setStyle(Paint.Style.FILL);
+
+                    state.paint.setColor(Color.rgb(43, 48, 71));
+                    state.paint.setTextSize(8f);
+                    state.paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.ITALIC));
+                    String obsDisplay = "Obs. Supervisor: " + (rev.observacion.length() > 95 ? rev.observacion.substring(0, 92) + "..." : rev.observacion);
+                    state.canvas.drawText(obsDisplay, 42, state.currentY + 12, state.paint);
+
+                    state.currentY += 22;
+                }
+
+                // Espacio entre pedidos
+                state.currentY += 14;
             }
 
-            paint.setColor(Color.rgb(104, 110, 130));
-            paint.setTextSize(9);
-            canvas.drawText("Reporte oficial generado por KRONO. Certificación agropecuaria.", 30, 815, paint);
-
-            pdfDocument.finishPage(page);
+            // Pie de página final
+            drawPdfFooter(state);
+            state.document.finishPage(state.currentPage);
 
             File dir = new File(getExternalFilesDir(null), "reports");
             if (!dir.exists()) dir.mkdirs();
-            File pdfFile = new File(dir, "KRONO_Reporte_" + etiqueta.replace(" ", "_") + ".pdf");
+            File pdfFile = new File(dir, "KRONO_Reporte_Detallado_" + etiqueta.replace(" ", "_") + ".pdf");
             FileOutputStream fos = new FileOutputStream(pdfFile);
-            pdfDocument.writeTo(fos);
-            pdfDocument.close();
+            state.document.writeTo(fos);
+            state.document.close();
             fos.close();
 
             Uri fileUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", pdfFile);
             Intent sendIntent = new Intent(Intent.ACTION_SEND);
             sendIntent.setType("application/pdf");
             sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-            sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Reporte Pedidos (PDF) - " + etiqueta);
+            sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Reporte Detallado de Insumos (PDF) - " + etiqueta);
             sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             startActivity(Intent.createChooser(sendIntent, "Abrir o compartir PDF (" + etiqueta + ")"));
-            Toast.makeText(this, "✓ Reporte PDF de " + etiqueta + " generado.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "✓ Reporte PDF de " + etiqueta + " generado con éxito.", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Toast.makeText(this, "Error al generar PDF: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }

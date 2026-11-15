@@ -43,6 +43,15 @@ public interface PedidoDao {
     @Query("SELECT * FROM revisiones_pedido WHERE pedidoId = :pedidoId ORDER BY fecha DESC, id DESC LIMIT 1")
     RevisionPedidoEntity obtenerUltimaRevision(long pedidoId);
 
+    @Query("SELECT * FROM insumos_pedido ORDER BY pedidoId, id ASC")
+    List<InsumoPedidoEntity> obtenerTodosLosInsumos();
+
+    @Query("SELECT * FROM revisiones_pedido ORDER BY fecha DESC, id DESC")
+    List<RevisionPedidoEntity> obtenerTodasLasRevisiones();
+
+    @Query("UPDATE pedidos SET granja = :granja, zona = :zona WHERE operarioId = :operarioId")
+    int sincronizarGranjaYZonaPorOperario(String operarioId, String granja, String zona);
+
     @Query("DELETE FROM pedidos WHERE id = :pedidoId")
     int eliminarPedido(long pedidoId);
 }

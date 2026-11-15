@@ -26,8 +26,8 @@
     <string name="role_admin_desc">Gestión de stock, granjas y apertura de&#8230;</string>
 
     <!-- Login Form -->
-    <string name="label_correo_id">Correo o ID Corporativo AgroStock</string>
-    <string name="hint_id">E100</string>
+    <string name="label_correo_id">Código Institucional</string>
+    <string name="hint_id">Código Institucional</string>
     <string name="label_contrasena">Contraseña</string>
     <string name="olvidaste_clave">¿Olvidaste clave?</string>
     <string name="pin_rapido">PIN Rápido en Campo</string>

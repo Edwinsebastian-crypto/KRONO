@@ -267,7 +267,7 @@
                                 android:id="@+id/txtSelectedZoneTitleHistorial"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Zona Norte (Valle Agrícola)"
+                                android:text="Zona Motoso"
                                 android:textColor="@color/krono_navy_dark"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
@@ -277,7 +277,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="8 Granjas asignadas • 3 listas"
+                                android:text="Cargando información..."
                                 android:textColor="@color/krono_text_secondary"
                                 android:textSize="12sp" />
                         </LinearLayout>
@@ -305,7 +305,7 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal">
 
-                            <!-- Chip 1: Zona Norte -->
+                            <!-- Chip 1: Zona Motoso -->
                             <TextView
                                 android:id="@+id/chipHistorialNorte"
                                 android:layout_width="wrap_content"
@@ -314,7 +314,7 @@
                                 android:background="@drawable/bg_button_primary"
                                 android:gravity="center"
                                 android:paddingHorizontal="14dp"
-                                android:text="• Zona Norte (Activo)"
+                                android:text="• Zona Motoso (Activo)"
                                 android:textColor="@color/white"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
@@ -399,7 +399,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:layout_weight="1"
-                            android:text="Exportar Pedidos de Zona Norte"
+                            android:text="Exportar Pedidos de Zona Motoso"
                             android:textColor="@color/krono_navy_dark"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -477,7 +477,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="Granjas Registradas en Zona Norte"
+                        android:text="Granjas Registradas en Zona Motoso"
                         android:textColor="@color/krono_navy_dark"
                         android:textSize="15sp"
                         android:textStyle="bold" />

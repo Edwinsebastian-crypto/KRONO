@@ -41,7 +41,9 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AdminActivity extends AppCompatActivity {
     private AuthRepository repository;
@@ -977,7 +979,7 @@ public class AdminActivity extends AppCompatActivity {
         TextView zoneLabel = text("Zona Operativa Asignada", 12, muted, true);
         box.addView(zoneLabel, margin(0, 2, 0, 6));
 
-        final String[] selectedZone = new String[]{"Zona Norte"};
+        final String[] selectedZone = new String[]{""};
 
         // Selector estilizado idéntico al del Supervisor (Sin Spinner nativo negro)
         RelativeLayout zoneSelectorBox = new RelativeLayout(this);
@@ -1013,10 +1015,30 @@ public class AdminActivity extends AppCompatActivity {
         LinearLayout zoneTextCol = new LinearLayout(this);
         zoneTextCol.setOrientation(LinearLayout.VERTICAL);
         zoneTextCol.setPadding(dp(12), 0, dp(12), 0);
-        TextView txtZoneTitle = text("Zona Norte", 14, ink, true);
+        TextView txtZoneTitle = text("Cargando zona...", 14, ink, true);
         TextView txtZoneSub = text("Toca para cambiar la zona operativa", 11, muted, false);
         zoneTextCol.addView(txtZoneTitle);
         zoneTextCol.addView(txtZoneSub, margin(0, 2, 0, 0));
+
+        // Consultar la primera zona registrada en SQLite (ej. Zona Motoso)
+        repository.listarZonas(new AuthRepository.ResultCallback<List<ZoneEntity>>() {
+            @Override
+            public void onSuccess(List<ZoneEntity> zonas) {
+                if (zonas != null && !zonas.isEmpty()) {
+                    selectedZone[0] = zonas.get(0).nombre;
+                    txtZoneTitle.setText(selectedZone[0]);
+                } else {
+                    selectedZone[0] = "Zona Motoso";
+                    txtZoneTitle.setText("Zona Motoso");
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                selectedZone[0] = "Zona Motoso";
+                txtZoneTitle.setText("Zona Motoso");
+            }
+        });
 
         RelativeLayout.LayoutParams zcLp = new RelativeLayout.LayoutParams(-1, -2);
         zcLp.addRule(RelativeLayout.END_OF, iconFrame.getId());
@@ -1363,10 +1385,12 @@ public class AdminActivity extends AppCompatActivity {
             public void onSuccess(List<ZoneEntity> zonas) {
                 if (container == null) return;
                 container.removeAllViews();
+                final String activa = (zonaActual != null && !zonaActual.isEmpty()) ? zonaActual :
+                        ((zonas != null && !zonas.isEmpty()) ? zonas.get(0).nombre : "Zona Motoso");
                 for (ZoneEntity z : zonas) {
                     MaterialCardView optionCard = new MaterialCardView(AdminActivity.this);
                     optionCard.setRadius(dp(12));
-                    boolean isSelected = z.nombre.equalsIgnoreCase(zonaActual);
+                    boolean isSelected = z.nombre.equalsIgnoreCase(activa);
                     optionCard.setCardBackgroundColor(isSelected ? ContextCompat.getColor(AdminActivity.this, R.color.krono_bg) : Color.WHITE);
                     optionCard.setStrokeColor(ContextCompat.getColor(AdminActivity.this, isSelected ? R.color.krono_navy : R.color.krono_card_stroke));
                     optionCard.setStrokeWidth(dp(isSelected ? 2 : 1));
@@ -1411,10 +1435,16 @@ public class AdminActivity extends AppCompatActivity {
                     }
 
                     optionCard.addView(row);
-                    optionCard.setOnClickListener(v -> {
+                    final String nombreSeleccionado = z.nombre;
+                    View.OnClickListener onZoneClick = v -> {
                         dialog.dismiss();
-                        listener.onSelected(z.nombre);
-                    });
+                        listener.onSelected(nombreSeleccionado);
+                    };
+                    optionCard.setOnClickListener(onZoneClick);
+                    row.setOnClickListener(onZoneClick);
+                    col.setOnClickListener(onZoneClick);
+                    title.setOnClickListener(onZoneClick);
+                    sub.setOnClickListener(onZoneClick);
 
                     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
                     lp.setMargins(0, 0, 0, dp(8));
@@ -1447,10 +1477,25 @@ public class AdminActivity extends AppCompatActivity {
                     vacio("No hay eventos registrados en la bitácora.");
                     return;
                 }
-                for (AuditEntity item : items) {
-                    String time = android.text.format.DateFormat.format("dd/MM/yyyy • HH:mm", item.fecha).toString();
-                    elemento(item.accion + " • " + item.entidad, item.detalle + "\nPor: " + item.usuarioId, time);
-                }
+                pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
+                    @Override
+                    public void onSuccess(List<PedidoEntity> pedidos) {
+                        Map<String, PedidoEntity> pedidosMap = new HashMap<>();
+                        if (pedidos != null) {
+                            for (PedidoEntity p : pedidos) {
+                                if (p.codigo != null) {
+                                    pedidosMap.put(p.codigo, p);
+                                }
+                            }
+                        }
+                        mostrarItemsAuditoria(items, pedidosMap);
+                    }
+
+                    @Override
+                    public void onError(Exception error) {
+                        mostrarItemsAuditoria(items, new HashMap<>());
+                    }
+                });
             }
 
             @Override
@@ -1458,6 +1503,23 @@ public class AdminActivity extends AppCompatActivity {
                 Toast.makeText(AdminActivity.this, "No se pudo cargar la auditoría.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void mostrarItemsAuditoria(List<AuditEntity> items, Map<String, PedidoEntity> pedidosMap) {
+        for (AuditEntity item : items) {
+            String time = android.text.format.DateFormat.format("dd/MM/yyyy • HH:mm", item.fecha).toString();
+            String detalleAMostrar = item.detalle;
+            if (item.detalle != null && pedidosMap.containsKey(item.detalle)) {
+                PedidoEntity p = pedidosMap.get(item.detalle);
+                String lote = (p.lote != null && !p.lote.trim().isEmpty()) ? p.lote : "Lote 01";
+                String granja = (p.granja != null && !p.granja.trim().isEmpty()) ? p.granja : "Granja Rosales";
+                String zona = (p.zona != null && !p.zona.trim().isEmpty()) ? p.zona : "Zona Motoso";
+                detalleAMostrar = "Número de Lote: " + lote + "\nGranja: " + granja + " • Zona: " + zona;
+            } else if (item.detalle != null && item.detalle.startsWith("PED-")) {
+                detalleAMostrar = "Número de Lote: Lote 01\nGranja: Granja Rosales • Zona: Zona Motoso";
+            }
+            elemento(item.accion + " • " + item.entidad, detalleAMostrar + "\nPor: " + item.usuarioId, time);
+        }
     }
 
     // ==========================================
