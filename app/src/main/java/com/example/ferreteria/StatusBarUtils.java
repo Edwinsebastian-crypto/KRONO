@@ -122,10 +122,15 @@ public final class StatusBarUtils {
                 bottomNav.setVisibility(isKeyboardVisible ? View.GONE : View.VISIBLE);
             }
 
-            // Margen inferior limpio: NUNCA sumar ime.bottom (que creaba la franja beige de 1100px)
+            // Con Edge-to-Edge la ventana puede dibujarse detrás del teclado.
+            // Reservamos dentro del ScrollView el espacio real ocupado por el IME
+            // para que el área desplazable termine por encima del teclado.
             float density = v.getResources().getDisplayMetrics().density;
-            int bottomPadding = isKeyboardVisible ? (int) (16 * density) : navBars.bottom;
+            int bottomPadding = isKeyboardVisible
+                    ? ime.bottom + (int) (16 * density)
+                    : navBars.bottom;
 
+            scrollView.setClipToPadding(true);
             v.setPadding(
                     v.getPaddingLeft(),
                     0,
@@ -134,12 +139,14 @@ public final class StatusBarUtils {
             );
 
             if (isKeyboardVisible) {
-                scrollView.postDelayed(() -> {
+                // Esperar a que Android aplique el nuevo padding y mida el viewport
+                // antes de calcular cuánto debe desplazarse el campo enfocado.
+                scrollView.post(() -> scrollView.postDelayed(() -> {
                     View currentFocused = activity.getCurrentFocus();
                     if (currentFocused != null) {
                         scrollToFocusedView(scrollView, currentFocused);
                     }
-                }, 100);
+                }, 120));
             }
 
             return insets;
