@@ -14,17 +14,24 @@ public class FarmEntity {
     public boolean activa;
     public String codigoAcceso;
     public String password;
+    public String lote;
 
-    public FarmEntity(String nombre, String zona, boolean activa, String codigoAcceso, String password) {
+    public FarmEntity(String nombre, String zona, boolean activa, String codigoAcceso, String password, String lote) {
         this.nombre = nombre;
         this.zona = zona;
         this.activa = activa;
         this.codigoAcceso = codigoAcceso != null ? codigoAcceso : "";
         this.password = password != null ? password : "";
+        this.lote = (lote != null && !lote.trim().isEmpty()) ? lote.trim() : "Lote 01";
+    }
+
+    @Ignore
+    public FarmEntity(String nombre, String zona, boolean activa, String codigoAcceso, String password) {
+        this(nombre, zona, activa, codigoAcceso, password, "Lote 01");
     }
 
     @Ignore
     public FarmEntity(String nombre, String zona, boolean activa) {
-        this(nombre, zona, activa, "", "");
+        this(nombre, zona, activa, "", "", "Lote 01");
     }
 }

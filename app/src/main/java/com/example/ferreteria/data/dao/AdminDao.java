@@ -26,6 +26,8 @@ public interface AdminDao {
     @Query("SELECT * FROM granjas ORDER BY nombre") List<FarmEntity> obtenerGranjas();
     @Query("SELECT * FROM granjas WHERE zona = :zona ORDER BY nombre") List<FarmEntity> obtenerGranjasPorZona(String zona);
     @Query("SELECT * FROM granjas WHERE codigoAcceso = :codigo LIMIT 1") FarmEntity obtenerGranjaPorCodigo(String codigo);
+    @Query("UPDATE granjas SET activa = :activa WHERE id = :id") int cambiarEstadoGranja(long id, boolean activa);
+    @Query("UPDATE granjas SET nombre = :nombre, zona = :zona, lote = :lote, codigoAcceso = :codigo, password = :password WHERE id = :id") int actualizarGranja(long id, String nombre, String zona, String lote, String codigo, String password);
     @Query("DELETE FROM granjas WHERE id = :id") int eliminarGranja(long id);
 
     @Query("SELECT * FROM pedidos WHERE granja = :granja OR operarioId = :codigo ORDER BY creadoEn DESC") List<PedidoEntity> obtenerPedidosPorGranja(String granja, String codigo);
@@ -34,6 +36,8 @@ public interface AdminDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE) long guardarZona(ZoneEntity zona);
     @Query("SELECT * FROM zonas ORDER BY nombre") List<ZoneEntity> obtenerZonas();
+    @Query("UPDATE zonas SET activa = :activa WHERE id = :id") int cambiarEstadoZona(long id, boolean activa);
+    @Query("UPDATE zonas SET nombre = :nombre, descripcion = :descripcion WHERE id = :id") int actualizarZona(long id, String nombre, String descripcion);
     @Query("DELETE FROM zonas WHERE id = :id") int eliminarZona(long id);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE) long guardarInventario(InventoryEntity item);

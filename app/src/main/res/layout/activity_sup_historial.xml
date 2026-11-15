@@ -163,6 +163,7 @@
         android:fillViewport="true">
 
         <LinearLayout
+            android:id="@+id/contentLayoutHistorial"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -299,6 +300,7 @@
                         android:scrollbars="none">
 
                         <LinearLayout
+                            android:id="@+id/containerZoneChipsHistorial"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal">
@@ -502,119 +504,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:orientation="vertical" />
-
-            <!-- Resumen Operativo (Copia fiel de Zonas y Granjas) -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardResumenHistorial"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/krono_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <TextView
-                            android:id="@+id/txtResumenZonaHistorial"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:text="Resumen Operativo Zona Norte"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/txtCoberturaHistorial"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:background="@drawable/bg_blue_chip"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="3dp"
-                            android:text="83% Cobertura"
-                            android:textColor="@color/krono_navy_dark"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-                    </RelativeLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-
-                        <!-- Stat 1 -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_cierre_box"
-                            android:orientation="vertical"
-                            android:padding="12dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Insumos Listos"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/txtInsumosCountHistorial"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="148 Unidades"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="10dp"
-                            android:layout_height="0dp" />
-
-                        <!-- Stat 2 -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_cierre_box"
-                            android:orientation="vertical"
-                            android:padding="12dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Total Estimado"
-                                android:textColor="@color/krono_text_secondary"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/txtTotalMontoHistorial"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="$12,450 USD"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </ScrollView>

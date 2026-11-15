@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ScrollView;
 
 import androidx.activity.ComponentActivity;
 import androidx.activity.EdgeToEdge;
@@ -99,5 +100,55 @@ public final class StatusBarUtils {
         });
 
         ViewCompat.requestApplyInsets(decorView);
+    }
+
+    /**
+     * Ajusta los insets de navegación y realiza scroll automático suave cuando
+     * aparece el teclado virtual para que los campos de texto nunca queden cubiertos,
+     * sin añadir doble padding que cause una franja vacía del color de fondo.
+     */
+    public static void setupIntelligentKeyboard(Activity activity, ScrollView scrollView) {
+        if (activity == null || scrollView == null) return;
+
+        ViewCompat.setOnApplyWindowInsetsListener(scrollView, (v, insets) -> {
+            Insets navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+
+            // Con windowSoftInputMode="adjustResize", Android ya reduce la ventana al abrir el teclado.
+            // Si sumamos ime.bottom al padding, se duplica el espacio creando una barra beige vacía.
+            // Por lo tanto, solo aplicamos padding de la barra de navegación cuando el teclado está cerrado.
+            int bottomPadding = (ime.bottom > 0) ? 0 : navBars.bottom;
+
+            v.setPadding(
+                    v.getPaddingLeft(),
+                    v.getPaddingTop(),
+                    v.getPaddingRight(),
+                    bottomPadding
+            );
+
+            if (ime.bottom > 0) {
+                scrollView.postDelayed(() -> {
+                    View currentFocused = activity.getCurrentFocus();
+                    if (currentFocused != null) {
+                        int extra = (int) (20 * v.getResources().getDisplayMetrics().density);
+                        currentFocused.requestRectangleOnScreen(
+                                new android.graphics.Rect(0, 0, currentFocused.getWidth(), currentFocused.getHeight() + extra),
+                                true
+                        );
+                    }
+                }, 100);
+            }
+
+            return insets;
+        });
+    }
+
+    public static void scrollToFocusedView(ScrollView scrollView, View focusedView, int imeHeight) {
+        if (scrollView == null || focusedView == null) return;
+        int extra = (int) (20 * scrollView.getResources().getDisplayMetrics().density);
+        focusedView.requestRectangleOnScreen(
+                new android.graphics.Rect(0, 0, focusedView.getWidth(), focusedView.getHeight() + extra),
+                true
+        );
     }
 }

@@ -150,17 +150,17 @@
         android:paddingTop="10dp"
         android:paddingBottom="12dp">
 
-        <!-- Botón 1: Agregar Insumos (Diferente color: Outlined Navy sobre blanco con fondo chip suave) -->
+        <!-- Botón 1: Agregar Insumos -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddInsumo"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="46dp"
             android:backgroundTint="@color/krono_chip_bg"
             android:text="+ Agregar Insumos"
             android:textAllCaps="false"
             android:textColor="@color/krono_navy"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
             app:cornerRadius="12dp"
             app:icon="@drawable/ic_add"
@@ -168,25 +168,50 @@
             app:strokeColor="@color/krono_navy"
             app:strokeWidth="1.5dp" />
 
-        <!-- Botón 2: Enviar Hoja de Pedido a Revisión (Color Azul Marino Primario) -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnEnviarPedido"
+        <!-- Fila de Acciones: Guardar Borrador y Enviar Pedido -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:backgroundTint="@color/krono_navy"
-            android:text="Enviar Hoja de Pedido a Revisión"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            app:cornerRadius="12dp"
-            app:icon="@drawable/ic_check_circle"
-            app:iconTint="@color/white" />
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGuardarBorrador"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="💾 Guardar Borrador"
+                android:textAllCaps="false"
+                android:textColor="@color/krono_navy_dark"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/krono_card_stroke"
+                app:strokeWidth="1.2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEnviarPedido"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1.2"
+                android:layout_marginStart="6dp"
+                android:backgroundTint="@color/krono_navy"
+                android:text="Enviar a Revisión"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_check_circle"
+                app:iconTint="@color/white" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Contenido Scrollable -->
     <ScrollView
+        android:id="@+id/scrollViewPedido"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/fixedBottomActions"
@@ -211,10 +236,11 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/txtPedidoGranjaSub"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Granja San Isidro • ID: #PED-2024-10-ZN04"
+                android:text="Granja • Número de Lote: Lote 01"
                 android:textColor="@color/krono_text_secondary"
                 android:textSize="13sp" />
 
@@ -252,11 +278,12 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/txtFechaCierrePedido"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
-                            android:text="Cierre: 31 Oct - 18:00"
+                            android:text="Cierre: 30 Nov - 18:00"
                             android:textColor="@color/krono_text_secondary"
                             android:textSize="12sp"
                             android:textStyle="bold" />
@@ -304,94 +331,7 @@
                         android:id="@+id/containerInsumos"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <!-- Item Inicial 1 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:padding="12dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Fertilizante NPK 15-15-15 (Sacos 50kg)"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Fungicida/Nutricional • SKU: FERT-NPK-50"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_qty_box"
-                                android:paddingHorizontal="12dp"
-                                android:paddingVertical="6dp"
-                                android:text="20 sacos"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <!-- Item Inicial 2 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:background="@drawable/bg_cierre_box"
-                            android:gravity="center_vertical"
-                            android:padding="12dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Insecticida Concentrado 1L"
-                                    android:textColor="@color/krono_navy_dark"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Protección Fitosanitaria • SKU: INS-L1"
-                                    android:textColor="@color/krono_text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_qty_box"
-                                android:paddingHorizontal="12dp"
-                                android:paddingVertical="6dp"
-                                android:text="12 frascos"
-                                android:textColor="@color/krono_navy_dark"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </LinearLayout>
+                        android:orientation="vertical" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

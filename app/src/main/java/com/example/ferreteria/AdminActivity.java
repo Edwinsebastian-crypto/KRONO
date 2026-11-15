@@ -29,6 +29,14 @@ import com.example.ferreteria.data.entity.InsumoPedidoEntity;
 import com.example.ferreteria.data.entity.PedidoEntity;
 import com.example.ferreteria.data.entity.RevisionPedidoEntity;
 import com.example.ferreteria.data.entity.ZoneEntity;
+import android.app.Dialog;
+import android.graphics.drawable.ColorDrawable;
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ScrollView;
+import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
@@ -65,6 +73,7 @@ public class AdminActivity extends AppCompatActivity {
         StatusBarUtils.initEdgeToEdge(this);
         setContentView(R.layout.activity_admin);
         StatusBarUtils.applyStatusBarNavyHeader(this);
+        StatusBarUtils.setupIntelligentKeyboard(this, findViewById(R.id.scrollViewAdmin));
 
         repository = new AuthRepository(this);
         pedidoRepository = new PedidoRepository(this);
@@ -236,13 +245,16 @@ public class AdminActivity extends AppCompatActivity {
         card.setStrokeColor(border);
         card.setStrokeWidth(dp(1));
         card.setCardElevation(dp(1));
-        card.setClickable(true);
-        card.setFocusable(true);
+
+        LinearLayout colCard = new LinearLayout(this);
+        colCard.setOrientation(LinearLayout.VERTICAL);
+        colCard.setPadding(dp(14), dp(14), dp(14), dp(12));
 
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(14), dp(14), dp(14), dp(14));
+        row.setClickable(true);
+        row.setFocusable(true);
 
         ImageView icon = new ImageView(this);
         icon.setImageResource(R.drawable.ic_target);
@@ -253,8 +265,31 @@ public class AdminActivity extends AppCompatActivity {
         col.setOrientation(LinearLayout.VERTICAL);
         col.setPadding(dp(12), 0, dp(8), 0);
 
+        LinearLayout titleRow = new LinearLayout(this);
+        titleRow.setOrientation(LinearLayout.HORIZONTAL);
+        titleRow.setGravity(Gravity.CENTER_VERTICAL);
+
         TextView title = text(zona.nombre, 15, ink, true);
-        col.addView(title);
+        titleRow.addView(title);
+
+        TextView badgeStatus = new TextView(this);
+        badgeStatus.setText(zona.activa ? "● ACTIVA" : "● INACTIVA");
+        badgeStatus.setTextSize(10);
+        badgeStatus.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        badgeStatus.setPadding(dp(6), dp(2), dp(6), dp(2));
+        GradientDrawable stBg = new GradientDrawable();
+        stBg.setCornerRadius(dp(6));
+        if (zona.activa) {
+            badgeStatus.setTextColor(green);
+            stBg.setColor(Color.parseColor("#E6F4EA"));
+        } else {
+            badgeStatus.setTextColor(red);
+            stBg.setColor(Color.parseColor("#FCE8E6"));
+        }
+        badgeStatus.setBackground(stBg);
+        titleRow.addView(badgeStatus, wrapMargin(8, 0, 0, 0));
+
+        col.addView(titleRow);
 
         TextView desc = text(zona.descripcion != null && !zona.descripcion.isEmpty() ?
                 zona.descripcion : "Región productiva", 12, muted, false);
@@ -271,10 +306,111 @@ public class AdminActivity extends AppCompatActivity {
         chevron.setImageTintList(ColorStateList.valueOf(muted));
         row.addView(chevron, new LinearLayout.LayoutParams(dp(18), dp(18)));
 
-        card.addView(row);
-        card.setOnClickListener(v -> mostrarGranjasDeZona(zona));
+        colCard.addView(row);
+        row.setOnClickListener(v -> mostrarGranjasDeZona(zona));
+
+        // Botones de acción: Editar Zona y Activar/Desactivar
+        LinearLayout actRow = new LinearLayout(this);
+        actRow.setOrientation(LinearLayout.HORIZONTAL);
+        actRow.setGravity(Gravity.CENTER_VERTICAL);
+        actRow.setPadding(0, dp(10), 0, 0);
+
+        MaterialButton btnVerGranjas = new MaterialButton(this);
+        btnVerGranjas.setText("Ver Granjas");
+        btnVerGranjas.setAllCaps(false);
+        btnVerGranjas.setTextSize(11);
+        btnVerGranjas.setTextColor(navy);
+        btnVerGranjas.setStrokeColor(ColorStateList.valueOf(border));
+        btnVerGranjas.setStrokeWidth(dp(1));
+        btnVerGranjas.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        btnVerGranjas.setCornerRadius(dp(8));
+        btnVerGranjas.setOnClickListener(v -> mostrarGranjasDeZona(zona));
+        actRow.addView(btnVerGranjas, new LinearLayout.LayoutParams(0, -2, 1));
+
+        MaterialButton btnEditar = new MaterialButton(this);
+        btnEditar.setText("✏️ Editar");
+        btnEditar.setAllCaps(false);
+        btnEditar.setTextSize(11);
+        btnEditar.setTextColor(navy);
+        btnEditar.setStrokeColor(ColorStateList.valueOf(border));
+        btnEditar.setStrokeWidth(dp(1));
+        btnEditar.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        btnEditar.setCornerRadius(dp(8));
+        btnEditar.setOnClickListener(v -> mostrarDialogoEditarZona(zona));
+        LinearLayout.LayoutParams edLp = new LinearLayout.LayoutParams(0, -2, 1);
+        edLp.setMargins(dp(6), 0, dp(6), 0);
+        actRow.addView(btnEditar, edLp);
+
+        MaterialButton btnToggle = new MaterialButton(this);
+        btnToggle.setText(zona.activa ? "⚡ Desactivar" : "⚡ Activar");
+        btnToggle.setAllCaps(false);
+        btnToggle.setTextSize(11);
+        btnToggle.setTextColor(zona.activa ? red : green);
+        btnToggle.setStrokeColor(ColorStateList.valueOf(border));
+        btnToggle.setStrokeWidth(dp(1));
+        btnToggle.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        btnToggle.setCornerRadius(dp(8));
+        btnToggle.setOnClickListener(v -> toggleEstadoZona(zona));
+        actRow.addView(btnToggle, new LinearLayout.LayoutParams(0, -2, 1));
+
+        colCard.addView(actRow);
+        card.addView(colCard);
 
         pageContent.addView(card, margin(0, 0, 0, 10));
+    }
+
+    private void mostrarDialogoEditarZona(ZoneEntity zona) {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_editar_zona, null);
+        dialog.setContentView(dialogView);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            dialog.getWindow().setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+
+        EditText edNombre = dialogView.findViewById(R.id.etEditNombreZona);
+        EditText edDesc = dialogView.findViewById(R.id.etEditDescZona);
+        edNombre.setText(zona.nombre);
+        edDesc.setText(zona.descripcion != null ? zona.descripcion : "");
+
+        dialogView.findViewById(R.id.btnDialogZonaCancelar).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.btnDialogZonaGuardar).setOnClickListener(v -> {
+            String newN = edNombre.getText() != null ? edNombre.getText().toString().trim() : "";
+            String newD = edDesc.getText() != null ? edDesc.getText().toString().trim() : "";
+            if (newN.isEmpty()) {
+                Toast.makeText(this, "El nombre de la zona no puede estar vacío.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            repository.actualizarZona(zona.id, newN, newD, callback(() -> {
+                dialog.dismiss();
+                Toast.makeText(this, "Zona '" + newN + "' actualizada correctamente.", Toast.LENGTH_SHORT).show();
+                mostrarSeccion("Zonas");
+            }));
+        });
+
+        dialog.show();
+    }
+
+    private void toggleEstadoZona(ZoneEntity zona) {
+        boolean nuevoEstado = !zona.activa;
+        String accion = nuevoEstado ? "activar" : "desactivar";
+        new AlertDialog.Builder(this)
+                .setTitle((nuevoEstado ? "Activar" : "Desactivar") + " Zona")
+                .setMessage("¿Deseas " + accion + " la zona '" + zona.nombre + "'?")
+                .setPositiveButton("Sí, " + accion, (d, w) -> {
+                    repository.cambiarEstadoZona(zona.id, nuevoEstado, zona.nombre, callback(() -> {
+                        Toast.makeText(this, "Zona " + (nuevoEstado ? "activada" : "desactivada"), Toast.LENGTH_SHORT).show();
+                        mostrarSeccion("Zonas");
+                    }));
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
     private void mostrarGranjasDeZona(ZoneEntity zona) {
@@ -311,14 +447,13 @@ public class AdminActivity extends AppCompatActivity {
         card.setStrokeColor(border);
         card.setStrokeWidth(dp(1));
         card.setCardElevation(dp(1));
-        card.setClickable(true);
-        card.setFocusable(true);
 
         LinearLayout col = new LinearLayout(this);
         col.setOrientation(LinearLayout.VERTICAL);
         col.setPadding(dp(14), dp(12), dp(14), dp(12));
 
         LinearLayout topRow = new LinearLayout(this);
+        topRow.setOrientation(LinearLayout.HORIZONTAL);
         topRow.setGravity(Gravity.CENTER_VERTICAL);
 
         ImageView icon = new ImageView(this);
@@ -328,14 +463,39 @@ public class AdminActivity extends AppCompatActivity {
 
         TextView title = text(granja.nombre, 15, ink, true);
         title.setPadding(dp(10), 0, 0, 0);
-        topRow.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
+        topRow.addView(title, new LinearLayout.LayoutParams(0, -2, 1.0f));
 
-        ImageView chevron = new ImageView(this);
-        chevron.setImageResource(R.drawable.ic_arrow_forward);
-        chevron.setImageTintList(ColorStateList.valueOf(muted));
-        topRow.addView(chevron, new LinearLayout.LayoutParams(dp(18), dp(18)));
+        TextView badgeStatus = new TextView(this);
+        badgeStatus.setText(granja.activa ? "● ACTIVA" : "● INACTIVA");
+        badgeStatus.setTextSize(10);
+        badgeStatus.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        badgeStatus.setPadding(dp(6), dp(2), dp(6), dp(2));
+        GradientDrawable stBg = new GradientDrawable();
+        stBg.setCornerRadius(dp(6));
+        if (granja.activa) {
+            badgeStatus.setTextColor(green);
+            stBg.setColor(Color.parseColor("#E6F4EA"));
+        } else {
+            badgeStatus.setTextColor(red);
+            stBg.setColor(Color.parseColor("#FCE8E6"));
+        }
+        badgeStatus.setBackground(stBg);
+        topRow.addView(badgeStatus, wrapMargin(8, 0, 0, 0));
 
         col.addView(topRow);
+
+        // Chip de Lote
+        LinearLayout loteRow = new LinearLayout(this);
+        loteRow.setOrientation(LinearLayout.HORIZONTAL);
+        loteRow.setPadding(0, dp(4), 0, dp(2));
+        TextView loteBadge = text("🏷️ " + ((granja.lote != null && !granja.lote.isEmpty()) ? granja.lote : "Lote 01"), 11, ink, true);
+        loteBadge.setPadding(dp(8), dp(3), dp(8), dp(3));
+        GradientDrawable lBg = new GradientDrawable();
+        lBg.setColor(Color.parseColor("#F3EDE5"));
+        lBg.setCornerRadius(dp(6));
+        loteBadge.setBackground(lBg);
+        loteRow.addView(loteBadge);
+        col.addView(loteRow);
 
         // Chip de credenciales de la granja (Entidad)
         LinearLayout credBox = new LinearLayout(this);
@@ -351,14 +511,54 @@ public class AdminActivity extends AppCompatActivity {
 
         TextView credText = text("🔑 Clave Operaria: " + clave + "   •   🔒 PIN: " + pass, 11, navy, true);
         credBox.addView(credText);
-        col.addView(credBox, margin(0, 8, 0, 4));
+        col.addView(credBox, margin(0, 4, 0, 8));
 
-        TextView hint = text("Toca para consultar los pedidos de esta granja", 11, muted, false);
-        col.addView(hint, margin(0, 2, 0, 0));
+        // Botones de acción: Ver Hojas, Editar, Activar/Desactivar
+        LinearLayout actRow = new LinearLayout(this);
+        actRow.setOrientation(LinearLayout.HORIZONTAL);
+        actRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        MaterialButton btnVerPedidos = new MaterialButton(this);
+        btnVerPedidos.setText("Ver Hojas");
+        btnVerPedidos.setAllCaps(false);
+        btnVerPedidos.setTextSize(11);
+        btnVerPedidos.setTextColor(navy);
+        btnVerPedidos.setStrokeColor(ColorStateList.valueOf(border));
+        btnVerPedidos.setStrokeWidth(dp(1));
+        btnVerPedidos.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        btnVerPedidos.setCornerRadius(dp(8));
+        btnVerPedidos.setOnClickListener(v -> mostrarPedidosDeGranja(granja, zonaPadre));
+        actRow.addView(btnVerPedidos, new LinearLayout.LayoutParams(0, -2, 1));
+
+        MaterialButton btnEditar = new MaterialButton(this);
+        btnEditar.setText("✏️ Editar");
+        btnEditar.setAllCaps(false);
+        btnEditar.setTextSize(11);
+        btnEditar.setTextColor(navy);
+        btnEditar.setStrokeColor(ColorStateList.valueOf(border));
+        btnEditar.setStrokeWidth(dp(1));
+        btnEditar.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        btnEditar.setCornerRadius(dp(8));
+        btnEditar.setOnClickListener(v -> mostrarDialogoEditarGranja(granja));
+        LinearLayout.LayoutParams edLp = new LinearLayout.LayoutParams(0, -2, 1);
+        edLp.setMargins(dp(6), 0, dp(6), 0);
+        actRow.addView(btnEditar, edLp);
+
+        MaterialButton btnToggle = new MaterialButton(this);
+        btnToggle.setText(granja.activa ? "⚡ Desactivar" : "⚡ Activar");
+        btnToggle.setAllCaps(false);
+        btnToggle.setTextSize(11);
+        btnToggle.setTextColor(granja.activa ? red : green);
+        btnToggle.setStrokeColor(ColorStateList.valueOf(border));
+        btnToggle.setStrokeWidth(dp(1));
+        btnToggle.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        btnToggle.setCornerRadius(dp(8));
+        btnToggle.setOnClickListener(v -> toggleEstadoGranja(granja));
+        actRow.addView(btnToggle, new LinearLayout.LayoutParams(0, -2, 1));
+
+        col.addView(actRow);
 
         card.addView(col);
-        card.setOnClickListener(v -> mostrarPedidosDeGranja(granja, zonaPadre));
-
         pageContent.addView(card, margin(0, 0, 0, 10));
     }
 
@@ -385,19 +585,16 @@ public class AdminActivity extends AppCompatActivity {
             public void onSuccess(List<PedidoEntity> pedidos) {
                 List<PedidoEntity> filtrados = new ArrayList<>();
                 for (PedidoEntity p : pedidos) {
+                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
                     if (granja.nombre.equalsIgnoreCase(p.granja) ||
-                        (p.operarioId != null && p.operarioId.equalsIgnoreCase(granja.codigoAcceso)) ||
-                        (granja.nombre.contains("Laureles") && (p.operarioId != null && p.operarioId.contains("E100")))) {
+                        (p.operarioId != null && p.operarioId.equalsIgnoreCase(granja.codigoAcceso))) {
                         filtrados.add(p);
                     }
                 }
 
-                // Si no hay pedidos en BD para esta granja, proveer ejemplos de muestra consistentes
                 if (filtrados.isEmpty()) {
-                    long now = System.currentTimeMillis();
-                    filtrados.add(new PedidoEntity("PED-1794671240166", granja.codigoAcceso, granja.zona, "APROBADO", granja.nombre, now - 3600000, now));
-                    filtrados.add(new PedidoEntity("#PED-2026-11-ZN04", granja.codigoAcceso, granja.zona, "APROBADO", granja.nombre, now - 7200000, now));
-                    filtrados.add(new PedidoEntity("#PED-2026-10-ZN01", granja.codigoAcceso, granja.zona, "ENVIADO", granja.nombre, now - 86400000, now));
+                    vacio("No hay hojas de pedido registradas para " + granja.nombre + ".");
+                    return;
                 }
 
                 for (PedidoEntity p : filtrados) {
@@ -496,8 +693,8 @@ public class AdminActivity extends AppCompatActivity {
         LinearLayout centerCol = new LinearLayout(this);
         centerCol.setOrientation(LinearLayout.VERTICAL);
 
-        String folioStr = (pedido.codigo != null && !pedido.codigo.isEmpty()) ? pedido.codigo : ("PED-" + pedido.id);
-        TextView txtFolio = text(folioStr, 17, ink, true);
+        String loteStr = (pedido.lote != null && !pedido.lote.isEmpty()) ? pedido.lote : "Lote 01";
+        TextView txtFolio = text("Número de Lote: " + loteStr, 16, ink, true);
         centerCol.addView(txtFolio);
 
         String solicitante = "Solicitado por " + ((pedido.operarioId != null && !pedido.operarioId.isEmpty()) ? pedido.operarioId : granja.codigoAcceso);
@@ -525,7 +722,8 @@ public class AdminActivity extends AppCompatActivity {
         View btnVolver = botonPildora("Volver a Hojas de Pedido", () -> mostrarPedidosDeGranja(granja, zonaPadre));
         pageContent.addView(btnVolver, margin(0, 0, 0, 12));
 
-        encabezado("Detalle del Pedido", (pedido.codigo != null ? pedido.codigo : "PED-" + pedido.id));
+        String loteHeader = (pedido.lote != null && !pedido.lote.isEmpty()) ? pedido.lote : "Lote 01";
+        encabezado("Detalle del Pedido", "Número de Lote: " + loteHeader);
 
         // CARD 1: DATOS GENERALES DEL ENVÍO
         MaterialCardView cardDatos = new MaterialCardView(this);
@@ -548,8 +746,8 @@ public class AdminActivity extends AppCompatActivity {
 
         LinearLayout colF = new LinearLayout(this);
         colF.setOrientation(LinearLayout.VERTICAL);
-        colF.addView(text("Folio / Código:", 11, muted, false));
-        colF.addView(text(pedido.codigo != null ? pedido.codigo : ("PED-" + pedido.id), 14, ink, true));
+        colF.addView(text("Número de Lote:", 11, muted, false));
+        colF.addView(text((pedido.lote != null && !pedido.lote.isEmpty()) ? pedido.lote : "Lote 01", 14, ink, true));
         rowInfo1.addView(colF, new LinearLayout.LayoutParams(0, -2, 1));
 
         LinearLayout colO = new LinearLayout(this);
@@ -643,16 +841,81 @@ public class AdminActivity extends AppCompatActivity {
 
         TextView lblSecc3 = text("Dictamen y Aprobación", 15, ink, true);
         colDictamen.addView(lblSecc3);
+        TextView subSecc3 = text("Resolución técnica del supervisor para este pedido", 11, muted, false);
+        colDictamen.addView(subSecc3, margin(0, 1, 0, 10));
 
         pedidoRepository.obtenerUltimaRevision(pedido.id, new PedidoRepository.RevisionCallback() {
             @Override
             public void onSuccess(RevisionPedidoEntity rev) {
-                if (rev != null) {
-                    TextView txtD = text("✓ Dictamen: " + rev.textoEditado, 13, green, true);
-                    colDictamen.addView(txtD, margin(0, 4, 0, 2));
+                if (rev != null && rev.textoEditado != null && !rev.textoEditado.isEmpty()) {
+                    String[] parts = rev.textoEditado.split("\\|");
+                    for (String part : parts) {
+                        String trimmed = part.trim();
+                        if (trimmed.isEmpty()) continue;
+
+                        String prodName = trimmed;
+                        String dictStatus = "";
+                        if (trimmed.contains("[") && trimmed.contains("]")) {
+                            int startIdx = trimmed.indexOf('[');
+                            int endIdx = trimmed.indexOf(']');
+                            prodName = trimmed.substring(0, startIdx).trim();
+                            dictStatus = trimmed.substring(startIdx + 1, endIdx).trim();
+                        }
+
+                        LinearLayout rowItem = new LinearLayout(AdminActivity.this);
+                        rowItem.setOrientation(LinearLayout.HORIZONTAL);
+                        rowItem.setGravity(Gravity.CENTER_VERTICAL);
+                        rowItem.setPadding(dp(12), dp(10), dp(12), dp(10));
+                        GradientDrawable rowBg = new GradientDrawable();
+                        rowBg.setColor(Color.parseColor("#FAF4ED"));
+                        rowBg.setCornerRadius(dp(8));
+                        rowItem.setBackground(rowBg);
+
+                        LinearLayout colP = new LinearLayout(AdminActivity.this);
+                        colP.setOrientation(LinearLayout.VERTICAL);
+                        colP.addView(text(prodName, 13, ink, true));
+                        rowItem.addView(colP, new LinearLayout.LayoutParams(0, -2, 1));
+
+                        if (!dictStatus.isEmpty()) {
+                            TextView badgeD = new TextView(AdminActivity.this);
+                            badgeD.setText(dictStatus);
+                            badgeD.setTextSize(11);
+                            badgeD.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+                            badgeD.setPadding(dp(8), dp(3), dp(8), dp(3));
+                            GradientDrawable bBg = new GradientDrawable();
+                            bBg.setCornerRadius(dp(6));
+                            if (dictStatus.contains("APROBADO") || dictStatus.contains("Aprobado")) {
+                                badgeD.setTextColor(green);
+                                bBg.setColor(Color.parseColor("#E6F4EA"));
+                            } else if (dictStatus.contains("RECHAZADO") || dictStatus.contains("Rechazado")) {
+                                badgeD.setTextColor(red);
+                                bBg.setColor(Color.parseColor("#FCE8E6"));
+                            } else {
+                                badgeD.setTextColor(orange);
+                                bBg.setColor(Color.parseColor("#FEF7E0"));
+                            }
+                            badgeD.setBackground(bBg);
+                            rowItem.addView(badgeD);
+                        }
+
+                        colDictamen.addView(rowItem, margin(0, 0, 0, 6));
+                    }
+
                     if (rev.observacion != null && !rev.observacion.isEmpty()) {
-                        TextView txtO = text("Observaciones: " + rev.observacion, 12, muted, false);
-                        colDictamen.addView(txtO, margin(0, 2, 0, 0));
+                        LinearLayout obsBox = new LinearLayout(AdminActivity.this);
+                        obsBox.setOrientation(LinearLayout.VERTICAL);
+                        obsBox.setPadding(dp(12), dp(8), dp(12), dp(8));
+                        GradientDrawable oBg = new GradientDrawable();
+                        oBg.setColor(Color.parseColor("#F5EFE6"));
+                        oBg.setCornerRadius(dp(8));
+                        obsBox.setBackground(oBg);
+
+                        TextView lblObs = text("Observaciones del Supervisor:", 11, muted, true);
+                        obsBox.addView(lblObs);
+                        TextView valObs = text(rev.observacion, 12, ink, false);
+                        obsBox.addView(valObs, margin(0, 2, 0, 0));
+
+                        colDictamen.addView(obsBox, margin(0, 4, 0, 0));
                     }
                 } else {
                     String est = pedido.estado != null ? pedido.estado : "APROBADO";
@@ -679,7 +942,7 @@ public class AdminActivity extends AppCompatActivity {
     // ==========================================
     private void panelGranjas() {
         encabezado("Registro de Granjas y Accesos",
-                "Cada granja es la entidad de acceso con su propia clave y contraseña.");
+                "Cada granja es la entidad de acceso con su propia clave, lote y contraseña.");
 
         MaterialCardView cardForm = new MaterialCardView(this);
         cardForm.setCardBackgroundColor(Color.WHITE);
@@ -698,30 +961,69 @@ public class AdminActivity extends AppCompatActivity {
         EditText name = campo("Nombre de la granja (ej: Finca Santa María)");
         box.addView(name, margin(0, 8, 0, 8));
 
+        TextView lblLote = text("Número de Lote (Asignado a la Granja)", 12, muted, true);
+        box.addView(lblLote, margin(0, 2, 0, 4));
+        EditText loteInput = campo("Número de Lote (ej: Lote 01, Sector Norte)");
+        box.addView(loteInput, margin(0, 0, 0, 8));
+
         TextView zoneLabel = text("Zona Operativa Asignada", 12, muted, true);
-        box.addView(zoneLabel, margin(0, 2, 0, 4));
+        box.addView(zoneLabel, margin(0, 2, 0, 6));
 
-        Spinner zone = spinner();
-        box.addView(zone, margin(0, 0, 0, 10));
+        final String[] selectedZone = new String[]{"Zona Norte"};
 
-        repository.listarZonas(new AuthRepository.ResultCallback<List<ZoneEntity>>() {
-            @Override
-            public void onSuccess(List<ZoneEntity> zones) {
-                List<String> labels = new ArrayList<>();
-                for (ZoneEntity z : zones) if (z.activa) labels.add(z.nombre);
-                if (labels.isEmpty()) labels.add("Zona Norte");
-                zone.setAdapter(new ArrayAdapter<>(AdminActivity.this, android.R.layout.simple_spinner_dropdown_item, labels));
-            }
+        // Selector estilizado idéntico al del Supervisor (Sin Spinner nativo negro)
+        RelativeLayout zoneSelectorBox = new RelativeLayout(this);
+        zoneSelectorBox.setBackgroundResource(R.drawable.bg_cierre_box);
+        zoneSelectorBox.setPadding(dp(12), dp(12), dp(12), dp(12));
+        zoneSelectorBox.setClickable(true);
+        zoneSelectorBox.setFocusable(true);
 
-            @Override
-            public void onError(Exception e) {
-                List<String> fallback = new ArrayList<>();
-                fallback.add("Zona Norte");
-                fallback.add("Zona Valle Central");
-                fallback.add("Zona Sur");
-                zone.setAdapter(new ArrayAdapter<>(AdminActivity.this, android.R.layout.simple_spinner_dropdown_item, fallback));
-            }
+        FrameLayout iconFrame = new FrameLayout(this);
+        iconFrame.setId(View.generateViewId());
+        iconFrame.setBackgroundResource(R.drawable.bg_button_primary);
+        ImageView locIcon = new ImageView(this);
+        locIcon.setImageResource(R.drawable.ic_location);
+        locIcon.setImageTintList(ColorStateList.valueOf(Color.WHITE));
+        FrameLayout.LayoutParams lpLoc = new FrameLayout.LayoutParams(dp(20), dp(20));
+        lpLoc.gravity = Gravity.CENTER;
+        iconFrame.addView(locIcon, lpLoc);
+
+        RelativeLayout.LayoutParams fLp = new RelativeLayout.LayoutParams(dp(38), dp(38));
+        fLp.addRule(RelativeLayout.ALIGN_PARENT_START);
+        fLp.addRule(RelativeLayout.CENTER_VERTICAL);
+        zoneSelectorBox.addView(iconFrame, fLp);
+
+        ImageView arrowDrop = new ImageView(this);
+        arrowDrop.setId(View.generateViewId());
+        arrowDrop.setImageResource(R.drawable.ic_arrow_drop_down);
+        arrowDrop.setImageTintList(ColorStateList.valueOf(ink));
+        RelativeLayout.LayoutParams aLp = new RelativeLayout.LayoutParams(dp(24), dp(24));
+        aLp.addRule(RelativeLayout.ALIGN_PARENT_END);
+        aLp.addRule(RelativeLayout.CENTER_VERTICAL);
+        zoneSelectorBox.addView(arrowDrop, aLp);
+
+        LinearLayout zoneTextCol = new LinearLayout(this);
+        zoneTextCol.setOrientation(LinearLayout.VERTICAL);
+        zoneTextCol.setPadding(dp(12), 0, dp(12), 0);
+        TextView txtZoneTitle = text("Zona Norte", 14, ink, true);
+        TextView txtZoneSub = text("Toca para cambiar la zona operativa", 11, muted, false);
+        zoneTextCol.addView(txtZoneTitle);
+        zoneTextCol.addView(txtZoneSub, margin(0, 2, 0, 0));
+
+        RelativeLayout.LayoutParams zcLp = new RelativeLayout.LayoutParams(-1, -2);
+        zcLp.addRule(RelativeLayout.END_OF, iconFrame.getId());
+        zcLp.addRule(RelativeLayout.START_OF, arrowDrop.getId());
+        zcLp.addRule(RelativeLayout.CENTER_VERTICAL);
+        zoneSelectorBox.addView(zoneTextCol, zcLp);
+
+        zoneSelectorBox.setOnClickListener(v -> {
+            mostrarDialogoSeleccionarZonaAdmin(selectedZone[0], zona -> {
+                selectedZone[0] = zona;
+                txtZoneTitle.setText(zona);
+            });
         });
+
+        box.addView(zoneSelectorBox, margin(0, 0, 0, 10));
 
         TextView lblClave = text("Clave / Código Institucional de la Granja", 12, muted, true);
         box.addView(lblClave, margin(0, 4, 0, 4));
@@ -742,7 +1044,9 @@ public class AdminActivity extends AppCompatActivity {
         btnGuardar.setCornerRadius(dp(10));
         btnGuardar.setOnClickListener(v -> {
             String n = value(name);
-            Object selectedZone = zone.getSelectedItem();
+            String zName = selectedZone[0];
+            String lVal = value(loteInput);
+            if (lVal.isEmpty()) lVal = "Lote 01";
             String c = value(codeInput);
             String p = value(passInput);
 
@@ -757,12 +1061,34 @@ public class AdminActivity extends AppCompatActivity {
             if (p.isEmpty()) {
                 p = "12345678";
             }
-            String zName = selectedZone != null ? selectedZone.toString() : "Zona Norte";
 
-            repository.crearGranja(n, zName, c, p, callback(() -> {
-                Toast.makeText(AdminActivity.this, "Granja y credenciales creadas exitosamente", Toast.LENGTH_SHORT).show();
-                mostrarSeccion("Granjas");
-            }));
+            final String finalN = n;
+            final String finalZName = zName;
+            final String finalLVal = lVal;
+            final String finalC = c;
+            final String finalP = p;
+
+            repository.obtenerGranjaPorCodigo(finalC, new AuthRepository.ResultCallback<FarmEntity>() {
+                @Override
+                public void onSuccess(FarmEntity existing) {
+                    if (existing != null) {
+                        Toast.makeText(AdminActivity.this, "El código '" + finalC + "' ya está registrado en '" + existing.nombre + "'. Debe ser único.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    repository.crearGranja(finalN, finalZName, finalC, finalP, finalLVal, callback(() -> {
+                        Toast.makeText(AdminActivity.this, "Granja y credenciales creadas exitosamente", Toast.LENGTH_SHORT).show();
+                        mostrarSeccion("Granjas");
+                    }));
+                }
+
+                @Override
+                public void onError(Exception error) {
+                    repository.crearGranja(finalN, finalZName, finalC, finalP, finalLVal, callback(() -> {
+                        Toast.makeText(AdminActivity.this, "Granja y credenciales creadas exitosamente", Toast.LENGTH_SHORT).show();
+                        mostrarSeccion("Granjas");
+                    }));
+                }
+            });
         });
         box.addView(btnGuardar);
 
@@ -803,12 +1129,33 @@ public class AdminActivity extends AppCompatActivity {
         col.setOrientation(LinearLayout.VERTICAL);
         col.setPadding(dp(14), dp(12), dp(14), dp(12));
 
-        RelativeLayout rowTop = new RelativeLayout(this);
+        LinearLayout rowTop = new LinearLayout(this);
+        rowTop.setOrientation(LinearLayout.HORIZONTAL);
+        rowTop.setGravity(Gravity.CENTER_VERTICAL);
 
         TextView title = text(granja.nombre, 15, ink, true);
-        RelativeLayout.LayoutParams tLp = new RelativeLayout.LayoutParams(-2, -2);
-        tLp.addRule(RelativeLayout.ALIGN_PARENT_START);
-        rowTop.addView(title, tLp);
+        rowTop.addView(title, new LinearLayout.LayoutParams(0, -2, 1.0f));
+
+        LinearLayout badgesRight = new LinearLayout(this);
+        badgesRight.setOrientation(LinearLayout.HORIZONTAL);
+        badgesRight.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView badgeStatus = new TextView(this);
+        badgeStatus.setText(granja.activa ? "● ACTIVA" : "● INACTIVA");
+        badgeStatus.setTextSize(10);
+        badgeStatus.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        badgeStatus.setPadding(dp(6), dp(2), dp(6), dp(2));
+        GradientDrawable stBg = new GradientDrawable();
+        stBg.setCornerRadius(dp(6));
+        if (granja.activa) {
+            badgeStatus.setTextColor(green);
+            stBg.setColor(Color.parseColor("#E6F4EA"));
+        } else {
+            badgeStatus.setTextColor(red);
+            stBg.setColor(Color.parseColor("#FCE8E6"));
+        }
+        badgeStatus.setBackground(stBg);
+        badgesRight.addView(badgeStatus, wrapMargin(0, 0, 6, 0));
 
         TextView zonaBadge = text(granja.zona != null ? granja.zona : "Zona Norte", 11, navy, true);
         zonaBadge.setPadding(dp(8), dp(2), dp(8), dp(2));
@@ -816,12 +1163,27 @@ public class AdminActivity extends AppCompatActivity {
         zBg.setColor(Color.parseColor("#EDE7DF"));
         zBg.setCornerRadius(dp(6));
         zonaBadge.setBackground(zBg);
-        RelativeLayout.LayoutParams zLp = new RelativeLayout.LayoutParams(-2, -2);
-        zLp.addRule(RelativeLayout.ALIGN_PARENT_END);
-        zLp.addRule(RelativeLayout.CENTER_VERTICAL);
-        rowTop.addView(zonaBadge, zLp);
+        badgesRight.addView(zonaBadge, wrapMargin(0, 0, 0, 0));
+
+        rowTop.addView(badgesRight, wrapMargin(8, 0, 0, 0));
 
         col.addView(rowTop);
+
+        // Chip de lote y credenciales
+        LinearLayout metaRow = new LinearLayout(this);
+        metaRow.setOrientation(LinearLayout.HORIZONTAL);
+        metaRow.setGravity(Gravity.CENTER_VERTICAL);
+        metaRow.setPadding(0, dp(4), 0, dp(2));
+
+        TextView loteBadge = text("🏷️ " + ((granja.lote != null && !granja.lote.isEmpty()) ? granja.lote : "Lote 01"), 11, ink, true);
+        loteBadge.setPadding(dp(8), dp(3), dp(8), dp(3));
+        GradientDrawable lBg = new GradientDrawable();
+        lBg.setColor(Color.parseColor("#F3EDE5"));
+        lBg.setCornerRadius(dp(6));
+        loteBadge.setBackground(lBg);
+        metaRow.addView(loteBadge);
+
+        col.addView(metaRow);
 
         String c = (granja.codigoAcceso != null && !granja.codigoAcceso.isEmpty()) ? granja.codigoAcceso : "E100";
         String p = (granja.password != null && !granja.password.isEmpty()) ? granja.password : "12345678";
@@ -836,23 +1198,226 @@ public class AdminActivity extends AppCompatActivity {
 
         TextView credText = text("🔑 Clave Operaria: " + c + "   •   🔒 Contraseña: " + p, 11, navy, true);
         credRow.addView(credText);
-        col.addView(credRow, margin(0, 8, 0, 8));
+        col.addView(credRow, margin(0, 4, 0, 8));
+
+        // Botones de acción: Ver Hojas, Editar, Activar/Desactivar
+        LinearLayout actRow = new LinearLayout(this);
+        actRow.setOrientation(LinearLayout.HORIZONTAL);
+        actRow.setGravity(Gravity.CENTER_VERTICAL);
 
         MaterialButton btnVerPedidos = new MaterialButton(this);
-        btnVerPedidos.setText("Ver Hojas de Pedido");
+        btnVerPedidos.setText("Ver Hojas");
         btnVerPedidos.setAllCaps(false);
-        btnVerPedidos.setTextSize(12);
+        btnVerPedidos.setTextSize(11);
         btnVerPedidos.setTextColor(navy);
         btnVerPedidos.setStrokeColor(ColorStateList.valueOf(border));
         btnVerPedidos.setStrokeWidth(dp(1));
         btnVerPedidos.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
         btnVerPedidos.setCornerRadius(dp(8));
         btnVerPedidos.setOnClickListener(v -> mostrarPedidosDeGranja(granja, null));
-        col.addView(btnVerPedidos);
+        actRow.addView(btnVerPedidos, new LinearLayout.LayoutParams(0, -2, 1));
+
+        MaterialButton btnEditar = new MaterialButton(this);
+        btnEditar.setText("✏️ Editar");
+        btnEditar.setAllCaps(false);
+        btnEditar.setTextSize(11);
+        btnEditar.setTextColor(navy);
+        btnEditar.setStrokeColor(ColorStateList.valueOf(border));
+        btnEditar.setStrokeWidth(dp(1));
+        btnEditar.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        btnEditar.setCornerRadius(dp(8));
+        btnEditar.setOnClickListener(v -> mostrarDialogoEditarGranja(granja));
+        LinearLayout.LayoutParams edLp = new LinearLayout.LayoutParams(0, -2, 1);
+        edLp.setMargins(dp(6), 0, dp(6), 0);
+        actRow.addView(btnEditar, edLp);
+
+        MaterialButton btnToggle = new MaterialButton(this);
+        btnToggle.setText(granja.activa ? "⚡ Desactivar" : "⚡ Activar");
+        btnToggle.setAllCaps(false);
+        btnToggle.setTextSize(11);
+        btnToggle.setTextColor(granja.activa ? red : green);
+        btnToggle.setStrokeColor(ColorStateList.valueOf(border));
+        btnToggle.setStrokeWidth(dp(1));
+        btnToggle.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        btnToggle.setCornerRadius(dp(8));
+        btnToggle.setOnClickListener(v -> toggleEstadoGranja(granja));
+        actRow.addView(btnToggle, new LinearLayout.LayoutParams(0, -2, 1));
+
+        col.addView(actRow);
 
         card.addView(col);
-        card.setOnClickListener(v -> mostrarPedidosDeGranja(granja, null));
         pageContent.addView(card, margin(0, 0, 0, 10));
+    }
+
+    private void mostrarDialogoEditarGranja(FarmEntity granja) {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_editar_granja, null);
+        dialog.setContentView(dialogView);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            dialog.getWindow().setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+
+        EditText edName = dialogView.findViewById(R.id.etEditNombreGranja);
+        EditText edLote = dialogView.findViewById(R.id.etEditLoteGranja);
+        TextView tvZona = dialogView.findViewById(R.id.tvEditZonaGranja);
+        View boxZona = dialogView.findViewById(R.id.boxEditZonaGranja);
+        EditText edCode = dialogView.findViewById(R.id.etEditClaveGranja);
+        EditText edPass = dialogView.findViewById(R.id.etEditPassGranja);
+
+        edName.setText(granja.nombre);
+        edLote.setText(granja.lote != null ? granja.lote : "Lote 01");
+        final String[] editSelectedZone = new String[]{granja.zona != null ? granja.zona : "Zona Norte"};
+        tvZona.setText(editSelectedZone[0]);
+        edCode.setText(granja.codigoAcceso != null ? granja.codigoAcceso : "");
+        edPass.setText(granja.password != null ? granja.password : "12345678");
+
+        boxZona.setOnClickListener(v -> {
+            mostrarDialogoSeleccionarZonaAdmin(editSelectedZone[0], z -> {
+                editSelectedZone[0] = z;
+                tvZona.setText(z);
+            });
+        });
+
+        dialogView.findViewById(R.id.btnDialogGranjaCancelar).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.btnDialogGranjaGuardar).setOnClickListener(v -> {
+            String newN = edName.getText() != null ? edName.getText().toString().trim() : "";
+            String newL = edLote.getText() != null ? edLote.getText().toString().trim() : "";
+            String newZ = editSelectedZone[0];
+            String newC = edCode.getText() != null ? edCode.getText().toString().trim() : "";
+            String newP = edPass.getText() != null ? edPass.getText().toString().trim() : "";
+
+            if (newN.isEmpty()) {
+                Toast.makeText(this, "El nombre de la granja no puede estar vacío.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (newC.isEmpty()) {
+                Toast.makeText(this, "El código de la granja no puede estar vacío.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (newL.isEmpty()) newL = "Lote 01";
+            if (newP.isEmpty()) newP = "12345678";
+
+            repository.actualizarGranja(granja.id, newN, newZ, newL, newC, newP, callback(() -> {
+                dialog.dismiss();
+                Toast.makeText(this, "Granja '" + newN + "' actualizada correctamente.", Toast.LENGTH_SHORT).show();
+                mostrarSeccion("Granjas");
+            }));
+        });
+
+        dialog.show();
+    }
+
+    private void toggleEstadoGranja(FarmEntity granja) {
+        boolean nuevoEstado = !granja.activa;
+        String accion = nuevoEstado ? "activar" : "desactivar";
+        new AlertDialog.Builder(this)
+                .setTitle((nuevoEstado ? "Activar" : "Desactivar") + " Granja")
+                .setMessage("¿Deseas " + accion + " la granja '" + granja.nombre + "'?")
+                .setPositiveButton("Sí, " + accion, (d, w) -> {
+                    repository.cambiarEstadoGranja(granja.id, nuevoEstado, granja.nombre, callback(() -> {
+                        Toast.makeText(this, "Granja " + (nuevoEstado ? "activada" : "desactivada"), Toast.LENGTH_SHORT).show();
+                        mostrarSeccion("Granjas");
+                    }));
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void mostrarDialogoSeleccionarZonaAdmin(String zonaActual, OnZoneSelectedListener listener) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_seleccionar_zona, null);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        LinearLayout container = dialogView.findViewById(R.id.containerOpcionesZonas);
+        View btnCancelar = dialogView.findViewById(R.id.btnDialogZonaCancelar);
+        if (btnCancelar != null) btnCancelar.setOnClickListener(v -> dialog.dismiss());
+
+        repository.listarZonas(new AuthRepository.ResultCallback<List<ZoneEntity>>() {
+            @Override
+            public void onSuccess(List<ZoneEntity> zonas) {
+                if (container == null) return;
+                container.removeAllViews();
+                for (ZoneEntity z : zonas) {
+                    MaterialCardView optionCard = new MaterialCardView(AdminActivity.this);
+                    optionCard.setRadius(dp(12));
+                    boolean isSelected = z.nombre.equalsIgnoreCase(zonaActual);
+                    optionCard.setCardBackgroundColor(isSelected ? ContextCompat.getColor(AdminActivity.this, R.color.krono_bg) : Color.WHITE);
+                    optionCard.setStrokeColor(ContextCompat.getColor(AdminActivity.this, isSelected ? R.color.krono_navy : R.color.krono_card_stroke));
+                    optionCard.setStrokeWidth(dp(isSelected ? 2 : 1));
+                    optionCard.setCardElevation(0);
+                    optionCard.setClickable(true);
+                    optionCard.setFocusable(true);
+
+                    LinearLayout row = new LinearLayout(AdminActivity.this);
+                    row.setOrientation(LinearLayout.HORIZONTAL);
+                    row.setGravity(Gravity.CENTER_VERTICAL);
+                    row.setPadding(dp(14), dp(12), dp(14), dp(12));
+
+                    ImageView icon = new ImageView(AdminActivity.this);
+                    icon.setImageResource(R.drawable.ic_location);
+                    icon.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(AdminActivity.this, isSelected ? R.color.krono_navy : R.color.krono_text_secondary)));
+                    row.addView(icon, new LinearLayout.LayoutParams(dp(22), dp(22)));
+
+                    LinearLayout col = new LinearLayout(AdminActivity.this);
+                    col.setOrientation(LinearLayout.VERTICAL);
+                    col.setPadding(dp(12), 0, dp(12), 0);
+
+                    TextView title = new TextView(AdminActivity.this);
+                    title.setText(z.nombre);
+                    title.setTextSize(14);
+                    title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+                    title.setTextColor(ContextCompat.getColor(AdminActivity.this, R.color.krono_navy_dark));
+                    col.addView(title);
+
+                    TextView sub = new TextView(AdminActivity.this);
+                    sub.setText(z.descripcion != null && !z.descripcion.isEmpty() ? z.descripcion : (z.activa ? "Zona Activa" : "Zona Inactiva"));
+                    sub.setTextSize(11);
+                    sub.setTextColor(ContextCompat.getColor(AdminActivity.this, R.color.krono_text_secondary));
+                    col.addView(sub);
+
+                    row.addView(col, new LinearLayout.LayoutParams(0, -2, 1));
+
+                    if (isSelected) {
+                        ImageView check = new ImageView(AdminActivity.this);
+                        check.setImageResource(R.drawable.ic_check);
+                        check.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(AdminActivity.this, R.color.krono_navy)));
+                        row.addView(check, new LinearLayout.LayoutParams(dp(18), dp(18)));
+                    }
+
+                    optionCard.addView(row);
+                    optionCard.setOnClickListener(v -> {
+                        dialog.dismiss();
+                        listener.onSelected(z.nombre);
+                    });
+
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
+                    lp.setMargins(0, 0, 0, dp(8));
+                    container.addView(optionCard, lp);
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(AdminActivity.this, "Error al cargar zonas", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
+    }
+
+    interface OnZoneSelectedListener {
+        void onSelected(String zona);
     }
 
     // ==========================================
@@ -1010,6 +1575,14 @@ public class AdminActivity extends AppCompatActivity {
 
     private LinearLayout.LayoutParams margin(int left, int top, int right, int bottom) {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
+        lp.setMargins(dp(left), dp(top), dp(right), dp(bottom));
+        return lp;
+    }
+
+    private LinearLayout.LayoutParams wrapMargin(int left, int top, int right, int bottom) {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
         lp.setMargins(dp(left), dp(top), dp(right), dp(bottom));
         return lp;
     }

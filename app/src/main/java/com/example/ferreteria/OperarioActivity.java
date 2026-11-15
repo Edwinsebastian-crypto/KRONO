@@ -1,6 +1,7 @@
 package com.example.ferreteria;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.content.res.ColorStateList;
@@ -23,7 +24,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 
+import com.example.ferreteria.data.AuthRepository;
 import com.example.ferreteria.data.PedidoRepository;
+import com.example.ferreteria.data.entity.FarmEntity;
 import com.example.ferreteria.data.entity.InsumoPedidoEntity;
 import com.example.ferreteria.data.entity.PedidoEntity;
 import com.example.ferreteria.data.entity.RevisionPedidoEntity;
@@ -51,8 +54,11 @@ public class OperarioActivity extends AppCompatActivity {
     private LinearLayout containerInsumos;
     private boolean pedidoEnviado = false;
     private PedidoRepository pedidoRepository;
+    private AuthRepository auditRepository;
     private String userId;
     private String farmName;
+    private String farmLote = "Lote 01";
+    private String farmZona = "Zona Norte";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,44 +66,132 @@ public class OperarioActivity extends AppCompatActivity {
         StatusBarUtils.initEdgeToEdge(this);
 
         pedidoRepository = new PedidoRepository(this);
+        auditRepository = new AuthRepository(this);
         userId = getIntent().getStringExtra("user_id");
         if (userId == null) userId = "E100";
         farmName = getIntent().getStringExtra("farm_name");
 
-        // Inicializar insumos por defecto
-        insumosList.clear();
-        insumosList.add(new InsumoItem(
-                "Fertilizante NPK 15-15-15 (Sacos 50kg)",
-                "20 sacos",
-                "Fungicida/Nutricional • SKU: FERT-NPK-50"
-        ));
-        insumosList.add(new InsumoItem(
-                "Insecticida Concentrado 1L",
-                "12 frascos",
-                "Protección Fitosanitaria • SKU: INS-L1"
-        ));
+        // Cargar datos reales de la granja (lote, nombre, zona) desde SQLite
+        auditRepository.obtenerGranjaPorCodigo(userId, new AuthRepository.ResultCallback<FarmEntity>() {
+            @Override
+            public void onSuccess(FarmEntity g) {
+                if (g != null) {
+                    if (farmName == null || farmName.isEmpty()) farmName = g.nombre;
+                    if (g.lote != null && !g.lote.isEmpty()) farmLote = g.lote;
+                    if (g.zona != null && !g.zona.isEmpty()) farmZona = g.zona;
+                    actualizarCabeceraOperario();
+                }
+            }
+
+            @Override
+            public void onError(Exception error) {}
+        });
+
+        // Cargar borrador previo si existe para este operario
+        cargarBorradorLocalmente();
 
         loadPedidoView();
     }
 
+    private void actualizarCabeceraOperario() {
+        TextView txtSub = findViewById(R.id.txtPedidoGranjaSub);
+        if (txtSub != null) {
+            String f = (farmName != null && !farmName.isEmpty()) ? farmName : "Granja Operaria";
+            String l = (farmLote != null && !farmLote.isEmpty()) ? farmLote : "Lote 01";
+            txtSub.setText(f + " • Número de Lote: " + l);
+        }
+
+        TextView txtCierre = findViewById(R.id.txtFechaCierrePedido);
+        if (txtCierre != null) {
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            int lastDay = cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
+            String monthName = new java.text.SimpleDateFormat("MMM", new java.util.Locale("es", "ES")).format(cal.getTime());
+            if (monthName != null && monthName.length() > 0) {
+                monthName = monthName.substring(0, 1).toUpperCase() + monthName.substring(1);
+            }
+            txtCierre.setText("Cierre: " + lastDay + " " + monthName + " - 18:00");
+        }
+    }
+
+    private void guardarBorradorLocalmente() {
+        if (insumosList.isEmpty()) {
+            Toast.makeText(this, "Agrega al menos un insumo para guardar el borrador.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            org.json.JSONArray arr = new org.json.JSONArray();
+            for (InsumoItem item : insumosList) {
+                org.json.JSONObject obj = new org.json.JSONObject();
+                obj.put("nombre", item.nombre);
+                obj.put("cantidad", item.cantidad);
+                obj.put("sku", item.sku);
+                arr.put(obj);
+            }
+            getSharedPreferences("krono_drafts", Context.MODE_PRIVATE)
+                    .edit()
+                    .putString("draft_" + userId, arr.toString())
+                    .apply();
+
+            Toast.makeText(this, "💾 Borrador guardado exitosamente. Podrás continuar agregando insumos más tarde.", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error al guardar borrador: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void cargarBorradorLocalmente() {
+        if (!insumosList.isEmpty()) return;
+        try {
+            String jsonStr = getSharedPreferences("krono_drafts", Context.MODE_PRIVATE)
+                    .getString("draft_" + userId, null);
+            if (jsonStr != null && !jsonStr.trim().isEmpty()) {
+                org.json.JSONArray arr = new org.json.JSONArray(jsonStr);
+                for (int i = 0; i < arr.length(); i++) {
+                    org.json.JSONObject obj = arr.getJSONObject(i);
+                    insumosList.add(new InsumoItem(
+                            obj.optString("nombre", ""),
+                            obj.optString("cantidad", ""),
+                            obj.optString("sku", "")
+                    ));
+                }
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void limpiarBorradorLocalmente() {
+        getSharedPreferences("krono_drafts", Context.MODE_PRIVATE)
+                .edit()
+                .remove("draft_" + userId)
+                .apply();
+    }
+
     private void guardarPedidoEnRoom() {
-        if (insumosList.isEmpty()) { Toast.makeText(this, "Agrega al menos un insumo antes de enviar.", Toast.LENGTH_SHORT).show(); return; }
+        if (insumosList.isEmpty()) {
+            Toast.makeText(this, "Agrega al menos un insumo antes de enviar a revisión.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         long now = System.currentTimeMillis();
         String code = "PED-" + now;
-        String farm = (farmName != null && !farmName.isEmpty()) ? farmName :
-                (userId.equals("E100") ? "Granja Los Laureles" :
-                (userId.equals("E101") ? "Finca San Isidro" :
-                (userId.equals("E102") ? "Granja Santa Elena" : "Granja " + userId)));
-        PedidoEntity pedido = new PedidoEntity(code, userId, "Zona Norte", "ENVIADO", farm, now, now);
+        String farm = (farmName != null && !farmName.trim().isEmpty()) ? farmName.trim() : "Granja " + userId;
+        String zona = (farmZona != null && !farmZona.trim().isEmpty()) ? farmZona.trim() : "Zona Norte";
+        String lote = (farmLote != null && !farmLote.trim().isEmpty()) ? farmLote.trim() : "Lote 01";
+
+        PedidoEntity pedido = new PedidoEntity(code, userId, zona, "EN REVISIÓN", farm, lote, now, now);
         List<InsumoPedidoEntity> lines = new ArrayList<>();
-        for (InsumoItem item : insumosList) lines.add(new InsumoPedidoEntity(0, item.nombre, item.cantidad, item.sku));
+        for (InsumoItem item : insumosList) {
+            lines.add(new InsumoPedidoEntity(0, item.nombre, item.cantidad, item.sku));
+        }
+
         pedidoRepository.guardarPedido(pedido, lines, new PedidoRepository.GuardarPedidoCallback() {
             @Override public void onSuccess(long pedidoId) {
                 pedidoEnviado = true;
-                Toast.makeText(OperarioActivity.this, "Pedido " + code + " guardado y enviado a revisión.", Toast.LENGTH_LONG).show();
+                limpiarBorradorLocalmente();
+                insumosList.clear();
+                Toast.makeText(OperarioActivity.this, "✓ Pedido para " + lote + " enviado a revisión técnica.", Toast.LENGTH_LONG).show();
                 loadRevisionesView();
             }
-            @Override public void onError(Exception error) { Toast.makeText(OperarioActivity.this, "No se pudo guardar el pedido: " + error.getMessage(), Toast.LENGTH_LONG).show(); }
+            @Override public void onError(Exception error) {
+                Toast.makeText(OperarioActivity.this, "No se pudo guardar el pedido: " + error.getMessage(), Toast.LENGTH_LONG).show();
+            }
         });
     }
 
@@ -118,8 +212,12 @@ public class OperarioActivity extends AppCompatActivity {
     public void loadPedidoView() {
         setContentView(R.layout.activity_ope_pedido);
         StatusBarUtils.applyStatusBarNavyHeader(this);
+        StatusBarUtils.setupIntelligentKeyboard(this, findViewById(R.id.scrollViewPedido));
 
         containerInsumos = findViewById(R.id.containerInsumos);
+
+        actualizarCabeceraOperario();
+        cargarBorradorLocalmente();
         renderInsumosList();
 
         // Botón Cerrar Sesión (Flecha superior derecha)
@@ -127,6 +225,12 @@ public class OperarioActivity extends AppCompatActivity {
 
         // Botón Agregar Insumos (Fijo inferior)
         findViewById(R.id.btnAddInsumo).setOnClickListener(v -> showAgregarInsumoDialog());
+
+        // Botón Guardar Borrador
+        View btnDraft = findViewById(R.id.btnGuardarBorrador);
+        if (btnDraft != null) {
+            btnDraft.setOnClickListener(v -> guardarBorradorLocalmente());
+        }
 
         // Botón Enviar Hoja de Pedido a Revisión (Fijo inferior)
         findViewById(R.id.btnEnviarPedido).setOnClickListener(v -> guardarPedidoEnRoom());
@@ -222,15 +326,17 @@ public class OperarioActivity extends AppCompatActivity {
             public void onSuccess(List<PedidoEntity> pedidos) {
                 List<PedidoEntity> lista = (pedidos != null && !pedidos.isEmpty()) ? new ArrayList<>(pedidos) : new ArrayList<>();
 
-                // Si no hay pedidos guardados todavía, proveer muestras con formato de Imagen 2
-                if (lista.isEmpty()) {
-                    long now = System.currentTimeMillis();
-                    lista.add(new PedidoEntity("PED-1794671240166", userId, "Zona Norte", "APROBADO", "Granja Los Laureles", now - 3600000, now));
-                    lista.add(new PedidoEntity("#PED-2026-11-ZN04", userId, "Zona Norte", "APROBADO", "Granja Los Laureles", now - 7200000, now));
-                    lista.add(new PedidoEntity("Pedido #PED-2026-11-ZN04", userId, "Zona Norte", "En Revisión Técnica", "Granja Los Laureles", now - 86400000, now));
-                }
-
                 container.removeAllViews();
+                if (lista.isEmpty()) {
+                    TextView tvVacio = new TextView(OperarioActivity.this);
+                    tvVacio.setText("No tienes hojas de pedido enviadas todavía.\nCrea un nuevo pedido en la pestaña 'Hoja Pedido'.");
+                    tvVacio.setTextColor(ContextCompat.getColor(OperarioActivity.this, R.color.krono_text_secondary));
+                    tvVacio.setTextSize(14f);
+                    tvVacio.setGravity(Gravity.CENTER);
+                    tvVacio.setPadding(0, (int) (32 * getResources().getDisplayMetrics().density), 0, 0);
+                    container.addView(tvVacio);
+                    return;
+                }
                 for (PedidoEntity p : lista) {
                     mostrarCardPedidoOperario(p, container);
                 }
@@ -330,8 +436,8 @@ public class OperarioActivity extends AppCompatActivity {
         LinearLayout centerCol = new LinearLayout(this);
         centerCol.setOrientation(LinearLayout.VERTICAL);
 
-        String folioStr = (pedido.codigo != null && !pedido.codigo.isEmpty()) ? pedido.codigo : ("PED-" + pedido.id);
-        TextView txtFolio = text(folioStr, 17, ink, true);
+        String loteStr = "Número de Lote: " + ((pedido.lote != null && !pedido.lote.isEmpty()) ? pedido.lote : farmLote);
+        TextView txtFolio = text(loteStr, 17, ink, true);
         centerCol.addView(txtFolio);
 
         String solicitante = "Solicitado por " + ((pedido.operarioId != null && !pedido.operarioId.isEmpty()) ? pedido.operarioId : userId);
@@ -416,8 +522,9 @@ public class OperarioActivity extends AppCompatActivity {
 
         LinearLayout colF = new LinearLayout(this);
         colF.setOrientation(LinearLayout.VERTICAL);
-        colF.addView(text("Folio / Código:", 11, muted, false));
-        colF.addView(text((pedido.codigo != null ? pedido.codigo : "PED-" + pedido.id), 14, ink, true));
+        colF.addView(text("Número de Lote:", 11, muted, false));
+        String loteVal = (pedido.lote != null && !pedido.lote.isEmpty()) ? pedido.lote : farmLote;
+        colF.addView(text(loteVal, 14, ink, true));
         rowInfo1.addView(colF, new LinearLayout.LayoutParams(0, -2, 1));
 
         LinearLayout colO = new LinearLayout(this);
@@ -435,7 +542,7 @@ public class OperarioActivity extends AppCompatActivity {
         LinearLayout colG = new LinearLayout(this);
         colG.setOrientation(LinearLayout.VERTICAL);
         colG.addView(text("Granja / Zona:", 11, muted, false));
-        String granjaZona = (pedido.granja != null ? pedido.granja : "Granja Los Laureles") + " • " + (pedido.zona != null ? pedido.zona : "Zona Norte");
+        String granjaZona = ((pedido.granja != null && !pedido.granja.isEmpty()) ? pedido.granja : (farmName != null ? farmName : "Granja")) + " • " + ((pedido.zona != null && !pedido.zona.isEmpty()) ? pedido.zona : farmZona);
         colG.addView(text(granjaZona, 13, ink, true));
         rowInfo2.addView(colG, new LinearLayout.LayoutParams(0, -2, 1));
 
@@ -526,22 +633,87 @@ public class OperarioActivity extends AppCompatActivity {
 
         TextView lblSecc3 = text("Revisión del supervisor", 15, ink, true);
         colDictamen.addView(lblSecc3);
+        TextView subSecc3 = text("Dictamen técnico y cantidades autorizadas", 11, muted, false);
+        colDictamen.addView(subSecc3, margin(0, 1, 0, 10));
 
         pedidoRepository.obtenerUltimaRevision(pedido.id, new PedidoRepository.RevisionCallback() {
             @Override
             public void onSuccess(RevisionPedidoEntity rev) {
-                if (rev != null) {
-                    TextView txtD = text("✓ Dictamen: " + rev.textoEditado, 13, green, true);
-                    colDictamen.addView(txtD, margin(0, 4, 0, 2));
+                if (rev != null && rev.textoEditado != null && !rev.textoEditado.isEmpty()) {
+                    String[] parts = rev.textoEditado.split("\\|");
+                    for (String part : parts) {
+                        String trimmed = part.trim();
+                        if (trimmed.isEmpty()) continue;
+
+                        String prodName = trimmed;
+                        String dictStatus = "";
+                        if (trimmed.contains("[") && trimmed.contains("]")) {
+                            int startIdx = trimmed.indexOf('[');
+                            int endIdx = trimmed.indexOf(']');
+                            prodName = trimmed.substring(0, startIdx).trim();
+                            dictStatus = trimmed.substring(startIdx + 1, endIdx).trim();
+                        }
+
+                        LinearLayout rowItem = new LinearLayout(OperarioActivity.this);
+                        rowItem.setOrientation(LinearLayout.HORIZONTAL);
+                        rowItem.setGravity(Gravity.CENTER_VERTICAL);
+                        rowItem.setPadding(dp(12), dp(10), dp(12), dp(10));
+                        GradientDrawable rowBg = new GradientDrawable();
+                        rowBg.setColor(Color.parseColor("#FAF4ED"));
+                        rowBg.setCornerRadius(dp(8));
+                        rowItem.setBackground(rowBg);
+
+                        LinearLayout colP = new LinearLayout(OperarioActivity.this);
+                        colP.setOrientation(LinearLayout.VERTICAL);
+                        colP.addView(text(prodName, 13, ink, true));
+                        rowItem.addView(colP, new LinearLayout.LayoutParams(0, -2, 1));
+
+                        if (!dictStatus.isEmpty()) {
+                            TextView badgeD = new TextView(OperarioActivity.this);
+                            badgeD.setText(dictStatus);
+                            badgeD.setTextSize(11);
+                            badgeD.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+                            badgeD.setPadding(dp(8), dp(3), dp(8), dp(3));
+                            GradientDrawable bBg = new GradientDrawable();
+                            bBg.setCornerRadius(dp(6));
+                            if (dictStatus.contains("APROBADO") || dictStatus.contains("Aprobado")) {
+                                badgeD.setTextColor(green);
+                                bBg.setColor(Color.parseColor("#E6F4EA"));
+                            } else if (dictStatus.contains("RECHAZADO") || dictStatus.contains("Rechazado")) {
+                                badgeD.setTextColor(red);
+                                bBg.setColor(Color.parseColor("#FCE8E6"));
+                            } else {
+                                badgeD.setTextColor(orange);
+                                bBg.setColor(Color.parseColor("#FEF7E0"));
+                            }
+                            badgeD.setBackground(bBg);
+                            rowItem.addView(badgeD);
+                        }
+
+                        colDictamen.addView(rowItem, margin(0, 0, 0, 6));
+                    }
+
                     if (rev.observacion != null && !rev.observacion.isEmpty()) {
-                        TextView txtO = text("Observaciones: " + rev.observacion, 12, muted, false);
-                        colDictamen.addView(txtO, margin(0, 2, 0, 0));
+                        LinearLayout obsBox = new LinearLayout(OperarioActivity.this);
+                        obsBox.setOrientation(LinearLayout.VERTICAL);
+                        obsBox.setPadding(dp(12), dp(8), dp(12), dp(8));
+                        GradientDrawable oBg = new GradientDrawable();
+                        oBg.setColor(Color.parseColor("#F5EFE6"));
+                        oBg.setCornerRadius(dp(8));
+                        obsBox.setBackground(oBg);
+
+                        TextView lblObs = text("Observaciones del Supervisor:", 11, muted, true);
+                        obsBox.addView(lblObs);
+                        TextView valObs = text(rev.observacion, 12, ink, false);
+                        obsBox.addView(valObs, margin(0, 2, 0, 0));
+
+                        colDictamen.addView(obsBox, margin(0, 4, 0, 0));
                     }
                 } else {
                     String est = pedido.estado != null ? pedido.estado : "APROBADO";
-                    TextView txtD = text("Estado técnico: " + est + " - Pedido validado y revisado.", 13, "APROBADO".equalsIgnoreCase(est) ? green : orange, true);
+                    TextView txtD = text("Estado técnico: " + est, 13, "APROBADO".equalsIgnoreCase(est) ? green : orange, true);
                     colDictamen.addView(txtD, margin(0, 4, 0, 2));
-                    TextView txtO = text("Observaciones: El supervisor validó las cantidades y autorizó el avance del requerimiento.", 12, muted, false);
+                    TextView txtO = text("Observaciones: El pedido se encuentra en proceso o fue validado conforme a stock.", 12, muted, false);
                     colDictamen.addView(txtO, margin(0, 2, 0, 0));
                 }
             }
@@ -560,6 +732,17 @@ public class OperarioActivity extends AppCompatActivity {
     private void renderInsumosList() {
         if (containerInsumos == null) return;
         containerInsumos.removeAllViews();
+
+        if (insumosList.isEmpty()) {
+            TextView emptyTxt = new TextView(this);
+            emptyTxt.setText("No hay insumos agregados en este borrador.\nToca '+ Agregar Insumos' para añadir los insumos requeridos.");
+            emptyTxt.setTextSize(13);
+            emptyTxt.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+            emptyTxt.setGravity(Gravity.CENTER);
+            emptyTxt.setPadding(dp(16), dp(24), dp(16), dp(24));
+            containerInsumos.addView(emptyTxt);
+            return;
+        }
 
         for (int i = 0; i < insumosList.size(); i++) {
             addInsumoView(insumosList.get(i), i);
@@ -647,6 +830,7 @@ public class OperarioActivity extends AppCompatActivity {
 
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
             dialog.getWindow().setLayout(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
@@ -702,6 +886,7 @@ public class OperarioActivity extends AppCompatActivity {
 
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
             dialog.getWindow().setLayout(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT

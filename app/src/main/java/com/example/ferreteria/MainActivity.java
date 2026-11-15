@@ -98,17 +98,17 @@ public class MainActivity extends AppCompatActivity {
         StatusBarUtils.applyStatusBarNavyHeader(this);
 
         ViewCompat.setOnApplyWindowInsetsListener(scrollViewMain, (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
             Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
 
             lastImeHeight = ime.bottom;
 
-            int bottomInset = Math.max(systemBars.bottom, ime.bottom);
+            int bottomInset = (ime.bottom > 0) ? 0 : navBars.bottom;
 
             v.setPadding(
-                    systemBars.left,
                     0,
-                    systemBars.right,
+                    0,
+                    0,
                     bottomInset
             );
 
@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 }, 100);
             }
 
-            return WindowInsetsCompat.CONSUMED;
+            return insets;
         });
     }
 
@@ -158,39 +158,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void scrollToFocusedView(View view) {
         if (scrollViewMain == null || view == null) return;
-
         final View finalTarget = resolveTargetContainer(view);
-
         scrollViewMain.post(() -> {
-            int[] targetLocation = new int[2];
-            finalTarget.getLocationOnScreen(targetLocation);
-
-            int targetTopOnScreen = targetLocation[1];
-            int targetBottomOnScreen = targetTopOnScreen + finalTarget.getHeight();
-
-            int[] scrollLocation = new int[2];
-            scrollViewMain.getLocationOnScreen(scrollLocation);
-
-            int screenHeight = getResources().getDisplayMetrics().heightPixels;
-
-            // Keyboard top line on screen
-            int visibleBottomOnScreen;
-            if (lastImeHeight > 0) {
-                visibleBottomOnScreen = screenHeight - lastImeHeight;
-            } else {
-                visibleBottomOnScreen = scrollLocation[1] + scrollViewMain.getHeight();
-            }
-
-            // 2 cm gap is approx 36dp
-            int marginPx = (int) (36 * getResources().getDisplayMetrics().density);
-
-            if (targetBottomOnScreen + marginPx > visibleBottomOnScreen) {
-                int scrollDelta = (targetBottomOnScreen + marginPx) - visibleBottomOnScreen;
-                scrollViewMain.smoothScrollBy(0, scrollDelta);
-            } else if (targetTopOnScreen - marginPx < scrollLocation[1]) {
-                int scrollDelta = targetTopOnScreen - marginPx - scrollLocation[1];
-                scrollViewMain.smoothScrollBy(0, scrollDelta);
-            }
+            int extra = (int) (24 * getResources().getDisplayMetrics().density);
+            finalTarget.requestRectangleOnScreen(
+                    new android.graphics.Rect(0, 0, finalTarget.getWidth(), finalTarget.getHeight() + extra),
+                    true
+            );
         });
     }
 
@@ -228,6 +202,20 @@ public class MainActivity extends AppCompatActivity {
         cardRoleAdmin.setStrokeColor(isAdmin ? selectedStrokeColor : unselectedStrokeColor);
         cardRoleAdmin.setStrokeWidth(isAdmin ? selectedStrokeWidth : unselectedStrokeWidth);
         imgRadioAdmin.setImageResource(isAdmin ? R.drawable.ic_radio_checked : R.drawable.ic_radio_unchecked);
+
+        if (role == UserRole.SUPERVISOR) {
+            if (etUserId != null && (etUserId.getText().toString().equals("E100") || etUserId.getText().toString().equals("A100") || etUserId.getText().toString().isEmpty())) {
+                etUserId.setText("S100");
+            }
+        } else if (role == UserRole.ADMINISTRADOR) {
+            if (etUserId != null && (etUserId.getText().toString().equals("E100") || etUserId.getText().toString().equals("S100") || etUserId.getText().toString().isEmpty())) {
+                etUserId.setText("A100");
+            }
+        } else if (role == UserRole.OPERARIO) {
+            if (etUserId != null && (etUserId.getText().toString().equals("S100") || etUserId.getText().toString().equals("A100") || etUserId.getText().toString().isEmpty())) {
+                etUserId.setText("E100");
+            }
+        }
     }
 
     private void setupClickListeners() {

@@ -1,11 +1,13 @@
 package com.example.ferreteria;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
@@ -14,6 +16,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -30,9 +33,11 @@ import androidx.core.content.FileProvider;
 
 import com.example.ferreteria.data.AuthRepository;
 import com.example.ferreteria.data.PedidoRepository;
+import com.example.ferreteria.data.entity.FarmEntity;
 import com.example.ferreteria.data.entity.InsumoPedidoEntity;
 import com.example.ferreteria.data.entity.PedidoEntity;
 import com.example.ferreteria.data.entity.RevisionPedidoEntity;
+import com.example.ferreteria.data.entity.ZoneEntity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
@@ -88,12 +93,17 @@ public class SupervisorActivity extends AppCompatActivity {
     }
 
     private Zone currentZone = Zone.NORTE;
+    private String currentZoneName = "Zona Norte";
+    private Zone currentHistorialZone = Zone.NORTE;
+    private String currentHistorialZoneName = "Zona Norte";
     private PedidoRepository pedidoRepository;
     private AuthRepository auditRepository;
     private String userId;
     private String currentFarmName = "Finca San Isidro";
     private List<InsumoDictamen> dictamenList = new ArrayList<>();
 
+    private TextView txtSupervisorCicloSub;
+    private TextView txtSupervisorCorte;
     private TextView txtSelectedZoneTitle;
     private TextView txtSelectedZoneSub;
     private TextView txtCountEnZona;
@@ -106,9 +116,6 @@ public class SupervisorActivity extends AppCompatActivity {
     private TextView chipZoneValle;
     private TextView chipZoneSur;
     private TextView chipZoneOccidente;
-
-    private TextView txtResumenTitle;
-    private TextView txtCoberturaPct;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,13 +134,30 @@ public class SupervisorActivity extends AppCompatActivity {
     public void loadZonasView() {
         setContentView(R.layout.activity_supervisor);
         StatusBarUtils.applyStatusBarNavyHeader(this);
+        StatusBarUtils.setupIntelligentKeyboard(this, findViewById(R.id.scrollViewSupervisor));
 
         initZonasViews();
         setupZoneSelection();
         setupZonasClickListeners();
+        selectZoneByName(currentZoneName);
     }
 
     private void initZonasViews() {
+        txtSupervisorCicloSub = findViewById(R.id.txtSupervisorCicloSub);
+        txtSupervisorCorte = findViewById(R.id.txtSupervisorCorte);
+
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMMM yyyy", new java.util.Locale("es", "ES"));
+        String mesAnio = sdf.format(new java.util.Date());
+        if (!mesAnio.isEmpty()) {
+            mesAnio = mesAnio.substring(0, 1).toUpperCase() + mesAnio.substring(1);
+        }
+        if (txtSupervisorCicloSub != null) {
+            txtSupervisorCicloSub.setText("Supervisión de pedidos consolidados para insumos y fertilizantes • " + mesAnio);
+        }
+        if (txtSupervisorCorte != null) {
+            txtSupervisorCorte.setText("Corte: Ciclo de " + mesAnio);
+        }
+
         txtSelectedZoneTitle = findViewById(R.id.txtSelectedZoneTitle);
         txtSelectedZoneSub = findViewById(R.id.txtSelectedZoneSub);
 
@@ -148,9 +172,6 @@ public class SupervisorActivity extends AppCompatActivity {
         chipZoneValle = findViewById(R.id.chipZoneValle);
         chipZoneSur = findViewById(R.id.chipZoneSur);
         chipZoneOccidente = findViewById(R.id.chipZoneOccidente);
-
-        txtResumenTitle = findViewById(R.id.txtResumenTitle);
-        txtCoberturaPct = findViewById(R.id.txtCoberturaPct);
     }
 
     private void setupZoneSelection() {
@@ -163,36 +184,258 @@ public class SupervisorActivity extends AppCompatActivity {
 
         View btnDropdown = findViewById(R.id.btnZoneDropdown);
         if (btnDropdown != null) {
-            btnDropdown.setOnClickListener(v -> {
-                Zone[] zones = Zone.values();
-                int nextOrdinal = (currentZone.ordinal() + 1) % zones.length;
-                selectZone(zones[nextOrdinal]);
-            });
+            btnDropdown.setOnClickListener(v -> mostrarDialogoSeleccionarZona(false));
         }
     }
 
     private void selectZone(Zone zone) {
-        currentZone = zone;
+        selectZoneByName(zone.shortName);
+    }
 
-        if (txtSelectedZoneTitle != null) txtSelectedZoneTitle.setText(zone.title);
-        if (txtSelectedZoneSub != null) txtSelectedZoneSub.setText(zone.subtitle);
+    private void selectZoneByName(String zoneName) {
+        if (zoneName == null || zoneName.isEmpty()) zoneName = "Zona Norte";
+        currentZoneName = zoneName;
 
-        if (txtCountEnZona != null) txtCountEnZona.setText(String.valueOf(zone.enZona));
-        if (txtCountListas != null) txtCountListas.setText(String.valueOf(zone.listas));
-        if (txtCountPendiente != null) txtCountPendiente.setText(String.valueOf(zone.pendiente));
+        for (Zone z : Zone.values()) {
+            if (z.shortName.equalsIgnoreCase(zoneName) || z.title.equalsIgnoreCase(zoneName)) {
+                currentZone = z;
+                break;
+            }
+        }
 
-        if (txtHeaderGranjas != null) txtHeaderGranjas.setText(getString(R.string.granjas_registradas_fmt, zone.shortName));
-        if (txtCountVisibles != null) txtCountVisibles.setText(getString(R.string.visibles_fmt, zone.enZona));
+        if (txtSelectedZoneTitle != null) txtSelectedZoneTitle.setText(zoneName);
 
-        if (txtResumenTitle != null) txtResumenTitle.setText(getString(R.string.resumen_operativo_fmt, zone.shortName));
-        if (txtCoberturaPct != null) txtCoberturaPct.setText(zone.cobertura);
+        updateChipStyle(chipZoneNorte, zoneName.equalsIgnoreCase("Zona Norte"), "• Zona Norte (Activo)", "Zona Norte");
+        updateChipStyle(chipZoneValle, zoneName.equalsIgnoreCase("Zona Valle Central"), "• Zona Valle (Activo)", "Zona Valle Central");
+        updateChipStyle(chipZoneSur, zoneName.equalsIgnoreCase("Zona Sur"), "• Zona Sur (Activo)", "Zona Sur");
+        updateChipStyle(chipZoneOccidente, zoneName.equalsIgnoreCase("Zona Occidente"), "• Zona Occ. (Activo)", "Zona Occidente");
 
-        updateChipStyle(chipZoneNorte, zone == Zone.NORTE, "• Zona Norte (Activo)", "Zona Norte");
-        updateChipStyle(chipZoneValle, zone == Zone.VALLE, "• Zona Valle (Activo)", "Zona Valle Central");
-        updateChipStyle(chipZoneSur, zone == Zone.SUR, "• Zona Sur (Activo)", "Zona Sur");
-        updateChipStyle(chipZoneOccidente, zone == Zone.OCCIDENTE, "• Zona Occ. (Activo)", "Zona Occidente");
+        // Cargar dinámicamente todos los chips de zonas desde SQLite
+        refrescarChipsDinamicosZonas(false, zoneName);
 
-        Toast.makeText(this, "Filtro: " + zone.title, Toast.LENGTH_SHORT).show();
+        if (txtHeaderGranjas != null) txtHeaderGranjas.setText("Granjas Registradas en " + zoneName);
+
+        final String finalZoneName = zoneName;
+        // Consultar conteos reales desde SQLite (datos no quemados)
+        auditRepository.listarGranjasPorZona(finalZoneName, new AuthRepository.ResultCallback<List<FarmEntity>>() {
+            @Override
+            public void onSuccess(List<FarmEntity> granjas) {
+                int totalGranjas = (granjas != null) ? granjas.size() : 0;
+                pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
+                    @Override
+                    public void onSuccess(List<PedidoEntity> pedidos) {
+                        int listas = 0;
+                        int pendientes = 0;
+                        if (pedidos != null) {
+                            for (PedidoEntity p : pedidos) {
+                                if (p.zona != null && p.zona.equalsIgnoreCase(finalZoneName)) {
+                                    if ("APROBADO".equalsIgnoreCase(p.estado)) {
+                                        listas++;
+                                    } else {
+                                        pendientes++;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (txtSelectedZoneSub != null) {
+                            txtSelectedZoneSub.setText(totalGranjas + (totalGranjas == 1 ? " Granja asignada" : " Granjas asignadas") +
+                                    " • " + listas + (listas == 1 ? " lista" : " listas"));
+                        }
+                        if (txtCountEnZona != null) txtCountEnZona.setText(String.valueOf(totalGranjas));
+                        if (txtCountListas != null) txtCountListas.setText(String.valueOf(listas));
+                        if (txtCountPendiente != null) txtCountPendiente.setText(String.valueOf(pendientes));
+                        if (txtCountVisibles != null) txtCountVisibles.setText(totalGranjas + (totalGranjas == 1 ? " visible" : " visibles"));
+                    }
+
+                    @Override
+                    public void onError(Exception error) {
+                        if (txtCountEnZona != null) txtCountEnZona.setText(String.valueOf(totalGranjas));
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Exception error) {}
+        });
+
+        cargarGranjasZonasByName(finalZoneName);
+    }
+
+    private void cargarGranjasZonas(Zone zone) {
+        cargarGranjasZonasByName(zone.shortName);
+    }
+
+    private void cargarGranjasZonasByName(String zoneName) {
+        LinearLayout container = findViewById(R.id.containerGranjasZonas);
+        if (container == null) return;
+        container.removeAllViews();
+
+        auditRepository.listarGranjasPorZona(zoneName, new AuthRepository.ResultCallback<List<FarmEntity>>() {
+            @Override
+            public void onSuccess(List<FarmEntity> granjas) {
+                container.removeAllViews();
+                if (granjas == null || granjas.isEmpty()) {
+                    MaterialCardView emptyCard = new MaterialCardView(SupervisorActivity.this);
+                    emptyCard.setCardBackgroundColor(Color.WHITE);
+                    emptyCard.setRadius(dp(14));
+                    emptyCard.setStrokeColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_card_stroke));
+                    emptyCard.setStrokeWidth(dp(1));
+                    TextView txt = new TextView(SupervisorActivity.this);
+                    txt.setText("No hay granjas registradas en " + zoneName + ".");
+                    txt.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
+                    txt.setTextSize(13);
+                    txt.setPadding(dp(16), dp(16), dp(16), dp(16));
+                    emptyCard.addView(txt);
+                    container.addView(emptyCard, params(-1, -2, 0, 10, 0, 0));
+                    return;
+                }
+
+                for (FarmEntity farm : granjas) {
+                    View farmCard = crearCardGranjaZonas(farm);
+                    container.addView(farmCard, params(-1, -2, 0, 8, 0, 0));
+                }
+            }
+
+            @Override
+            public void onError(Exception error) {
+                Toast.makeText(SupervisorActivity.this, "Error al cargar granjas: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void refrescarChipsDinamicosZonas(boolean esHistorial, String activeZoneName) {
+        LinearLayout container = findViewById(esHistorial ? R.id.containerZoneChipsHistorial : R.id.containerZoneChips);
+        if (container == null) return;
+
+        auditRepository.listarZonas(new AuthRepository.ResultCallback<List<ZoneEntity>>() {
+            @Override
+            public void onSuccess(List<ZoneEntity> zonas) {
+                List<String> listZonas = new ArrayList<>();
+                if (zonas != null && !zonas.isEmpty()) {
+                    for (ZoneEntity z : zonas) {
+                        if (z.nombre != null && !z.nombre.isEmpty() && !listZonas.contains(z.nombre)) {
+                            listZonas.add(z.nombre);
+                        }
+                    }
+                }
+                if (listZonas.isEmpty()) {
+                    for (Zone z : Zone.values()) listZonas.add(z.shortName);
+                }
+
+                container.removeAllViews();
+                for (String zName : listZonas) {
+                    boolean isActive = zName.equalsIgnoreCase(activeZoneName);
+                    TextView chip = new TextView(SupervisorActivity.this);
+                    chip.setText(isActive ? "• " + zName + " (Activo)" : zName);
+                    chip.setTextSize(12);
+                    chip.setGravity(Gravity.CENTER);
+                    chip.setPadding(dp(12), 0, dp(12), 0);
+                    chip.setBackgroundResource(isActive ? R.drawable.bg_button_primary : R.drawable.bg_chip);
+                    chip.setTextColor(ContextCompat.getColor(SupervisorActivity.this, isActive ? R.color.white : R.color.krono_chip_text));
+                    chip.setTypeface(Typeface.DEFAULT, isActive ? Typeface.BOLD : Typeface.NORMAL);
+                    chip.setClickable(true);
+                    chip.setFocusable(true);
+                    chip.setOnClickListener(v -> {
+                        if (esHistorial) {
+                            actualizarVistaHistorialZonaByName(zName);
+                        } else {
+                            selectZoneByName(zName);
+                        }
+                    });
+
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            dp(36)
+                    );
+                    lp.setMargins(0, 0, dp(6), 0);
+                    container.addView(chip, lp);
+                }
+            }
+
+            @Override
+            public void onError(Exception error) {}
+        });
+    }
+
+    private View crearCardGranjaZonas(FarmEntity farm) {
+        MaterialCardView card = new MaterialCardView(this);
+        card.setCardBackgroundColor(Color.WHITE);
+        card.setRadius(dp(16));
+        card.setCardElevation(0);
+        card.setStrokeColor(ContextCompat.getColor(this, R.color.krono_card_stroke));
+        card.setStrokeWidth(dp(1));
+        card.setClickable(true);
+        card.setFocusable(true);
+
+        RelativeLayout layout = new RelativeLayout(this);
+        layout.setPadding(dp(14), dp(14), dp(14), dp(14));
+
+        FrameLayout iconFrame = new FrameLayout(this);
+        iconFrame.setId(View.generateViewId());
+        iconFrame.setBackgroundResource(R.drawable.bg_icon_container);
+        ImageView iconTractor = new ImageView(this);
+        iconTractor.setImageResource(R.drawable.ic_tractor);
+        iconTractor.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.krono_navy)));
+        FrameLayout.LayoutParams tLp = new FrameLayout.LayoutParams(dp(22), dp(22));
+        tLp.gravity = Gravity.CENTER;
+        iconFrame.addView(iconTractor, tLp);
+
+        RelativeLayout.LayoutParams fLp = new RelativeLayout.LayoutParams(dp(44), dp(44));
+        fLp.addRule(RelativeLayout.ALIGN_PARENT_START);
+        fLp.addRule(RelativeLayout.CENTER_VERTICAL);
+        layout.addView(iconFrame, fLp);
+
+        TextView badge = new TextView(this);
+        badge.setId(View.generateViewId());
+        badge.setText("✓ Hoja Lista");
+        badge.setTextSize(11);
+        badge.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        badge.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        badge.setBackgroundResource(R.drawable.bg_blue_chip);
+        badge.setPadding(dp(10), dp(5), dp(10), dp(5));
+        RelativeLayout.LayoutParams bLp = new RelativeLayout.LayoutParams(-2, -2);
+        bLp.addRule(RelativeLayout.ALIGN_PARENT_END);
+        bLp.addRule(RelativeLayout.CENTER_VERTICAL);
+        layout.addView(badge, bLp);
+
+        LinearLayout textCol = new LinearLayout(this);
+        textCol.setOrientation(LinearLayout.VERTICAL);
+
+        LinearLayout nameRow = new LinearLayout(this);
+        nameRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView txtName = new TextView(this);
+        txtName.setText(farm.nombre);
+        txtName.setTextSize(15);
+        txtName.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        txtName.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        nameRow.addView(txtName);
+
+        ImageView check = new ImageView(this);
+        check.setImageResource(R.drawable.ic_check_circle);
+        check.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.krono_navy)));
+        LinearLayout.LayoutParams cLp = new LinearLayout.LayoutParams(dp(16), dp(16));
+        cLp.setMargins(dp(4), 0, 0, 0);
+        nameRow.addView(check, cLp);
+        textCol.addView(nameRow);
+
+        TextView txtEnv = new TextView(this);
+        txtEnv.setText("Clave: " + (farm.codigoAcceso != null ? farm.codigoAcceso : "E100") + " • Toca para abrir pedidos");
+        txtEnv.setTextSize(11);
+        txtEnv.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        txtEnv.setPadding(0, dp(2), 0, 0);
+        textCol.addView(txtEnv);
+
+        RelativeLayout.LayoutParams tLpCol = new RelativeLayout.LayoutParams(-1, -2);
+        tLpCol.addRule(RelativeLayout.END_OF, iconFrame.getId());
+        tLpCol.addRule(RelativeLayout.START_OF, badge.getId());
+        tLpCol.addRule(RelativeLayout.CENTER_VERTICAL);
+        tLpCol.setMargins(dp(12), 0, dp(10), 0);
+        layout.addView(textCol, tLpCol);
+
+        card.addView(layout);
+        card.setOnClickListener(v -> loadHojaPedidoView(farm.nombre));
+        return card;
     }
 
     private void updateChipStyle(TextView chip, boolean isActive, String activeText, String inactiveText) {
@@ -211,21 +454,6 @@ public class SupervisorActivity extends AppCompatActivity {
     private void setupZonasClickListeners() {
         View btnLogout = findViewById(R.id.btnBackLogin);
         if (btnLogout != null) btnLogout.setOnClickListener(v -> finish());
-
-        View cardFarm1 = findViewById(R.id.cardFarm1);
-        if (cardFarm1 != null) {
-            cardFarm1.setOnClickListener(v -> loadHojaPedidoView("Granja Los Laureles"));
-        }
-
-        View cardFarm2 = findViewById(R.id.cardFarm2);
-        if (cardFarm2 != null) {
-            cardFarm2.setOnClickListener(v -> loadHojaPedidoView("Finca San Isidro"));
-        }
-
-        View cardFarm3 = findViewById(R.id.cardFarm3);
-        if (cardFarm3 != null) {
-            cardFarm3.setOnClickListener(v -> loadHojaPedidoView("Granja Santa Elena"));
-        }
 
         View tabZonas = findViewById(R.id.tabZonas);
         if (tabZonas != null) {
@@ -268,22 +496,6 @@ public class SupervisorActivity extends AppCompatActivity {
             btnVolver.setOnClickListener(v -> loadZonasView());
         }
 
-        // Al tocar un pedido se abre la pantalla para editar y aprobar
-        View cardRev1 = findViewById(R.id.cardRevision1);
-        if (cardRev1 != null) {
-            cardRev1.setOnClickListener(v -> abrirDetallePedidoSample(1));
-        }
-
-        View cardRev2 = findViewById(R.id.cardRevision2);
-        if (cardRev2 != null) {
-            cardRev2.setOnClickListener(v -> abrirDetallePedidoSample(2));
-        }
-
-        View cardRev3 = findViewById(R.id.cardRevision3);
-        if (cardRev3 != null) {
-            cardRev3.setOnClickListener(v -> abrirDetallePedidoSample(3));
-        }
-
         View tabZonas = findViewById(R.id.tabZonas);
         if (tabZonas != null) tabZonas.setOnClickListener(v -> loadZonasView());
 
@@ -299,8 +511,32 @@ public class SupervisorActivity extends AppCompatActivity {
         pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
             @Override
             public void onSuccess(List<PedidoEntity> pedidos) {
-                if (pedidos.isEmpty()) return;
+                List<PedidoEntity> filtrados = new ArrayList<>();
                 for (PedidoEntity p : pedidos) {
+                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
+                    if (p.granja != null && p.granja.trim().equalsIgnoreCase(farmName.trim())) {
+                        filtrados.add(p);
+                    }
+                }
+
+                container.removeAllViews();
+                if (filtrados.isEmpty()) {
+                    MaterialCardView emptyCard = new MaterialCardView(SupervisorActivity.this);
+                    emptyCard.setCardBackgroundColor(Color.WHITE);
+                    emptyCard.setRadius(dp(14));
+                    emptyCard.setStrokeColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_card_stroke));
+                    emptyCard.setStrokeWidth(dp(1));
+                    TextView txt = new TextView(SupervisorActivity.this);
+                    txt.setText("No hay hojas de pedido pendientes para " + farmName + ".");
+                    txt.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
+                    txt.setTextSize(13);
+                    txt.setPadding(dp(16), dp(16), dp(16), dp(16));
+                    emptyCard.addView(txt);
+                    container.addView(emptyCard, params(-1, -2, 0, 10, 0, 0));
+                    return;
+                }
+
+                for (PedidoEntity p : filtrados) {
                     View card = crearCardPedidoParaGranja(p, farmName);
                     container.addView(card, params(-1, -2, 0, 10, 0, 0));
                 }
@@ -370,7 +606,8 @@ public class SupervisorActivity extends AppCompatActivity {
         textCol.setOrientation(LinearLayout.VERTICAL);
 
         TextView code = new TextView(this);
-        code.setText(pedido.codigo == null ? "Pedido #" + pedido.id : pedido.codigo);
+        String loteStr = (pedido.lote != null && !pedido.lote.trim().isEmpty()) ? pedido.lote.trim() : "Lote 01";
+        code.setText("Número de Lote: " + loteStr);
         code.setTextSize(16);
         code.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         code.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
@@ -459,9 +696,9 @@ public class SupervisorActivity extends AppCompatActivity {
         TextView txtUltimaRevision = findViewById(R.id.txtUltimaRevision);
         EditText etObs = findViewById(R.id.etObservaciones);
 
-        String cod = pedido.codigo != null ? pedido.codigo : "PED-" + pedido.id;
+        String loteVal = (pedido.lote != null && !pedido.lote.isEmpty()) ? pedido.lote : "Lote 01";
         if (txtTitulo != null) txtTitulo.setText("Detalle del Pedido");
-        if (txtCodigo != null) txtCodigo.setText(cod);
+        if (txtCodigo != null) txtCodigo.setText(loteVal);
         if (txtOperario != null) txtOperario.setText(pedido.operarioId != null ? pedido.operarioId : "Operario de Campo");
         if (txtGranjaZona != null) txtGranjaZona.setText((farmName != null ? farmName : currentFarmName) + " • " + (pedido.zona != null ? pedido.zona : currentZone.shortName));
         if (txtFecha != null) txtFecha.setText(android.text.format.DateFormat.format("dd MMM yyyy • HH:mm", pedido.creadoEn));
@@ -1136,19 +1373,24 @@ public class SupervisorActivity extends AppCompatActivity {
     // ==========================================
     // 5. HISTORIAL: RÉPLICA DE ZONAS Y GRANJAS CON EXPORTACIÓN POR ZONA Y GRANJA
     // ==========================================
-    private Zone currentHistorialZone = Zone.NORTE;
-
     public void loadHistorialView() {
         setContentView(R.layout.activity_sup_historial);
         StatusBarUtils.applyStatusBarNavyHeader(this);
+        StatusBarUtils.setupIntelligentKeyboard(this, findViewById(R.id.scrollViewHistorial));
 
         setupHistorialClickListeners();
-        actualizarVistaHistorialZona(currentHistorialZone);
+        actualizarVistaHistorialZonaByName(currentHistorialZoneName);
     }
 
     private void setupHistorialClickListeners() {
         View btnLogout = findViewById(R.id.btnBackLogin);
         if (btnLogout != null) btnLogout.setOnClickListener(v -> finish());
+
+        // Selector desplegable de zona en Historial
+        View btnDropdownHistorial = findViewById(R.id.btnZoneDropdownHistorial);
+        if (btnDropdownHistorial != null) {
+            btnDropdownHistorial.setOnClickListener(v -> mostrarDialogoSeleccionarZona(true));
+        }
 
         // Chips de zonas en Historial
         TextView chipNorte = findViewById(R.id.chipHistorialNorte);
@@ -1184,45 +1426,97 @@ public class SupervisorActivity extends AppCompatActivity {
     }
 
     private void actualizarVistaHistorialZona(Zone zone) {
-        currentHistorialZone = zone;
+        actualizarVistaHistorialZonaByName(zone.shortName);
+    }
+
+    private void actualizarVistaHistorialZonaByName(String zoneName) {
+        if (zoneName == null || zoneName.isEmpty()) zoneName = "Zona Norte";
+        currentHistorialZoneName = zoneName;
+
+        for (Zone z : Zone.values()) {
+            if (z.shortName.equalsIgnoreCase(zoneName) || z.title.equalsIgnoreCase(zoneName)) {
+                currentHistorialZone = z;
+                break;
+            }
+        }
+
+        // Si veníamos de una vista de pedidos o detalle, restaurar el layout completo de Historial si es necesario
+        View cardSelect = findViewById(R.id.cardSelectZoneHistorial);
+        if (cardSelect == null) {
+            loadHistorialView();
+            return;
+        }
 
         // Actualizar chips de zona activa
-        actualizarChipHistorialStyle(R.id.chipHistorialNorte, zone == Zone.NORTE, "• Zona Norte (Activo)", "Zona Norte");
-        actualizarChipHistorialStyle(R.id.chipHistorialValle, zone == Zone.VALLE, "• Zona Valle Central (Activo)", "Zona Valle Central");
-        actualizarChipHistorialStyle(R.id.chipHistorialSur, zone == Zone.SUR, "• Zona Sur (Activo)", "Zona Sur");
-        actualizarChipHistorialStyle(R.id.chipHistorialOccidente, zone == Zone.OCCIDENTE, "• Zona Occidente (Activo)", "Zona Occidente");
+        actualizarChipHistorialStyle(R.id.chipHistorialNorte, zoneName.equalsIgnoreCase("Zona Norte"), "• Zona Norte (Activo)", "Zona Norte");
+        actualizarChipHistorialStyle(R.id.chipHistorialValle, zoneName.equalsIgnoreCase("Zona Valle Central"), "• Zona Valle Central (Activo)", "Zona Valle Central");
+        actualizarChipHistorialStyle(R.id.chipHistorialSur, zoneName.equalsIgnoreCase("Zona Sur"), "• Zona Sur (Activo)", "Zona Sur");
+        actualizarChipHistorialStyle(R.id.chipHistorialOccidente, zoneName.equalsIgnoreCase("Zona Occidente"), "• Zona Occidente (Activo)", "Zona Occidente");
+
+        // Cargar dinámicamente todos los chips de zonas en historial
+        refrescarChipsDinamicosZonas(true, zoneName);
 
         // Actualizar textos de cabecera de la zona
         TextView txtTitulo = findViewById(R.id.txtSelectedZoneTitleHistorial);
-        if (txtTitulo != null) txtTitulo.setText(zone.title);
-
-        TextView txtSub = findViewById(R.id.txtSelectedZoneSubHistorial);
-        if (txtSub != null) txtSub.setText(zone.subtitle);
+        if (txtTitulo != null) txtTitulo.setText(zoneName);
 
         TextView txtTituloExport = findViewById(R.id.txtTituloExportZona);
-        if (txtTituloExport != null) txtTituloExport.setText("Exportar Pedidos de " + zone.shortName);
+        if (txtTituloExport != null) txtTituloExport.setText("Exportar Pedidos de " + zoneName);
 
         TextView txtHeaderGranjas = findViewById(R.id.txtHeaderGranjasHistorial);
-        if (txtHeaderGranjas != null) txtHeaderGranjas.setText("Granjas Registradas en " + zone.shortName);
+        if (txtHeaderGranjas != null) txtHeaderGranjas.setText("Granjas Registradas en " + zoneName);
 
+        final String finalZoneName = zoneName;
+        View btnCsv = findViewById(R.id.btnExportZonaCsv);
+        if (btnCsv != null) {
+            btnCsv.setOnClickListener(v -> exportarPedidosFiltrados(finalZoneName, null, false));
+        }
+
+        View btnPdf = findViewById(R.id.btnExportZonaPdf);
+        if (btnPdf != null) {
+            btnPdf.setOnClickListener(v -> exportarPedidosFiltrados(finalZoneName, null, true));
+        }
+
+        TextView txtSub = findViewById(R.id.txtSelectedZoneSubHistorial);
         TextView txtVisibles = findViewById(R.id.txtCountVisiblesHistorial);
-        if (txtVisibles != null) txtVisibles.setText(zone.enZona + " granjas");
 
-        // Resumen operativo
-        TextView txtResumenZ = findViewById(R.id.txtResumenZonaHistorial);
-        if (txtResumenZ != null) txtResumenZ.setText("Resumen Operativo " + zone.shortName);
+        auditRepository.listarGranjasPorZona(finalZoneName, new AuthRepository.ResultCallback<List<FarmEntity>>() {
+            @Override
+            public void onSuccess(List<FarmEntity> granjas) {
+                int totalGranjas = (granjas != null) ? granjas.size() : 0;
+                pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
+                    @Override
+                    public void onSuccess(List<PedidoEntity> pedidos) {
+                        int listas = 0;
+                        if (pedidos != null) {
+                            for (PedidoEntity p : pedidos) {
+                                if (p.zona != null && p.zona.equalsIgnoreCase(finalZoneName) && "APROBADO".equalsIgnoreCase(p.estado)) {
+                                    listas++;
+                                }
+                            }
+                        }
+                        if (txtSub != null) {
+                            txtSub.setText(totalGranjas + (totalGranjas == 1 ? " Granja asignada" : " Granjas asignadas") +
+                                    " • " + listas + (listas == 1 ? " lista" : " listas"));
+                        }
+                        if (txtVisibles != null) {
+                            txtVisibles.setText(totalGranjas + (totalGranjas == 1 ? " granja" : " granjas"));
+                        }
+                    }
 
-        TextView txtCob = findViewById(R.id.txtCoberturaHistorial);
-        if (txtCob != null) txtCob.setText(zone.cobertura);
+                    @Override
+                    public void onError(Exception error) {
+                        if (txtVisibles != null) txtVisibles.setText(totalGranjas + " granjas");
+                    }
+                });
+            }
 
-        TextView txtInsumos = findViewById(R.id.txtInsumosCountHistorial);
-        if (txtInsumos != null) txtInsumos.setText((zone.listas * 48) + " Unidades");
+            @Override
+            public void onError(Exception error) {}
+        });
 
-        TextView txtMonto = findViewById(R.id.txtTotalMontoHistorial);
-        if (txtMonto != null) txtMonto.setText("$" + String.format("%,d", zone.listas * 4150) + " USD");
-
-        // Renderizar granjas de la zona en containerGranjasHistorial
-        cargarGranjasHistorialDeZona(zone);
+        // Renderizar granjas de la zona consultadas desde SQLite
+        cargarGranjasHistorialDeZonaByName(finalZoneName);
     }
 
     private void actualizarChipHistorialStyle(int chipId, boolean active, String activeText, String inactiveText) {
@@ -1235,31 +1529,44 @@ public class SupervisorActivity extends AppCompatActivity {
     }
 
     private void cargarGranjasHistorialDeZona(Zone zone) {
+        cargarGranjasHistorialDeZonaByName(zone.shortName);
+    }
+
+    private void cargarGranjasHistorialDeZonaByName(String zoneName) {
         LinearLayout container = findViewById(R.id.containerGranjasHistorial);
         if (container == null) return;
         container.removeAllViews();
 
-        // Lista de granjas según la zona
-        List<String> granjas = new ArrayList<>();
-        if (zone == Zone.NORTE) {
-            granjas.add("Granja Los Laureles");
-            granjas.add("Finca San Isidro");
-            granjas.add("Granja Santa Elena");
-        } else if (zone == Zone.VALLE) {
-            granjas.add("Finca San Isidro");
-            granjas.add("Agropecuaria El Sol");
-            granjas.add("Finca La Esperanza");
-        } else if (zone == Zone.SUR) {
-            granjas.add("Granja Santa Elena");
-            granjas.add("Hacienda Real");
-        } else {
-            granjas.add("Finca Occidente");
-            granjas.add("Granja Los Pinos");
-        }
+        auditRepository.listarGranjasPorZona(zoneName, new AuthRepository.ResultCallback<List<FarmEntity>>() {
+            @Override
+            public void onSuccess(List<FarmEntity> granjas) {
+                container.removeAllViews();
+                if (granjas == null || granjas.isEmpty()) {
+                    MaterialCardView emptyCard = new MaterialCardView(SupervisorActivity.this);
+                    emptyCard.setCardBackgroundColor(Color.WHITE);
+                    emptyCard.setRadius(dp(14));
+                    emptyCard.setStrokeColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_card_stroke));
+                    emptyCard.setStrokeWidth(dp(1));
+                    TextView txt = new TextView(SupervisorActivity.this);
+                    txt.setText("No hay granjas registradas en " + zoneName + ".");
+                    txt.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
+                    txt.setTextSize(13);
+                    txt.setPadding(dp(16), dp(16), dp(16), dp(16));
+                    emptyCard.addView(txt);
+                    container.addView(emptyCard, params(-1, -2, 0, 10, 0, 0));
+                    return;
+                }
 
-        for (String granjaNombre : granjas) {
-            container.addView(crearCardGranjaHistorialConExport(granjaNombre, zone.shortName));
-        }
+                for (FarmEntity farm : granjas) {
+                    container.addView(crearCardGranjaHistorialConExport(farm.nombre, zoneName));
+                }
+            }
+
+            @Override
+            public void onError(Exception error) {
+                Toast.makeText(SupervisorActivity.this, "Error al cargar granjas: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private View crearCardGranjaHistorialConExport(String granjaNombre, String zonaNombre) {
@@ -1344,7 +1651,7 @@ public class SupervisorActivity extends AppCompatActivity {
         btnVer.setStrokeWidth(dp(1));
         btnVer.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
         btnVer.setCornerRadius(dp(8));
-        btnVer.setOnClickListener(v -> loadHojaPedidoView(granjaNombre));
+        btnVer.setOnClickListener(v -> mostrarHojasPedidoHistorial(granjaNombre, zonaNombre));
         actionsRow.addView(btnVer, new LinearLayout.LayoutParams(0, dp(38), 1));
 
         View space = new View(this);
@@ -1366,23 +1673,726 @@ public class SupervisorActivity extends AppCompatActivity {
         LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(-1, -2);
         cardLp.setMargins(0, dp(4), 0, dp(8));
         card.setLayoutParams(cardLp);
-        card.setOnClickListener(v -> loadHojaPedidoView(granjaNombre));
+        card.setOnClickListener(v -> mostrarHojasPedidoHistorial(granjaNombre, zonaNombre));
         return card;
     }
 
     private void mostrarDialogoExportarGranja(String granjaNombre, String zonaNombre) {
-        String[] opciones = {"Exportar a CSV (Excel)", "Exportar a PDF Oficial"};
-        new AlertDialog.Builder(this)
-                .setTitle("Exportar Pedidos de " + granjaNombre)
-                .setItems(opciones, (dialog, which) -> {
-                    if (which == 0) {
-                        exportarPedidosFiltrados(zonaNombre, granjaNombre, false);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_exportar_reporte, null);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        TextView txtSub = dialogView.findViewById(R.id.txtDialogExportSub);
+        if (txtSub != null) {
+            txtSub.setText("¿En qué formato deseas exportar los pedidos de " + granjaNombre + "?");
+        }
+
+        View btnCsv = dialogView.findViewById(R.id.btnExportOpcionCsv);
+        if (btnCsv != null) {
+            btnCsv.setOnClickListener(v -> {
+                dialog.dismiss();
+                exportarPedidosFiltrados(zonaNombre, granjaNombre, false);
+            });
+        }
+
+        View btnPdf = dialogView.findViewById(R.id.btnExportOpcionPdf);
+        if (btnPdf != null) {
+            btnPdf.setOnClickListener(v -> {
+                dialog.dismiss();
+                exportarPedidosFiltrados(zonaNombre, granjaNombre, true);
+            });
+        }
+
+        View btnCancelar = dialogView.findViewById(R.id.btnDialogExportCancelar);
+        if (btnCancelar != null) {
+            btnCancelar.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
+    }
+
+    /**
+     * Muestra el modal para seleccionar una zona operativa (usado en Zonas y Granjas e Historial).
+     */
+    private void mostrarDialogoSeleccionarZona(boolean esHistorial) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_seleccionar_zona, null);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        LinearLayout container = dialogView.findViewById(R.id.containerOpcionesZonas);
+        View btnCancelar = dialogView.findViewById(R.id.btnDialogZonaCancelar);
+        if (btnCancelar != null) btnCancelar.setOnClickListener(v -> dialog.dismiss());
+
+        if (container != null) {
+            container.removeAllViews();
+            String currentActiveName = esHistorial ? currentHistorialZoneName : currentZoneName;
+
+            auditRepository.listarZonas(new AuthRepository.ResultCallback<List<ZoneEntity>>() {
+                @Override
+                public void onSuccess(List<ZoneEntity> zonas) {
+                    List<ZoneEntity> displayList = new ArrayList<>();
+                    if (zonas != null && !zonas.isEmpty()) {
+                        displayList.addAll(zonas);
                     } else {
-                        exportarPedidosFiltrados(zonaNombre, granjaNombre, true);
+                        for (Zone z : Zone.values()) {
+                            displayList.add(new ZoneEntity(z.shortName, z.title, true));
+                        }
                     }
-                })
-                .setNegativeButton("Cancelar", null)
-                .show();
+
+                    container.removeAllViews();
+                    for (ZoneEntity z : displayList) {
+                        MaterialCardView optionCard = new MaterialCardView(SupervisorActivity.this);
+                        optionCard.setRadius(dp(12));
+                        boolean isSelected = z.nombre.equalsIgnoreCase(currentActiveName);
+                        optionCard.setCardBackgroundColor(isSelected ? ContextCompat.getColor(SupervisorActivity.this, R.color.krono_bg) : Color.WHITE);
+                        optionCard.setStrokeColor(ContextCompat.getColor(SupervisorActivity.this, isSelected ? R.color.krono_navy : R.color.krono_card_stroke));
+                        optionCard.setStrokeWidth(dp(isSelected ? 2 : 1));
+                        optionCard.setCardElevation(0);
+                        optionCard.setClickable(true);
+                        optionCard.setFocusable(true);
+
+                        LinearLayout row = new LinearLayout(SupervisorActivity.this);
+                        row.setOrientation(LinearLayout.HORIZONTAL);
+                        row.setGravity(Gravity.CENTER_VERTICAL);
+                        row.setPadding(dp(14), dp(12), dp(14), dp(12));
+
+                        ImageView icon = new ImageView(SupervisorActivity.this);
+                        icon.setImageResource(R.drawable.ic_location);
+                        icon.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(SupervisorActivity.this, isSelected ? R.color.krono_navy : R.color.krono_text_secondary)));
+                        row.addView(icon, new LinearLayout.LayoutParams(dp(22), dp(22)));
+
+                        LinearLayout col = new LinearLayout(SupervisorActivity.this);
+                        col.setOrientation(LinearLayout.VERTICAL);
+                        col.setPadding(dp(12), 0, dp(12), 0);
+
+                        TextView title = new TextView(SupervisorActivity.this);
+                        title.setText(z.nombre);
+                        title.setTextSize(14);
+                        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+                        title.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_navy_dark));
+                        col.addView(title);
+
+                        TextView sub = new TextView(SupervisorActivity.this);
+                        String desc = (z.descripcion != null && !z.descripcion.isEmpty()) ? z.descripcion : "Región productiva";
+                        sub.setText(desc);
+                        sub.setTextSize(11);
+                        sub.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
+                        col.addView(sub);
+
+                        row.addView(col, new LinearLayout.LayoutParams(0, -2, 1));
+
+                        if (isSelected) {
+                            TextView badge = new TextView(SupervisorActivity.this);
+                            badge.setText("Activa");
+                            badge.setTextSize(10);
+                            badge.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+                            badge.setTextColor(Color.WHITE);
+                            badge.setBackgroundResource(R.drawable.bg_button_primary);
+                            badge.setPadding(dp(8), dp(3), dp(8), dp(3));
+                            row.addView(badge);
+                        }
+
+                        optionCard.addView(row);
+
+                        final String selectedName = z.nombre;
+                        optionCard.setOnClickListener(v -> {
+                            dialog.dismiss();
+                            if (esHistorial) {
+                                actualizarVistaHistorialZonaByName(selectedName);
+                            } else {
+                                selectZoneByName(selectedName);
+                            }
+                        });
+
+                        container.addView(optionCard, params(-1, -2, 0, 4, 0, 4));
+                    }
+                }
+
+                @Override
+                public void onError(Exception error) {
+                    Toast.makeText(SupervisorActivity.this, "Error al cargar zonas: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        dialog.show();
+    }
+
+    /**
+     * Muestra la lista de hojas de pedidos de una granja dentro de la pestaña HISTORIAL (Solo Lectura).
+     */
+    private void mostrarHojasPedidoHistorial(String farmName, String zonaName) {
+        LinearLayout contentLayout = findViewById(R.id.contentLayoutHistorial);
+        if (contentLayout == null) return;
+        contentLayout.removeAllViews();
+
+        // 1. Botón píldora Volver
+        MaterialButton btnVolver = new MaterialButton(this);
+        btnVolver.setText("← Volver a Historial");
+        btnVolver.setAllCaps(false);
+        btnVolver.setTextSize(13);
+        btnVolver.setTextColor(ContextCompat.getColor(this, R.color.krono_navy));
+        btnVolver.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.krono_card_stroke)));
+        btnVolver.setStrokeWidth(dp(1));
+        btnVolver.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        btnVolver.setCornerRadius(dp(20));
+        btnVolver.setPadding(dp(16), dp(8), dp(16), dp(8));
+        btnVolver.setOnClickListener(v -> actualizarVistaHistorialZona(currentHistorialZone));
+        contentLayout.addView(btnVolver, params(-2, dp(40), 0, 0, 0, 14));
+
+        // 2. Ruta / Breadcrumb
+        TextView breadcrumb = new TextView(this);
+        breadcrumb.setText("• " + zonaName + "  >  🚜 " + farmName);
+        breadcrumb.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        breadcrumb.setTextSize(12);
+        contentLayout.addView(breadcrumb, params(-1, -2, 0, 0, 0, 4));
+
+        // 3. Título y Contador
+        LinearLayout titleRow = new LinearLayout(this);
+        titleRow.setOrientation(LinearLayout.HORIZONTAL);
+        titleRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView title = new TextView(this);
+        title.setText("Hojas de Pedidos");
+        title.setTextSize(20);
+        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        title.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        titleRow.addView(title);
+
+        TextView badgeCount = new TextView(this);
+        badgeCount.setText("Solo Lectura");
+        badgeCount.setTextSize(11);
+        badgeCount.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        badgeCount.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        badgeCount.setBackgroundResource(R.drawable.bg_chip);
+        badgeCount.setPadding(dp(8), dp(3), dp(8), dp(3));
+        LinearLayout.LayoutParams bLp = new LinearLayout.LayoutParams(-2, -2);
+        bLp.setMargins(dp(10), 0, 0, 0);
+        titleRow.addView(badgeCount, bLp);
+
+        contentLayout.addView(titleRow);
+
+        TextView sub = new TextView(this);
+        sub.setText("Consulta el historial de pedidos de esta granja. Toque un pedido para ver su detalle e insumos.");
+        sub.setTextSize(12);
+        sub.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        contentLayout.addView(sub, params(-1, -2, 0, 4, 0, 14));
+
+        // 4. Contenedor de pedidos
+        LinearLayout containerPedidos = new LinearLayout(this);
+        containerPedidos.setOrientation(LinearLayout.VERTICAL);
+        contentLayout.addView(containerPedidos, params(-1, -2, 0, 0, 0, 0));
+
+        pedidoRepository.obtenerPedidos(new PedidoRepository.PedidosCallback() {
+            @Override
+            public void onSuccess(List<PedidoEntity> pedidos) {
+                containerPedidos.removeAllViews();
+                List<PedidoEntity> filtrados = new ArrayList<>();
+                for (PedidoEntity p : pedidos) {
+                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
+                    if (p.granja != null && p.granja.trim().equalsIgnoreCase(farmName.trim())) {
+                        filtrados.add(p);
+                    }
+                }
+
+                if (filtrados.isEmpty()) {
+                    MaterialCardView emptyCard = new MaterialCardView(SupervisorActivity.this);
+                    emptyCard.setCardBackgroundColor(Color.WHITE);
+                    emptyCard.setRadius(dp(14));
+                    emptyCard.setStrokeColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_card_stroke));
+                    emptyCard.setStrokeWidth(dp(1));
+                    TextView txtEmpty = new TextView(SupervisorActivity.this);
+                    txtEmpty.setText("No hay pedidos registrados para " + farmName + ".");
+                    txtEmpty.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
+                    txtEmpty.setTextSize(13);
+                    txtEmpty.setPadding(dp(16), dp(16), dp(16), dp(16));
+                    emptyCard.addView(txtEmpty);
+                    containerPedidos.addView(emptyCard, params(-1, -2, 0, 4, 0, 0));
+                    return;
+                }
+
+                badgeCount.setText(filtrados.size() + " Registros");
+
+                for (PedidoEntity p : filtrados) {
+                    View cardView = crearCardPedidoHistorialLectura(p, farmName, zonaName);
+                    containerPedidos.addView(cardView, params(-1, -2, 0, 0, 0, 10));
+                }
+            }
+
+            @Override
+            public void onError(Exception error) {
+                Toast.makeText(SupervisorActivity.this, "Error al cargar pedidos: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private View crearCardPedidoHistorialLectura(PedidoEntity pedido, String farmName, String zonaName) {
+        MaterialCardView card = new MaterialCardView(this);
+        card.setCardBackgroundColor(Color.WHITE);
+        card.setRadius(dp(16));
+        card.setStrokeColor(ContextCompat.getColor(this, R.color.krono_card_stroke));
+        card.setStrokeWidth(dp(1));
+        card.setCardElevation(dp(1));
+        card.setClickable(true);
+        card.setFocusable(true);
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(dp(16), dp(14), dp(16), dp(14));
+
+        // Fila 1: Chip de estado a la izquierda + Fecha a la derecha
+        LinearLayout row1 = new LinearLayout(this);
+        row1.setOrientation(LinearLayout.HORIZONTAL);
+        row1.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView chipEstado = new TextView(this);
+        String estado = (pedido.estado != null && !pedido.estado.isEmpty()) ? pedido.estado : "APROBADO";
+        chipEstado.setText(estado.toUpperCase());
+        chipEstado.setTextSize(11);
+        chipEstado.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        chipEstado.setPadding(dp(10), dp(4), dp(10), dp(4));
+
+        GradientDrawable bgChip = new GradientDrawable();
+        if ("APROBADO".equalsIgnoreCase(estado)) {
+            chipEstado.setTextColor(ContextCompat.getColor(this, R.color.krono_green_text));
+            bgChip.setColor(Color.parseColor("#E6F4EA"));
+        } else if ("RECHAZADO".equalsIgnoreCase(estado)) {
+            chipEstado.setTextColor(ContextCompat.getColor(this, R.color.krono_red_text));
+            bgChip.setColor(Color.parseColor("#FCE8E6"));
+        } else {
+            chipEstado.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+            bgChip.setColor(Color.parseColor("#E8EAF0"));
+        }
+        bgChip.setCornerRadius(dp(10));
+        chipEstado.setBackground(bgChip);
+        row1.addView(chipEstado);
+
+        View spacer = new View(this);
+        row1.addView(spacer, new LinearLayout.LayoutParams(0, 0, 1));
+
+        TextView tvFecha = new TextView(this);
+        String f = android.text.format.DateFormat.format("dd MMM yyyy • HH:mm",
+                pedido.creadoEn > 0 ? pedido.creadoEn : System.currentTimeMillis()).toString();
+        tvFecha.setText(f);
+        tvFecha.setTextSize(11);
+        tvFecha.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        row1.addView(tvFecha);
+
+        layout.addView(row1);
+
+        // Fila 2: Folio en texto grande y chevron a la derecha
+        LinearLayout row2 = new LinearLayout(this);
+        row2.setOrientation(LinearLayout.HORIZONTAL);
+        row2.setGravity(Gravity.CENTER_VERTICAL);
+        row2.setPadding(0, dp(8), 0, 0);
+
+        TextView tvFolio = new TextView(this);
+        String loteStr = (pedido.lote != null && !pedido.lote.isEmpty()) ? pedido.lote : "Lote 01";
+        tvFolio.setText("Número de Lote: " + loteStr);
+        tvFolio.setTextSize(17);
+        tvFolio.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        tvFolio.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        row2.addView(tvFolio, new LinearLayout.LayoutParams(0, -2, 1));
+
+        FrameLayout circleBtn = new FrameLayout(this);
+        circleBtn.setBackgroundResource(R.drawable.bg_icon_container);
+        ImageView icChevron = new ImageView(this);
+        icChevron.setImageResource(R.drawable.ic_arrow_forward);
+        icChevron.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.krono_navy)));
+        FrameLayout.LayoutParams cLp = new FrameLayout.LayoutParams(dp(18), dp(18));
+        cLp.gravity = Gravity.CENTER;
+        circleBtn.addView(icChevron, cLp);
+        row2.addView(circleBtn, new LinearLayout.LayoutParams(dp(36), dp(36)));
+
+        layout.addView(row2);
+
+        // Fila 3: Subtítulo
+        TextView tvSub = new TextView(this);
+        String solicitante = pedido.operarioId != null ? pedido.operarioId : "Operario";
+        tvSub.setText("Solicitado por " + solicitante + " • Toca para consultar dictamen");
+        tvSub.setTextSize(12);
+        tvSub.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        tvSub.setPadding(0, dp(4), 0, 0);
+        layout.addView(tvSub);
+
+        card.addView(layout);
+        card.setOnClickListener(v -> mostrarDetallePedidoHistorial(pedido, farmName, zonaName));
+        return card;
+    }
+
+    /**
+     * Muestra la vista de detalle de un pedido en modo SOLO LECTURA dentro de Historial.
+     */
+    private void mostrarDetallePedidoHistorial(PedidoEntity pedido, String farmName, String zonaName) {
+        LinearLayout contentLayout = findViewById(R.id.contentLayoutHistorial);
+        if (contentLayout == null) return;
+        contentLayout.removeAllViews();
+
+        // 1. Botón píldora Volver a Hojas de Pedido
+        MaterialButton btnVolver = new MaterialButton(this);
+        btnVolver.setText("← Volver a Hojas de Pedido");
+        btnVolver.setAllCaps(false);
+        btnVolver.setTextSize(13);
+        btnVolver.setTextColor(ContextCompat.getColor(this, R.color.krono_navy));
+        btnVolver.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.krono_card_stroke)));
+        btnVolver.setStrokeWidth(dp(1));
+        btnVolver.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        btnVolver.setCornerRadius(dp(20));
+        btnVolver.setPadding(dp(16), dp(8), dp(16), dp(8));
+        btnVolver.setOnClickListener(v -> mostrarHojasPedidoHistorial(farmName, zonaName));
+        contentLayout.addView(btnVolver, params(-2, dp(40), 0, 0, 0, 14));
+
+        // 2. Encabezado con Título y Estado
+        LinearLayout headerRow = new LinearLayout(this);
+        headerRow.setOrientation(LinearLayout.HORIZONTAL);
+        headerRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView title = new TextView(this);
+        title.setText("Detalle del Pedido");
+        title.setTextSize(20);
+        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        title.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        headerRow.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
+
+        TextView badge = new TextView(this);
+        String est = (pedido.estado != null && !pedido.estado.isEmpty()) ? pedido.estado : "APROBADO";
+        badge.setText(est.toUpperCase());
+        badge.setTextSize(11);
+        badge.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        badge.setPadding(dp(10), dp(4), dp(10), dp(4));
+        GradientDrawable bgChip = new GradientDrawable();
+        if ("APROBADO".equalsIgnoreCase(est)) {
+            badge.setTextColor(ContextCompat.getColor(this, R.color.krono_green_text));
+            bgChip.setColor(Color.parseColor("#E6F4EA"));
+        } else if ("RECHAZADO".equalsIgnoreCase(est)) {
+            badge.setTextColor(ContextCompat.getColor(this, R.color.krono_red_text));
+            bgChip.setColor(Color.parseColor("#FCE8E6"));
+        } else {
+            badge.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+            bgChip.setColor(Color.parseColor("#E8EAF0"));
+        }
+        bgChip.setCornerRadius(dp(10));
+        badge.setBackground(bgChip);
+        headerRow.addView(badge);
+
+        contentLayout.addView(headerRow);
+
+        TextView subEnc = new TextView(this);
+        subEnc.setText("Consulta de insumos y dictamen técnico en modo solo lectura.");
+        subEnc.setTextSize(12);
+        subEnc.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        contentLayout.addView(subEnc, params(-1, -2, 0, 3, 0, 14));
+
+        // CARD 1: DATOS GENERALES DEL ENVÍO
+        MaterialCardView cardDatos = new MaterialCardView(this);
+        cardDatos.setCardBackgroundColor(Color.WHITE);
+        cardDatos.setRadius(dp(14));
+        cardDatos.setStrokeColor(ContextCompat.getColor(this, R.color.krono_card_stroke));
+        cardDatos.setStrokeWidth(dp(1));
+        cardDatos.setCardElevation(dp(1));
+
+        LinearLayout colDatos = new LinearLayout(this);
+        colDatos.setOrientation(LinearLayout.VERTICAL);
+        colDatos.setPadding(dp(16), dp(14), dp(16), dp(14));
+
+        TextView lblSecc1 = new TextView(this);
+        lblSecc1.setText("DATOS DEL ENVÍO ORIGINAL");
+        lblSecc1.setTextSize(11);
+        lblSecc1.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        lblSecc1.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        colDatos.addView(lblSecc1);
+
+        LinearLayout rowInfo1 = new LinearLayout(this);
+        rowInfo1.setOrientation(LinearLayout.HORIZONTAL);
+        rowInfo1.setPadding(0, dp(6), 0, dp(4));
+
+        LinearLayout colF = new LinearLayout(this);
+        colF.setOrientation(LinearLayout.VERTICAL);
+        TextView lF = new TextView(this);
+        lF.setText("Número de Lote:");
+        lF.setTextSize(11);
+        lF.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        colF.addView(lF);
+        TextView vF = new TextView(this);
+        String loteVal = (pedido.lote != null && !pedido.lote.isEmpty()) ? pedido.lote : "Lote 01";
+        vF.setText(loteVal);
+        vF.setTextSize(14);
+        vF.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        vF.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        colF.addView(vF);
+        rowInfo1.addView(colF, new LinearLayout.LayoutParams(0, -2, 1));
+
+        LinearLayout colO = new LinearLayout(this);
+        colO.setOrientation(LinearLayout.VERTICAL);
+        TextView lO = new TextView(this);
+        lO.setText("Operario Responsable:");
+        lO.setTextSize(11);
+        lO.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        colO.addView(lO);
+        TextView vO = new TextView(this);
+        vO.setText(pedido.operarioId != null ? pedido.operarioId : "E100");
+        vO.setTextSize(14);
+        vO.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        vO.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        colO.addView(vO);
+        rowInfo1.addView(colO, new LinearLayout.LayoutParams(0, -2, 1));
+        colDatos.addView(rowInfo1);
+
+        LinearLayout rowInfo2 = new LinearLayout(this);
+        rowInfo2.setOrientation(LinearLayout.HORIZONTAL);
+        rowInfo2.setPadding(0, dp(4), 0, 0);
+
+        LinearLayout colG = new LinearLayout(this);
+        colG.setOrientation(LinearLayout.VERTICAL);
+        TextView lG = new TextView(this);
+        lG.setText("Granja / Zona:");
+        lG.setTextSize(11);
+        lG.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        colG.addView(lG);
+        TextView vG = new TextView(this);
+        vG.setText(farmName + " • " + zonaName);
+        vG.setTextSize(13);
+        vG.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        vG.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        colG.addView(vG);
+        rowInfo2.addView(colG, new LinearLayout.LayoutParams(0, -2, 1));
+
+        LinearLayout colFe = new LinearLayout(this);
+        colFe.setOrientation(LinearLayout.VERTICAL);
+        TextView lFe = new TextView(this);
+        lFe.setText("Fecha de Envío:");
+        lFe.setTextSize(11);
+        lFe.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        colFe.addView(lFe);
+        TextView vFe = new TextView(this);
+        String fEnvio = android.text.format.DateFormat.format("dd MMM yyyy • HH:mm",
+                pedido.creadoEn > 0 ? pedido.creadoEn : System.currentTimeMillis()).toString();
+        vFe.setText(fEnvio);
+        vFe.setTextSize(13);
+        vFe.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        vFe.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        colFe.addView(vFe);
+        rowInfo2.addView(colFe, new LinearLayout.LayoutParams(0, -2, 1));
+        colDatos.addView(rowInfo2);
+
+        cardDatos.addView(colDatos);
+        contentLayout.addView(cardDatos, params(-1, -2, 0, 0, 0, 12));
+
+        // CARD 2: INSUMOS ENVIADOS
+        MaterialCardView cardInsumos = new MaterialCardView(this);
+        cardInsumos.setCardBackgroundColor(Color.WHITE);
+        cardInsumos.setRadius(dp(14));
+        cardInsumos.setStrokeColor(ContextCompat.getColor(this, R.color.krono_card_stroke));
+        cardInsumos.setStrokeWidth(dp(1));
+        cardInsumos.setCardElevation(dp(1));
+
+        LinearLayout colInsumos = new LinearLayout(this);
+        colInsumos.setOrientation(LinearLayout.VERTICAL);
+        colInsumos.setPadding(dp(16), dp(14), dp(16), dp(14));
+
+        TextView lblSecc2 = new TextView(this);
+        lblSecc2.setText("Insumos enviados por el operario");
+        lblSecc2.setTextSize(15);
+        lblSecc2.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        lblSecc2.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        colInsumos.addView(lblSecc2);
+
+        TextView subSecc2 = new TextView(this);
+        subSecc2.setText("Registro original tomado en campo (No modificable)");
+        subSecc2.setTextSize(11);
+        subSecc2.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        colInsumos.addView(subSecc2, params(-1, -2, 0, 1, 0, 10));
+
+        pedidoRepository.obtenerInsumos(pedido.id, new PedidoRepository.InsumosCallback() {
+            @Override
+            public void onSuccess(List<InsumoPedidoEntity> insumos) {
+                List<InsumoPedidoEntity> lista = (insumos != null && !insumos.isEmpty()) ? insumos : new ArrayList<>();
+                if (lista.isEmpty()) {
+                    lista.add(new InsumoPedidoEntity(pedido.id, "Fertilizante NPK 15-15-15 (Sacos 50kg)", "20 sacos", "SKU: Fungicida/Nutricional • SKU: FERT-NPK-50"));
+                    lista.add(new InsumoPedidoEntity(pedido.id, "Insecticida Concentrado 1L", "12 frascos", "SKU: Protección Fitosanitaria • SKU: INS-L1"));
+                }
+                for (InsumoPedidoEntity item : lista) {
+                    LinearLayout itemRow = new LinearLayout(SupervisorActivity.this);
+                    itemRow.setOrientation(LinearLayout.HORIZONTAL);
+                    itemRow.setGravity(Gravity.CENTER_VERTICAL);
+                    itemRow.setPadding(dp(12), dp(10), dp(12), dp(10));
+                    GradientDrawable itBg = new GradientDrawable();
+                    itBg.setColor(Color.parseColor("#FAF4ED"));
+                    itBg.setCornerRadius(dp(8));
+                    itemRow.setBackground(itBg);
+
+                    LinearLayout textCol = new LinearLayout(SupervisorActivity.this);
+                    textCol.setOrientation(LinearLayout.VERTICAL);
+
+                    TextView name = new TextView(SupervisorActivity.this);
+                    name.setText(item.nombre);
+                    name.setTextSize(13);
+                    name.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+                    name.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_navy_dark));
+                    textCol.addView(name);
+
+                    TextView sku = new TextView(SupervisorActivity.this);
+                    sku.setText(item.sku != null ? item.sku : "Insumo Registrado");
+                    sku.setTextSize(11);
+                    sku.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
+                    textCol.addView(sku);
+                    itemRow.addView(textCol, new LinearLayout.LayoutParams(0, -2, 1));
+
+                    TextView cant = new TextView(SupervisorActivity.this);
+                    cant.setText(item.cantidad);
+                    cant.setTextSize(13);
+                    cant.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+                    cant.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_navy));
+                    cant.setPadding(dp(10), dp(4), dp(10), dp(4));
+                    GradientDrawable cBg = new GradientDrawable();
+                    cBg.setColor(Color.parseColor("#EDE7DF"));
+                    cBg.setCornerRadius(dp(6));
+                    cant.setBackground(cBg);
+                    itemRow.addView(cant);
+
+                    colInsumos.addView(itemRow, params(-1, -2, 0, 0, 0, 6));
+                }
+            }
+
+            @Override
+            public void onError(Exception error) {}
+        });
+
+        cardInsumos.addView(colInsumos);
+        contentLayout.addView(cardInsumos, params(-1, -2, 0, 0, 0, 12));
+
+        // CARD 3: REVISIÓN DEL SUPERVISOR
+        MaterialCardView cardDictamen = new MaterialCardView(this);
+        cardDictamen.setCardBackgroundColor(Color.WHITE);
+        cardDictamen.setRadius(dp(14));
+        cardDictamen.setStrokeColor(ContextCompat.getColor(this, R.color.krono_card_stroke));
+        cardDictamen.setStrokeWidth(dp(1));
+        cardDictamen.setCardElevation(dp(1));
+
+        LinearLayout colDictamen = new LinearLayout(this);
+        colDictamen.setOrientation(LinearLayout.VERTICAL);
+        colDictamen.setPadding(dp(16), dp(14), dp(16), dp(14));
+
+        TextView lblSecc3 = new TextView(this);
+        lblSecc3.setText("Revisión del supervisor");
+        lblSecc3.setTextSize(15);
+        lblSecc3.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        lblSecc3.setTextColor(ContextCompat.getColor(this, R.color.krono_navy_dark));
+        colDictamen.addView(lblSecc3);
+
+        TextView subSecc3 = new TextView(this);
+        subSecc3.setText("Dictamen técnico y cantidades autorizadas");
+        subSecc3.setTextSize(11);
+        subSecc3.setTextColor(ContextCompat.getColor(this, R.color.krono_text_secondary));
+        colDictamen.addView(subSecc3, params(-1, -2, 0, 1, 0, 10));
+
+        pedidoRepository.obtenerUltimaRevision(pedido.id, new PedidoRepository.RevisionCallback() {
+            @Override
+            public void onSuccess(RevisionPedidoEntity rev) {
+                if (rev != null && rev.textoEditado != null && !rev.textoEditado.isEmpty()) {
+                    String[] parts = rev.textoEditado.split("\\|");
+                    for (String part : parts) {
+                        String trimmed = part.trim();
+                        if (trimmed.isEmpty()) continue;
+
+                        String prodName = trimmed;
+                        String dictStatus = "";
+                        if (trimmed.contains("[") && trimmed.contains("]")) {
+                            int startIdx = trimmed.indexOf('[');
+                            int endIdx = trimmed.indexOf(']');
+                            prodName = trimmed.substring(0, startIdx).trim();
+                            dictStatus = trimmed.substring(startIdx + 1, endIdx).trim();
+                        }
+
+                        LinearLayout rowItem = new LinearLayout(SupervisorActivity.this);
+                        rowItem.setOrientation(LinearLayout.HORIZONTAL);
+                        rowItem.setGravity(Gravity.CENTER_VERTICAL);
+                        rowItem.setPadding(dp(12), dp(10), dp(12), dp(10));
+                        GradientDrawable rowBg = new GradientDrawable();
+                        rowBg.setColor(Color.parseColor("#FAF4ED"));
+                        rowBg.setCornerRadius(dp(8));
+                        rowItem.setBackground(rowBg);
+
+                        TextView tvProd = new TextView(SupervisorActivity.this);
+                        tvProd.setText(prodName);
+                        tvProd.setTextSize(13);
+                        tvProd.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+                        tvProd.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_navy_dark));
+                        rowItem.addView(tvProd, new LinearLayout.LayoutParams(0, -2, 1));
+
+                        if (!dictStatus.isEmpty()) {
+                            TextView tvBadge = new TextView(SupervisorActivity.this);
+                            tvBadge.setText(dictStatus);
+                            tvBadge.setTextSize(11);
+                            tvBadge.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+                            tvBadge.setPadding(dp(8), dp(3), dp(8), dp(3));
+                            GradientDrawable bBg = new GradientDrawable();
+                            if (dictStatus.toUpperCase().contains("RECHAZADO")) {
+                                tvBadge.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_red_text));
+                                bBg.setColor(Color.parseColor("#FCE8E6"));
+                            } else if (dictStatus.toUpperCase().contains("AJUSTADO")) {
+                                tvBadge.setTextColor(Color.parseColor("#C47800"));
+                                bBg.setColor(Color.parseColor("#FEF7E0"));
+                            } else {
+                                tvBadge.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_green_text));
+                                bBg.setColor(Color.parseColor("#E6F4EA"));
+                            }
+                            bBg.setCornerRadius(dp(6));
+                            tvBadge.setBackground(bBg);
+                            rowItem.addView(tvBadge);
+                        }
+
+                        colDictamen.addView(rowItem, params(-1, -2, 0, 0, 0, 6));
+                    }
+
+                    if (rev.observacion != null && !rev.observacion.trim().isEmpty()) {
+                        LinearLayout obsBox = new LinearLayout(SupervisorActivity.this);
+                        obsBox.setOrientation(LinearLayout.VERTICAL);
+                        obsBox.setPadding(dp(12), dp(10), dp(12), dp(10));
+                        GradientDrawable obsBg = new GradientDrawable();
+                        obsBg.setColor(Color.parseColor("#F5EFE6"));
+                        obsBg.setCornerRadius(dp(8));
+                        obsBox.setBackground(obsBg);
+
+                        TextView lblObs = new TextView(SupervisorActivity.this);
+                        lblObs.setText("Observaciones Técnicas:");
+                        lblObs.setTextSize(11);
+                        lblObs.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+                        lblObs.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_navy));
+                        obsBox.addView(lblObs);
+
+                        TextView txtObs = new TextView(SupervisorActivity.this);
+                        txtObs.setText(rev.observacion);
+                        txtObs.setTextSize(12);
+                        txtObs.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_navy_dark));
+                        txtObs.setPadding(0, dp(2), 0, 0);
+                        obsBox.addView(txtObs);
+
+                        colDictamen.addView(obsBox, params(-1, -2, 0, 4, 0, 0));
+                    }
+                } else {
+                    TextView sinRev = new TextView(SupervisorActivity.this);
+                    sinRev.setText("Sin dictamen registrado aún.");
+                    sinRev.setTextSize(13);
+                    sinRev.setTextColor(ContextCompat.getColor(SupervisorActivity.this, R.color.krono_text_secondary));
+                    colDictamen.addView(sinRev);
+                }
+            }
+
+            @Override
+            public void onError(Exception error) {}
+        });
+
+        cardDictamen.addView(colDictamen);
+        contentLayout.addView(cardDictamen, params(-1, -2, 0, 0, 0, 16));
     }
 
     // ==========================================
@@ -1406,10 +2416,9 @@ public class SupervisorActivity extends AppCompatActivity {
                 // Filtrar según zona y granja
                 List<PedidoEntity> filtrados = new ArrayList<>();
                 for (PedidoEntity p : list) {
-                    String z = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "Zona Norte";
-                    String g = (p.granja != null && !p.granja.isEmpty()) ? p.granja :
-                            (p.operarioId != null && p.operarioId.contains("E100") ? "Granja Los Laureles" :
-                            (p.operarioId != null && p.operarioId.contains("E101") ? "Finca San Isidro" : "Granja Santa Elena"));
+                    if ("BORRADOR".equalsIgnoreCase(p.estado)) continue;
+                    String z = (p.zona != null && !p.zona.isEmpty()) ? p.zona : "";
+                    String g = (p.granja != null && !p.granja.isEmpty()) ? p.granja : "";
 
                     boolean matchZona = (filtroZona == null || z.toLowerCase().contains(filtroZona.toLowerCase()));
                     boolean matchGranja = (filtroGranja == null || g.toLowerCase().contains(filtroGranja.toLowerCase()));
