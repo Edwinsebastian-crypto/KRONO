@@ -96,76 +96,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupWindowInsets() {
         StatusBarUtils.applyStatusBarNavyHeader(this);
-
-        ViewCompat.setOnApplyWindowInsetsListener(scrollViewMain, (v, insets) -> {
-            Insets navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
-            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
-
-            lastImeHeight = ime.bottom;
-
-            int bottomInset = (ime.bottom > 0) ? 0 : navBars.bottom;
-
-            v.setPadding(
-                    0,
-                    0,
-                    0,
-                    bottomInset
-            );
-
-            // If soft keyboard is visible, position the focused view right above it
-            if (ime.bottom > 0) {
-                scrollViewMain.postDelayed(() -> {
-                    View currentFocused = getCurrentFocus();
-                    if (currentFocused != null) {
-                        scrollToFocusedView(currentFocused);
-                    }
-                }, 100);
-            }
-
-            return insets;
-        });
+        StatusBarUtils.setupIntelligentKeyboard(this, scrollViewMain);
     }
 
     private void setupFocusAutoScroll() {
-        View.OnFocusChangeListener focusChangeListener = (v, hasFocus) -> {
-            if (hasFocus) {
-                scrollViewMain.postDelayed(() -> scrollToFocusedView(v), 100);
-            }
-        };
-
-        View.OnClickListener clickListener = v ->
-                scrollViewMain.postDelayed(() -> scrollToFocusedView(v), 100);
-
         View[] inputs = new View[]{etUserId, etPassword};
         for (View input : inputs) {
-            input.setOnFocusChangeListener(focusChangeListener);
-            input.setOnClickListener(clickListener);
+            StatusBarUtils.attachFocusAutoScroll(scrollViewMain, input);
         }
-    }
-
-    private View resolveTargetContainer(View view) {
-        if (view == null) return null;
-        int viewId = view.getId();
-        if (viewId == R.id.etUserId) {
-            View layoutUserId = findViewById(R.id.layoutUserId);
-            return layoutUserId != null ? layoutUserId : view;
-        } else if (viewId == R.id.etPassword) {
-            View layoutPassword = findViewById(R.id.layoutPassword);
-            return layoutPassword != null ? layoutPassword : view;
-        }
-        return view;
-    }
-
-    private void scrollToFocusedView(View view) {
-        if (scrollViewMain == null || view == null) return;
-        final View finalTarget = resolveTargetContainer(view);
-        scrollViewMain.post(() -> {
-            int extra = (int) (24 * getResources().getDisplayMetrics().density);
-            finalTarget.requestRectangleOnScreen(
-                    new android.graphics.Rect(0, 0, finalTarget.getWidth(), finalTarget.getHeight() + extra),
-                    true
-            );
-        });
     }
 
     private void setupRoleSelection() {

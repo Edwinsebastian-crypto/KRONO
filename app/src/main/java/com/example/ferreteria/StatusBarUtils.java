@@ -105,7 +105,7 @@ public final class StatusBarUtils {
     /**
      * Ajusta los insets de navegación y realiza scroll automático suave cuando
      * aparece el teclado virtual para que los campos de texto nunca queden cubiertos,
-     * sin añadir doble padding que cause una franja vacía del color de fondo.
+     * ocultando la barra inferior mientras se escribe y eliminando la franja beige.
      */
     public static void setupIntelligentKeyboard(Activity activity, ScrollView scrollView) {
         if (activity == null || scrollView == null) return;
@@ -114,27 +114,30 @@ public final class StatusBarUtils {
             Insets navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
             Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
 
-            // Con windowSoftInputMode="adjustResize", Android ya reduce la ventana al abrir el teclado.
-            // Si sumamos ime.bottom al padding, se duplica el espacio creando una barra beige vacía.
-            // Por lo tanto, solo aplicamos padding de la barra de navegación cuando el teclado está cerrado.
-            int bottomPadding = (ime.bottom > 0) ? 0 : navBars.bottom;
+            boolean isKeyboardVisible = ime.bottom > 0;
+
+            // Ocultar barra de navegación inferior cuando el teclado está abierto para no quitar espacio
+            View bottomNav = activity.findViewById(R.id.bottomNav);
+            if (bottomNav != null) {
+                bottomNav.setVisibility(isKeyboardVisible ? View.GONE : View.VISIBLE);
+            }
+
+            // Margen inferior limpio: NUNCA sumar ime.bottom (que creaba la franja beige de 1100px)
+            float density = v.getResources().getDisplayMetrics().density;
+            int bottomPadding = isKeyboardVisible ? (int) (16 * density) : navBars.bottom;
 
             v.setPadding(
                     v.getPaddingLeft(),
-                    v.getPaddingTop(),
+                    0,
                     v.getPaddingRight(),
                     bottomPadding
             );
 
-            if (ime.bottom > 0) {
+            if (isKeyboardVisible) {
                 scrollView.postDelayed(() -> {
                     View currentFocused = activity.getCurrentFocus();
                     if (currentFocused != null) {
-                        int extra = (int) (20 * v.getResources().getDisplayMetrics().density);
-                        currentFocused.requestRectangleOnScreen(
-                                new android.graphics.Rect(0, 0, currentFocused.getWidth(), currentFocused.getHeight() + extra),
-                                true
-                        );
+                        scrollToFocusedView(scrollView, currentFocused);
                     }
                 }, 100);
             }
@@ -143,12 +146,47 @@ public final class StatusBarUtils {
         });
     }
 
-    public static void scrollToFocusedView(ScrollView scrollView, View focusedView, int imeHeight) {
+    public static void scrollToFocusedView(ScrollView scrollView, View focusedView) {
         if (scrollView == null || focusedView == null) return;
-        int extra = (int) (20 * scrollView.getResources().getDisplayMetrics().density);
-        focusedView.requestRectangleOnScreen(
-                new android.graphics.Rect(0, 0, focusedView.getWidth(), focusedView.getHeight() + extra),
-                true
-        );
+
+        scrollView.post(() -> {
+            try {
+                android.graphics.Rect rect = new android.graphics.Rect();
+                focusedView.getDrawingRect(rect);
+                scrollView.offsetDescendantRectToMyCoords(focusedView, rect);
+
+                int scrollY = scrollView.getScrollY();
+                int visibleHeight = scrollView.getHeight() - scrollView.getPaddingTop() - scrollView.getPaddingBottom();
+                if (visibleHeight <= 0) return;
+
+                int margin = (int) (32 * scrollView.getResources().getDisplayMetrics().density);
+
+                if (rect.bottom + margin > scrollY + visibleHeight) {
+                    int targetScrollY = (rect.bottom + margin) - visibleHeight;
+                    scrollView.smoothScrollTo(0, targetScrollY);
+                } else if (rect.top - margin < scrollY) {
+                    int targetScrollY = Math.max(0, rect.top - margin);
+                    scrollView.smoothScrollTo(0, targetScrollY);
+                }
+            } catch (Exception ignored) {
+                int extra = (int) (24 * scrollView.getResources().getDisplayMetrics().density);
+                focusedView.requestRectangleOnScreen(
+                        new android.graphics.Rect(0, 0, focusedView.getWidth(), focusedView.getHeight() + extra),
+                        true
+                );
+            }
+        });
+    }
+
+    public static void attachFocusAutoScroll(ScrollView scrollView, View inputView) {
+        if (scrollView == null || inputView == null) return;
+        inputView.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                scrollView.postDelayed(() -> scrollToFocusedView(scrollView, v), 100);
+            }
+        });
+        inputView.setOnClickListener(v -> {
+            scrollView.postDelayed(() -> scrollToFocusedView(scrollView, v), 100);
+        });
     }
 }

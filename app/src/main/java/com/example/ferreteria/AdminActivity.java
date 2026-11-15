@@ -1518,6 +1518,7 @@ public class AdminActivity extends AppCompatActivity {
         bg.setCornerRadius(dp(10));
         bg.setStroke(dp(1), border);
         input.setBackground(bg);
+        StatusBarUtils.attachFocusAutoScroll(findViewById(R.id.scrollViewAdmin), input);
         return input;
     }
 
